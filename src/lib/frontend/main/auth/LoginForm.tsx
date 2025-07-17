@@ -67,31 +67,25 @@ export default function LoginForm({
 
       {useOtp ? (
         <div>
-          <label className="block text-sm text-gray-600 mb-1" htmlFor="otp">
+          <label className="block text-sm text-gray-600 mb-2">
             Enter the OTP sent to your {formData.loginWith}
           </label>
           <OtpInput
-            value={formData.otp}
+            value={String(formData.otp || '')}
             onChange={(val) => setFormData({ ...formData, otp: val })}
             numInputs={6}
             inputType="tel"
-            shouldAutoFocus
-            renderInput={(props) => <input {...props} />}
-            inputStyle={{
-              padding: '0.75rem',
-              width: '2.75rem',
-              height: '2.75rem',
-              fontSize: '1rem',
-              borderRadius: '0.75rem',
-              border: '1px solid var(--color-muted)',
-              backgroundColor: 'var(--color-bg)',
-              color: 'var(--color-text)',
-              fontWeight: '500',
-              textAlign: 'center',
-              transition: 'border-color 0.2s ease, box-shadow 0.2s ease',
-            }}
-            containerStyle="flex justify-center gap-2 mt-3"
+            containerStyle={{ gap: "0.5rem" }}
+            renderInput={(props) => (
+              <input
+                {...props}
+                name="otp"
+                className="input otpInput"
+              />
+            )}
+
           />
+
         </div>
       ) : (
         <div className={`inputGroup`}>
@@ -129,15 +123,15 @@ export default function LoginForm({
       </button>
 
       {!useOtp && (
-        <p className="text-center text-sm mt-4">
-          OR{' '}
-          <button
+        <p className={`text-center text-sm mt-4 ${styles.OrText}`}>
+          OR  <button
             className="text-brand font-medium cursor-pointer"
             onClick={onSendOtp}
             disabled={otpSent}
           >
             Send OTP instead
           </button>
+
         </p>
       )}
 

@@ -287,6 +287,12 @@ input[type="date"]::-webkit-calendar-picker-indicator {
   box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15);
 }
 
+.otpInput {
+  width: 50px !important;
+  height: 50px !important;
+  padding: 0;
+  margin: 0;
+}
 
 .input-icon {
   position: absolute;

@@ -949,5 +949,11 @@
   font-size: 0.8rem;
   color: var(--color-text-muted);
 }
-
+.OrText{
+  color: var(--color-text-muted);
+}
+.OrText button{
+  color: var(--color-text);
+  font-weight: 500;
+}
 /* auth end */
