@@ -2,6 +2,7 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
 import styles from '@/styles/main.module.css';
+import Link from 'next/link';
 
 export default function Hero() {
   const [username, setUsername] = useState('');
@@ -52,8 +53,8 @@ export default function Hero() {
           animate={{ opacity: 1 }}
           transition={{ delay: 0.6 }}
         >
-          <a href="/create" className="btn-primary">Start for Free</a>
-          <a href="#plans" className="btn-white">View Pricing</a>
+          <Link href="/create" className="btn-primary">Start for Free</Link>
+          <Link href="#plans" className="btn-white">View Pricing</Link>
         </motion.div>
       </div>
     </section>

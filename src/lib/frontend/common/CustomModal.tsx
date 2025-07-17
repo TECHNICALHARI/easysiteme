@@ -2,7 +2,6 @@
 
 import { X } from 'lucide-react';
 import { ReactNode, useEffect } from 'react';
-import styles from '@/styles/dashboard.module.css';
 
 export default function CustomModal({
   children,

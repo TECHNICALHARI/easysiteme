@@ -2,6 +2,7 @@
 
 import { motion } from 'framer-motion';
 import styles from '@/styles/main.module.css';
+import Link from 'next/link';
 
 export default function CallToAction() {
   return (
@@ -34,8 +35,8 @@ export default function CallToAction() {
           transition={{ delay: 0.4 }}
           viewport={{ once: true }}
         >
-          <a href="/create" className="btn-primary">Create My Page</a>
-          <a href="#plans" className="btn-white">Explore Plans</a>
+          <Link href="/create" className="btn-primary">Create My Page</Link>
+          <Link href="#plans" className="btn-white">Explore Plans</Link>
         </motion.div>
 
         <p className={styles.ctaNote}>No credit card required · Change anytime · Instant publishing</p>

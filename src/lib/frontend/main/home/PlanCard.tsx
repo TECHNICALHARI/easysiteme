@@ -1,6 +1,7 @@
 'use client';
 
 import styles from '@/styles/main.module.css';
+import Link from 'next/link';
 
 type Plan = {
   name: string;
@@ -21,9 +22,9 @@ export default function PlanCard({ plan }: { plan: Plan }) {
       </ul>
 
       <div className={styles.planBtnWrapper}>
-        <a href="/create" className="btn-primary">
+        <Link href="/create" className="btn-primary">
           Choose {plan.name}
-        </a>
+        </Link>
       </div>
     </div>
   );

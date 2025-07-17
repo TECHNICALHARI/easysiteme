@@ -3,6 +3,7 @@
 import { Mail, Phone, Eye, EyeOff } from 'lucide-react';
 import styles from '@/styles/main.module.css';
 import OtpInput from 'react-otp-input';
+import Link from 'next/link';
 export default function LoginForm({
   formData,
   setFormData,
@@ -137,9 +138,9 @@ export default function LoginForm({
 
       <p className={styles.authBottomText}>
         Don’t have an account?{' '}
-        <a href="/signup">
+        <Link href="/signup">
           Sign Up
-        </a>
+        </Link>
       </p>
     </div>
   );

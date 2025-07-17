@@ -134,7 +134,7 @@ export default function PlansPage() {
                     onClose={() => setShowUsersModal(false)}
                 >
                     <h3 className="text-lg font-bold mb-3 text-brand">
-                        Users on "{selectedPlanName}" Plan
+                        Users on {`"${selectedPlanName}"`} Plan
                     </h3>
 
                     <AdminTable

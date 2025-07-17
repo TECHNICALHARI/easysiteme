@@ -2,6 +2,7 @@
 
 import { Mail, Phone, Eye, EyeOff, User } from 'lucide-react';
 import styles from '@/styles/main.module.css';
+import Link from 'next/link';
 
 export default function SignupForm({
     formData,
@@ -96,9 +97,9 @@ export default function SignupForm({
 
             <p className={styles.authBottomText}>
                 Already signed up?{' '}
-                <a href="/login" className="text-brand font-medium">
+                <Link href="/login" className="text-brand font-medium">
                     Login
-                </a>
+                </Link>
             </p>
         </div>
     );

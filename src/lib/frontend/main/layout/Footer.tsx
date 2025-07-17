@@ -2,6 +2,7 @@
 
 import styles from '@/styles/main.module.css';
 import { Facebook, Twitter, Instagram, Linkedin } from 'lucide-react';
+import Link from 'next/link';
 
 export default function Footer() {
   return (
@@ -21,27 +22,27 @@ export default function Footer() {
             <div>
               <h4>Product</h4>
               <ul>
-                <li><a href="#plans">Pricing</a></li>
-                <li><a href="#faq">FAQ</a></li>
-                <li><a href="/create">Get Started</a></li>
+                <li><Link href="#plans">Pricing</Link></li>
+                <li><Link href="#faq">FAQ</Link></li>
+                <li><Link href="/create">Get Started</Link></li>
               </ul>
             </div>
 
             <div>
               <h4>Legal</h4>
               <ul>
-                <li><a href="/terms">Terms of Service</a></li>
-                <li><a href="/privacy">Privacy Policy</a></li>
+                <li><Link href="/terms">Terms of Service</Link></li>
+                <li><Link href="/privacy">Privacy Policy</Link></li>
               </ul>
             </div>
 
             <div>
               <h4>Follow Us</h4>
               <div className={styles.socialIcons}>
-                <a href="#"><Facebook size={20} className={styles.footerIcon} /></a>
-                <a href="#"><Twitter size={20} className={styles.footerIcon} /></a>
-                <a href="#"><Instagram size={20} className={styles.footerIcon} /></a>
-                <a href="#"><Linkedin size={20} className={styles.footerIcon} /></a>
+                <Link href="#"><Facebook size={20} className={styles.footerIcon} /></Link>
+                <Link href="#"><Twitter size={20} className={styles.footerIcon} /></Link>
+                <Link href="#"><Instagram size={20} className={styles.footerIcon} /></Link>
+                <Link href="#"><Linkedin size={20} className={styles.footerIcon} /></Link>
               </div>
             </div>
           </div>

@@ -3,6 +3,7 @@
 import { motion } from 'framer-motion';
 import { Globe, UserCheck, Image } from 'lucide-react';
 import styles from '@/styles/main.module.css';
+import Link from 'next/link';
 
 const users = [
   {
@@ -46,9 +47,9 @@ export default function UserShowcase() {
             >
               <div className={styles.userIcon}>{user.icon}</div>
               <h4 className={styles.userHandle}>{user.name}</h4>
-              <a href={user.link} target="_blank" rel="noopener noreferrer" className={styles.userLink}>
+              <Link href={user.link} target="_blank" rel="noopener noreferrer" className={styles.userLink}>
                 {user.link}
-              </a>
+              </Link>
               <p className={styles.userDesc}>{user.desc}</p>
             </motion.div>
           ))}
