@@ -36,6 +36,42 @@ html {
   scroll-behavior: smooth;
 }
 
+/* logo start */
+.logo {
+  font-family: var(--font-base);
+  font-weight: 800;
+  font-size: 2rem;
+  line-height: 1;
+  letter-spacing: -0.03em;
+  display: flex;
+  align-items: center;
+  color: var(--color-text);
+  transition: color 0.3s ease;
+  white-space: nowrap;
+}
+
+.logo .highlight {
+  font-weight: 900;
+  background: linear-gradient(90deg, var(--color-brand), var(--color-brand-dark));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  display: inline-block;
+  margin: 0 1px;
+  transition: filter 0.3s ease;
+}
+
+.logo:hover .highlight {
+  filter: brightness(1.15);
+}
+
+@media (max-width: 768px) {
+  .logo {
+    font-size: 1.5rem;
+  }
+}
+
+/* logo end */
+
 .container {
   max-width: 72rem;
   margin: 0 auto;
@@ -358,16 +394,12 @@ input[type="date"]::-webkit-calendar-picker-indicator {
   box-shadow: 0 25px 60px rgba(0, 0, 0, 0.1);
   animation: popIn 0.2s ease-out;
 
-  /* ✅ Hide scrollbar cross-browser */
   scrollbar-width: none;
-  /* Firefox */
   -ms-overflow-style: none;
-  /* IE/Edge */
 }
 
 .customModal::-webkit-scrollbar {
   display: none;
-  /* Chrome/Safari */
 }
 
 
@@ -415,4 +447,26 @@ input[type="date"]::-webkit-calendar-picker-indicator {
     max-width: 95vw;
   }
 }
+
 /* modal end */
+
+
+/* Webkit Scrollbar Styling */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background-color: rgba(100, 116, 139, 0.3);
+  border-radius: 4px;
+  transition: background-color 0.3s ease;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background-color: rgba(100, 116, 139, 0.5);
+}

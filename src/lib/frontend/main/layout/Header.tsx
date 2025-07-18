@@ -5,6 +5,7 @@ import { useState, useEffect } from 'react';
 import { Menu, X } from 'lucide-react';
 import styles from '@/styles/main.module.css';
 import ThemeToggle from '../home/ThemeToggle';
+import Logo from '../../common/Logo';
 
 const navItems = [
   { label: 'Why OnePage', href: '#why' },
@@ -25,7 +26,7 @@ export default function Header() {
   return (
     <header className={`${styles.header} ${isScrolled ? styles.headerScrolled : ''}`}>
       <div className="container flex items-center justify-between relative z-50">
-        <Link href="/" className={styles.logoGlow}>OnePage</Link>
+        <Link href="/" className={styles.logoGlow}><Logo /></Link>
 
         <nav className="hidden md:flex items-center gap-6">
           {navItems.map((item) => (

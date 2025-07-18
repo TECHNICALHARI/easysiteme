@@ -19,7 +19,7 @@
   box-shadow: 0 8px 20px rgba(0, 0, 0, 0.05);
 }
 
-.logoGlow {
+/* .logoGlow {
   font-size: 1.75rem;
   font-weight: 800;
   color: var(--color-brand);
@@ -38,7 +38,7 @@
   background: linear-gradient(90deg, var(--color-brand), var(--color-brand-dark));
   opacity: 0.2;
   border-radius: 9999px;
-}
+} */
 
 .navLink {
   color: var(--color-text);
