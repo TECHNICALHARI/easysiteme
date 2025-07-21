@@ -3,14 +3,15 @@
 import { FC, useState } from 'react';
 import styles from '@/styles/admin.module.css';
 import { FormData } from '../../types/form';
-const tabs = ['Links', 'Posts', 'Design', 'Subscribers', 'Stats', 'Settings'];
+import ProfileTab from './ProfileTab';
+const tabs = ['Profile', 'Posts', 'Design', 'Subscribers', 'Stats', 'Settings'];
 
 interface props {
     form: FormData;
     setForm: React.Dispatch<React.SetStateAction<FormData>>;
 }
 const AllTabs: FC<props> = ({ form, setForm }) => {
-    const [activeTab, setActiveTab] = useState('Links');
+    const [activeTab, setActiveTab] = useState('Profile');
 
     return (
         <div className={styles.tabsWrapper}>
@@ -27,12 +28,12 @@ const AllTabs: FC<props> = ({ form, setForm }) => {
             </nav>
 
             <div className={styles.tabContent}>
-                {/* {activeTab === 'Links' && <LinksTab form={form} setForm={setForm} />}
-        {activeTab === 'Posts' && <PostsTab form={form} setForm={setForm} />}
-        {activeTab === 'Design' && <DesignTab form={form} setForm={setForm} />}
-        {activeTab === 'Subscribers' && <SubscribersTab form={form} setForm={setForm} />}
-        {activeTab === 'Stats' && <StatsTab form={form} setForm={setForm} />}
-        {activeTab === 'Settings' && <SettingsTab form={form} setForm={setForm} />} */}
+                {activeTab === 'Profile' && <ProfileTab form={form} setForm={setForm} />}
+                {/* {activeTab === 'Posts' && <PostsTab form={form} setForm={setForm} />}
+                {activeTab === 'Design' && <DesignTab form={form} setForm={setForm} />}
+                {activeTab === 'Subscribers' && <SubscribersTab form={form} setForm={setForm} />}
+                {activeTab === 'Stats' && <StatsTab form={form} setForm={setForm} />}
+                {activeTab === 'Settings' && <SettingsTab form={form} setForm={setForm} />} */}
             </div>
         </div>
     );

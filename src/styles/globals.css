@@ -154,6 +154,14 @@ html {
   transform: scale(1.05);
 }
 
+button:disabled,
+button[disabled] {
+  background-color: var(--color-brand);
+  opacity: 0.5;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
 /* form create */
 
 .is-editor-empty::before {
@@ -262,6 +270,12 @@ input[type="date"]::-webkit-calendar-picker-indicator {
   z-index: 2;
 }
 
+.labelText {
+  font-size: 0.9rem;
+  font-weight: 400;
+  color: var(--color-text-muted);
+}
+
 .date-label {
   position: relative;
   display: inline-flex;
@@ -301,7 +315,7 @@ input[type="date"]::-webkit-calendar-picker-indicator {
 
 .input {
   width: 100%;
-  padding: 0.75rem 1rem 0.75rem 2.75rem;
+  padding: 0.75rem 1rem 0.75rem 1.2rem;
   border: 1px solid var(--color-muted);
   border-radius: 0.75rem;
   font-size: 0.95rem;
@@ -373,7 +387,7 @@ input[type="date"]::-webkit-calendar-picker-indicator {
 .modalOverlay {
   position: fixed;
   inset: 0;
-  z-index: 50;
+  z-index: 9999;
   background: rgba(0, 0, 0, 0.45);
   backdrop-filter: blur(6px);
   display: flex;
@@ -393,7 +407,6 @@ input[type="date"]::-webkit-calendar-picker-indicator {
   position: relative;
   box-shadow: 0 25px 60px rgba(0, 0, 0, 0.1);
   animation: popIn 0.2s ease-out;
-
   scrollbar-width: none;
   -ms-overflow-style: none;
 }
@@ -402,7 +415,12 @@ input[type="date"]::-webkit-calendar-picker-indicator {
   display: none;
 }
 
-
+.modalHeader {
+  display: flex;
+  justify-content: space-between;
+  gap: 2rem;
+  align-items: center;
+}
 
 .modalCloseBtn {
   position: absolute;
@@ -469,4 +487,19 @@ input[type="date"]::-webkit-calendar-picker-indicator {
 
 ::-webkit-scrollbar-thumb:hover {
   background-color: rgba(100, 116, 139, 0.5);
+}
+
+.badge-pro {
+  display: inline-block;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--color-brand-dark);
+  background-color: rgba(79, 70, 229, 0.1);
+  padding: 0.2rem 0.5rem;
+  border-radius: 9999px;
+  margin-left: 0.4rem;
+  vertical-align: middle;
+  line-height: 1;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
 }

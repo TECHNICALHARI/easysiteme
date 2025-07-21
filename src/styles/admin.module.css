@@ -81,8 +81,9 @@
     border-radius: 2rem;
     box-shadow: 0 20px 50px rgba(0, 0, 0, 0.1);
     overflow: hidden;
-    border: 1px solid #e5e7eb;
+    border: 15px solid var(--color-text-muted);
 }
+
 
 /* tab start */
 .tabsWrapper {
@@ -97,10 +98,8 @@
 .tabNav {
     display: flex;
     gap: 1.25rem;
-    margin-bottom: 1.5rem;
     border-bottom: 1px solid var(--color-muted);
     overflow-x: auto;
-    padding-bottom: 0.5rem;
 }
 
 .tabItem {
@@ -113,6 +112,7 @@
     white-space: nowrap;
     border-radius: 0.5rem 0.5rem 0 0;
     background-color: transparent;
+    cursor: pointer;
 }
 
 .tabItem:hover {
@@ -127,15 +127,196 @@
 
 .tabContent {
     flex: 1;
-    background-color: white;
-    border: 1px solid var(--color-muted);
-    padding: 2rem;
-    border-radius: 1.5rem;
-    box-shadow: 0 15px 30px rgba(0, 0, 0, 0.03);
+    padding: 1rem;
     overflow-y: auto;
+    border-radius: 1rem;
+    background: radial-gradient(circle at top right, rgba(99, 102, 241, 0.08), transparent 70%);
 }
 
 /* tab end */
+
+/* linkTab start */
+.TabPageMain {
+    margin-bottom: 2rem;
+}
+
+.sectionHead {
+    margin-bottom: 1rem;
+}
+
+.sectionHead h3 {
+    font-size: 1.5rem;
+    font-weight: 600;
+}
+
+.sectionHead p {
+    font-size: 1rem;
+    font-weight: 400;
+}
+
+.sectionMain {
+    background: var(--color-bg);
+    padding: 2rem;
+    border-radius: 1.25rem;
+    border: 1px solid rgba(0, 0, 0, 0.06);
+    box-shadow: 0 10px 24px rgba(0, 0, 0, 0.06);
+    transition: all 0.3s ease;
+    margin: 1rem 0;
+}
+
+.SecHeadAndBtn {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+}
+
+.SecHeadAndBtn h4 {
+    font-size: 1rem;
+    font-weight: 600;
+}
+
+.SecHeadAndBtn button {
+    border-radius: 12px;
+    padding: 12px 18px;
+    font-size: 1rem;
+}
+
+.modalHeader {
+    font-size: 1rem;
+    font-weight: 600;
+    margin-bottom: 1rem;
+}
+
+.fileUpload {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
+.filePreview {
+    font-size: 0.875rem;
+    padding: 0.5rem 0.75rem;
+    background-color: #f9fafb;
+    border: 1px solid #e5e7eb;
+    border-radius: 0.75rem;
+    color: var(--color-text-muted);
+}
+
+.hiddenFile {
+    border: none;
+    background: transparent;
+    font-size: 0.85rem;
+    padding: 0;
+}
+
+.saveButton,
+.cancelBtn {
+    border-radius: 12px;
+}
+
+.cancelBtn {
+    border: 1px solid var(--color-red-400);
+    color: var(--color-brand);
+    cursor: pointer;
+    color: var(--color-red-400);
+}
+
+.cancelBtn:hover {
+    color: var(--color-red-400);
+}
+
+.linkItem {
+    background-color: white;
+    border: 1px solid #e5e7eb;
+    border-radius: 1rem;
+    padding: 1rem;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    transition: all 0.2s ease;
+}
+
+.linkItem:hover {
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.06);
+}
+.linkThumbnail {
+  width: 40px;
+  height: 40px;
+  border-radius: 0.5rem;
+  background-color: #f3f3f3;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+
+.linkFormInputImg {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 2rem;
+}
+
+/* Preview image start */
+.previewCircle {
+    position: relative;
+    width: 7rem;
+    height: 7rem;
+    border: 1px dashed var(--color-brand);
+    border-radius: 9999px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    padding: 0.5rem;
+    background-color: var(--color-white);
+}
+
+.previewImage {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 9999px;
+}
+
+.previewPlaceholder {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+}
+
+.removeBtn {
+    position: absolute;
+    top: 4px;
+    right: 4px;
+    background: var(--color-text-muted);
+    color: var(--color-muted);
+    border: none;
+    border-radius: 9999px;
+    padding: 0.2rem;
+    cursor: pointer;
+    transition: color 0.2s ease;
+}
+
+.removeBtn:hover {
+    color: #e11d48;
+}
+
+.checkboxLabel{
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+.checkboxLabel span{
+    color: var(--color-text-muted);
+    font-size: 0.9rem;
+}
+/* Preview image end */
+/* linkTab end */
 
 @media (max-width: 1024px) {
     .mobilePreview {
