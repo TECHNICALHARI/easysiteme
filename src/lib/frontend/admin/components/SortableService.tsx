@@ -44,11 +44,12 @@ export default function SortableService({
             <GripVertical size={18} />
           </button>
           {service.image && (
-            <img
-              src={service.image}
-              alt={service.title}
-              className="w-16 h-16 rounded-md object-cover"
-            />
+            <div className={styles.PTserviceImg}>
+              <img
+                src={service.image}
+                alt={service.title}
+              />
+            </div>
           )}
           <div>
             <div className="font-semibold text-base mb-1">{service.title}</div>

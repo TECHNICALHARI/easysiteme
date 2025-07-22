@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
-import CustomModal from '../../common/CustomModal';
 import styles from '@/styles/admin.module.css';
+import Modal from '../../common/Modal';
 
 export default function EmbedFormModal({
   onSave,
@@ -51,49 +51,32 @@ export default function EmbedFormModal({
   };
 
   return (
-    <CustomModal onClose={onClose} width="500px">
+    <Modal title={initialData ? 'Edit Embed' : 'Add Embed'} onClose={onClose} width="500px">
       <div className="flex flex-col gap-4">
-        <h2 className={styles.modalHeader}>
-          {initialData ? 'Edit Embed' : 'Add Embed'}
-        </h2>
-
-        {/* Title */}
-        <div className="flex flex-col gap-1">
-          <label className="text-sm font-medium">Embed Title</label>
+        <div>
           <input
             className="input"
-            placeholder="e.g. My Calendly"
+            placeholder="Embed Title (e.g. My Calendly)"
             value={title}
             onChange={(e) => setTitle(e.target.value)}
           />
           {errors.title && (
-            <span className="text-xs text-red-500">{errors.title}</span>
+            <span className="errorText">{errors.title}</span>
           )}
         </div>
-
-        {/* URL */}
-        <div className="flex flex-col gap-1">
-          <label className="text-sm font-medium">Embed URL</label>
+        <div>
           <textarea
             className="input"
-            placeholder="https://..."
+           placeholder="Embed URL (https://...)"
             rows={3}
             value={url}
             onChange={(e) => setUrl(e.target.value)}
           />
           {errors.url && (
-            <span className="text-xs text-red-500">{errors.url}</span>
+            <span className="errorText">{errors.url}</span>
           )}
         </div>
-
-        {/* Footer */}
-        <div className="flex justify-end gap-2 mt-4">
-          <button
-            className={`btn-outline-white ${styles.cancelBtn}`}
-            onClick={onClose}
-          >
-            Cancel
-          </button>
+        <div className={styles.saveButtonMain}>
           <button
             className={`btn-primary ${styles.saveButton}`}
             onClick={handleSave}
@@ -103,6 +86,6 @@ export default function EmbedFormModal({
           </button>
         </div>
       </div>
-    </CustomModal>
+    </Modal>
   );
 }

@@ -109,7 +109,7 @@ export default function LinkFormModal({ onSave, onClose, initialData }: LinkForm
               value={title}
               onChange={(e) => setTitle(e.target.value)}
             />
-            {errors.title && <span className="text-xs text-red-500">{errors.title}</span>}
+            {errors.title && <span className="errorText">{errors.title}</span>}
           </div>
 
           <div>
@@ -121,7 +121,7 @@ export default function LinkFormModal({ onSave, onClose, initialData }: LinkForm
               value={url}
               onChange={(e) => setUrl(e.target.value)}
             />
-            {errors.url && <span className="text-xs text-red-500">{errors.url}</span>}
+            {errors.url && <span className="errorText">{errors.url}</span>}
           </div>
 
           <label className={styles.checkboxLabel}>
@@ -171,9 +171,9 @@ export default function LinkFormModal({ onSave, onClose, initialData }: LinkForm
       </div>
 
       {/* Save Button */}
-      <div className="mt-8">
+      <div className={styles.saveButtonMain}>
         <button
-          className={`btn-primary ${!isValid ? 'btn-disabled' : ''} ${styles.saveButton}`}
+          className={`btn-primary ${styles.saveButton}`}
           onClick={handleSave}
           disabled={!isValid}
         >

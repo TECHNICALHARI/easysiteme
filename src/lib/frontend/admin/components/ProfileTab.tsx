@@ -30,6 +30,14 @@ import SortableTestimonial from './SortableTestimonial';
 import SortableFAQ from './SortableFAQ';
 import ServiceFormModal from './ServiceFormModal';
 import SortableService from './SortableService';
+import Modal from '../../common/Modal';
+import { TestimonialFormModal } from './TestimonialFormModal';
+import { FAQFormModal } from './FAQFormModal';
+import { HeaderFormModal } from './HeaderFormModal';
+import ContactInfoSection from './ContactInfoSection';
+import FeaturedMediaModal from './FeaturedMediaModal';
+import FeaturedMediaSection from './FeaturedMediaSection';
+import SortableFeaturedMediaItem from './FeaturedMediaSection';
 
 const PLAN_LIMITS = {
   free: { links: 3, headers: 1, embeds: 0, contact: false, resume: false, featured: false, about: false, map: false, testimonials: 0, faqs: 0, services: 0 },
@@ -66,12 +74,14 @@ export default function ProfileTab({ form, setForm }: { form: any; setForm: (f: 
   const [faqAnswer, setFaqAnswer] = useState('');
   const [showServiceModal, setShowServiceModal] = useState(false);
   const [editServiceIndex, setEditServiceIndex] = useState<number | null>(null);
+  const [showFeaturedModal, setShowFeaturedModal] = useState(false);
+  const [editFeaturedIndex, setEditFeaturedIndex] = useState<number | null>(null);
   const sensors = useSensors(
     useSensor(PointerSensor),
     useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates })
   );
 
-  const handleDragEnd = (type: 'links' | 'headers' | 'embeds' | 'testimonials' | 'faqs' | 'services') => (event: DragEndEvent) => {
+  const handleDragEnd = (type: 'links' | 'headers' | 'embeds' | 'testimonials' | 'faqs' | 'services' | 'featured') => (event: DragEndEvent) => {
     const { active, over } = event;
     if (!active?.id || !over?.id || active.id === over.id) return;
     const oldIndex = form[type].findIndex((i: any) => i.id === active.id);
@@ -180,6 +190,19 @@ export default function ProfileTab({ form, setForm }: { form: any; setForm: (f: 
     setForm({ ...form, services: updated });
     setShowServiceModal(false);
     setEditServiceIndex(null);
+  };
+
+  const handleSaveFeatured = (newFeatured: any) => {
+    const updated = [...(form.featured || [])];
+    if (editFeaturedIndex !== null) {
+      updated[editFeaturedIndex] = { ...updated[editFeaturedIndex], ...newFeatured };
+    } else {
+      const id = `featured-${Date.now() + Math.random()}`;
+      updated.push({ ...newFeatured, id });
+    }
+    setForm({ ...form, featured: updated });
+    setShowFeaturedModal(false);
+    setEditFeaturedIndex(null);
   };
 
   useEffect(() => {
@@ -307,25 +330,8 @@ export default function ProfileTab({ form, setForm }: { form: any; setForm: (f: 
           </DndContext>
         </div>
 
-        {/* Pro: Contact Info */}
         {limits.contact && (
-          <div className={styles.sectionMain}>
-            <div className={styles.SecHeadAndBtn}>
-              <h4>Contact Info <span className="badge-pro">Pro</span></h4>
-            </div>
-            <input
-              className="input"
-              placeholder="Email"
-              value={form.email || ''}
-              onChange={(e) => setForm({ ...form, email: e.target.value })}
-            />
-            <input
-              className="input mt-2"
-              placeholder="Phone"
-              value={form.phone || ''}
-              onChange={(e) => setForm({ ...form, phone: e.target.value })}
-            />
-          </div>
+          <ContactInfoSection form={form} setForm={setForm} />
         )}
 
         {/* Pro: Location (Map) */}
@@ -418,19 +424,42 @@ export default function ProfileTab({ form, setForm }: { form: any; setForm: (f: 
             />
           </div>
         )}
-
-        {/* Pro: Featured Media */}
         {limits.featured && (
           <div className={styles.sectionMain}>
             <div className={styles.SecHeadAndBtn}>
-              <h4>Featured Media <Youtube size={16} className="inline-block ml-1 mb-1" /> <span className="badge-pro">Pro</span></h4>
+              <h4>
+                Featured Media <Youtube size={16} className="inline-block ml-1 mb-1" /> <span className="badge-pro">Pro</span>
+              </h4>
+              <button
+                className="btn-primary"
+                onClick={() => {
+                  setEditFeaturedIndex(null);
+                  setShowFeaturedModal(true);
+                }}
+                disabled={(form.featured || []).length >= 10}
+              >
+                + Add Media
+              </button>
             </div>
-            <input
-              className="input"
-              placeholder="YouTube or Vimeo link"
-              value={form.featuredVideo || ''}
-              onChange={(e) => setForm({ ...form, featuredVideo: e.target.value })}
-            />
+
+            <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd('featured')}>
+              <SortableContext items={(form.featured || []).map((f: any) => f.id)} strategy={verticalListSortingStrategy}>
+                <div className="grid gap-3">
+                  {(form.featured || []).map((featured: any, i: number) => (
+                    <SortableFeaturedMediaItem
+                      key={featured.id}
+                      id={featured.id}
+                      media={featured}
+                      onEdit={() => {
+                        setEditFeaturedIndex(i);
+                        setShowFeaturedModal(true);
+                      }}
+                      onDelete={() => setForm({ ...form, featured: form.featured.filter((_: any, j: number) => j !== i) })}
+                    />
+                  ))}
+                </div>
+              </SortableContext>
+            </DndContext>
           </div>
         )}
 
@@ -603,20 +632,23 @@ export default function ProfileTab({ form, setForm }: { form: any; setForm: (f: 
       )}
 
       {showHeaderModal && (
-        <CustomModal onClose={() => setShowHeaderModal(false)} width="400px">
-          <h2 className={styles.modalHeader}>{editHeaderIndex !== null ? 'Edit Header' : 'Add Header'}</h2>
-          <input
-            className="input"
-            placeholder="Header Title"
-            value={headerTitle}
-            onChange={(e) => setHeaderTitle(e.target.value)}
-          />
-          <div className="flex justify-end gap-2 mt-4">
-            <button className="btn-outline-white" onClick={() => setShowHeaderModal(false)}>Cancel</button>
-            <button className="btn-primary" onClick={handleSaveHeader}>Save</button>
-          </div>
-        </CustomModal>
+        <HeaderFormModal
+          initialData={editHeaderIndex !== null ? form.headers?.[editHeaderIndex] : undefined}
+          onClose={() => setShowHeaderModal(false)}
+          onSave={(newHeader) => {
+            if (editHeaderIndex !== null) {
+              const updated = [...form.headers];
+              updated[editHeaderIndex] = { ...updated[editHeaderIndex], ...newHeader };
+              setForm({ ...form, headers: updated });
+            } else {
+              const id = `header-${Date.now() + Math.random()}`;
+              setForm({ ...form, headers: [...(form.headers || []), { ...newHeader, id }] });
+            }
+            setShowHeaderModal(false);
+          }}
+        />
       )}
+
 
       {showUploadModal && (
         <UploadModal
@@ -640,78 +672,44 @@ export default function ProfileTab({ form, setForm }: { form: any; setForm: (f: 
       )}
 
       {showTestimonialModal && (
-        <CustomModal onClose={() => setShowTestimonialModal(false)} width="500px">
-          <div className="flex flex-col gap-4">
-            <h2 className={styles.modalHeader}>{editTestimonialIndex !== null ? 'Edit Testimonial' : 'Add Testimonial'}</h2>
-            <input
-              className="input"
-              placeholder="Name"
-              value={testimonialName}
-              onChange={(e) => setTestimonialName(e.target.value)}
-            />
-            <textarea
-              className="input"
-              rows={3}
-              placeholder="Testimonial message"
-              value={testimonialMessage}
-              onChange={(e) => setTestimonialMessage(e.target.value)}
-            />
-            <div className="flex flex-col items-center justify-center gap-2">
-              <div className={styles.previewCircle} onClick={() => setShowTestimonialUpload(true)}>
-                {testimonialAvatarPreview ? (
-                  <>
-                    <button
-                      className={styles.removeBtn}
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setTestimonialAvatar('');
-                        setTestimonialAvatarPreview(null);
-                      }}
-                    >
-                      <X size={14} />
-                    </button>
-                    <img src={testimonialAvatarPreview} alt="Avatar" className={styles.previewImage} />
-                  </>
-                ) : (
-                  <div className={styles.previewPlaceholder}>
-                    <ImagePlus className="text-gray-400" size={24} />
-                    <span className="text-xs text-gray-500 mt-1">Upload Avatar</span>
-                  </div>
-                )}
-              </div>
-            </div>
-            <div className="flex justify-end gap-2 mt-4">
-              <button className="btn-outline-white" onClick={() => setShowTestimonialModal(false)}>Cancel</button>
-              <button className="btn-primary" onClick={handleSaveTestimonial}>Save</button>
-            </div>
-          </div>
-        </CustomModal>
+        <TestimonialFormModal
+          onClose={() => setShowTestimonialModal(false)}
+          initialData={
+            editTestimonialIndex !== null ? form.testimonials?.[editTestimonialIndex] : undefined
+          }
+          onSave={(newTestimonial) => {
+            if (editTestimonialIndex !== null) {
+              const updated = [...form.testimonials];
+              updated[editTestimonialIndex] = { ...updated[editTestimonialIndex], ...newTestimonial };
+              setForm({ ...form, testimonials: updated });
+            } else {
+              const id = `testimonial-${Date.now() + Math.random()}`;
+              setForm({ ...form, testimonials: [...(form.testimonials || []), { ...newTestimonial, id }] });
+            }
+            setShowTestimonialModal(false);
+          }}
+        />
       )}
 
+
       {showFAQModal && (
-        <CustomModal onClose={() => setShowFAQModal(false)} width="500px">
-          <div className="flex flex-col gap-4">
-            <h2 className={styles.modalHeader}>{editFAQIndex !== null ? 'Edit FAQ' : 'Add FAQ'}</h2>
-            <input
-              className="input"
-              placeholder="Question"
-              value={faqQuestion}
-              onChange={(e) => setFaqQuestion(e.target.value)}
-            />
-            <textarea
-              className="input"
-              rows={3}
-              placeholder="Answer"
-              value={faqAnswer}
-              onChange={(e) => setFaqAnswer(e.target.value)}
-            />
-            <div className="flex justify-end gap-2 mt-4">
-              <button className="btn-outline-white" onClick={() => setShowFAQModal(false)}>Cancel</button>
-              <button className="btn-primary" onClick={handleSaveFAQ}>Save</button>
-            </div>
-          </div>
-        </CustomModal>
+        <FAQFormModal
+          onClose={() => setShowFAQModal(false)}
+          initialData={editFAQIndex !== null ? form.faqs?.[editFAQIndex] : undefined}
+          onSave={(newFaq) => {
+            if (editFAQIndex !== null) {
+              const updated = [...form.faqs];
+              updated[editFAQIndex] = { ...updated[editFAQIndex], ...newFaq };
+              setForm({ ...form, faqs: updated });
+            } else {
+              const id = `faq-${Date.now() + Math.random()}`;
+              setForm({ ...form, faqs: [...(form.faqs || []), { ...newFaq, id }] });
+            }
+            setShowFAQModal(false);
+          }}
+        />
       )}
+
 
       {showTestimonialUpload && (
         <UploadModal
@@ -741,6 +739,14 @@ export default function ProfileTab({ form, setForm }: { form: any; setForm: (f: 
           onClose={() => setShowServiceModal(false)}
           onSave={handleSaveService}
           initialData={editServiceIndex !== null ? form.services[editServiceIndex] : undefined}
+        />
+      )}
+
+       {showFeaturedModal && (
+        <FeaturedMediaModal
+          onClose={() => setShowFeaturedModal(false)}
+          onSave={handleSaveFeatured}
+          initialData={editFeaturedIndex !== null ? form.featured?.[editFeaturedIndex] : undefined}
         />
       )}
     </>

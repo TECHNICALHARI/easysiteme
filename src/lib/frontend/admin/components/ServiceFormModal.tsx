@@ -1,10 +1,10 @@
 'use client';
 
-import { useState } from 'react';
-import CustomModal from '../../common/CustomModal';
+import { useState, useEffect } from 'react';
 import UploadModal from '../../common/UploadModal';
 import styles from '@/styles/admin.module.css';
 import { ImagePlus, X } from 'lucide-react';
+import Modal from '../../common/Modal';
 
 export default function ServiceFormModal({
   onSave,
@@ -27,41 +27,75 @@ export default function ServiceFormModal({
   const [link, setLink] = useState(initialData?.link || '');
   const [image, setImage] = useState(initialData?.image || '');
   const [showUploadModal, setShowUploadModal] = useState(false);
+  const [errors, setErrors] = useState<{ title?: string; description?: string; link?: string }>({});
+  const [isValid, setIsValid] = useState(false);
+
+  useEffect(() => {
+    const newErrors: typeof errors = {};
+    if (!title.trim()) newErrors.title = 'Title is required.';
+    if (!description.trim()) newErrors.description = 'Description is required.';
+
+    if (link.trim()) {
+      try {
+        const parsed = new URL(link.trim());
+        if (!['http:', 'https:'].includes(parsed.protocol)) {
+          newErrors.link = 'Link must start with http:// or https://';
+        }
+      } catch {
+        newErrors.link = 'Please enter a valid URL.';
+      }
+    }
+
+    setErrors(newErrors);
+    setIsValid(Object.keys(newErrors).length === 0);
+  }, [title, description, link]);
 
   const handleSave = () => {
-    onSave({ title, description, image, price, link });
+    if (!isValid) return;
+    onSave({ title: title.trim(), description: description.trim(), image, price: price.trim(), link: link.trim() });
   };
 
   return (
     <>
-      <CustomModal onClose={onClose} width="500px">
-        <h2 className={styles.modalHeader}>{initialData ? 'Edit Service' : 'Add Service'}</h2>
+      <Modal title={initialData ? 'Edit Service' : 'Add Service'} onClose={onClose} width="500px">
         <div className="flex flex-col gap-4">
-          <input
-            className="input"
-            placeholder="Service Title"
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
-          />
-          <textarea
-            className="input"
-            rows={3}
-            placeholder="Service Description"
-            value={description}
-            onChange={(e) => setDescription(e.target.value)}
-          />
+          <div>
+            <input
+              className="input"
+              placeholder="Service Title"
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+            />
+            {errors.title && <span className="errorText">{errors.title}</span>}
+          </div>
+
+          <div>
+            <textarea
+              className="input"
+              rows={3}
+              placeholder="Service Description"
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+            />
+            {errors.description && <span className="errorText">{errors.description}</span>}
+          </div>
+
           <input
             className="input"
             placeholder="Price (optional)"
             value={price}
             onChange={(e) => setPrice(e.target.value)}
           />
-          <input
-            className="input"
-            placeholder="Link (optional)"
-            value={link}
-            onChange={(e) => setLink(e.target.value)}
-          />
+
+          <div>
+            <input
+              className="input"
+              placeholder="Link (optional)"
+              value={link}
+              onChange={(e) => setLink(e.target.value)}
+            />
+            {errors.link && <span className="errorText">{errors.link}</span>}
+          </div>
 
           <div className="flex flex-col items-center justify-center gap-2">
             <div className={styles.previewCircle} onClick={() => setShowUploadModal(true)}>
@@ -87,14 +121,13 @@ export default function ServiceFormModal({
             </div>
           </div>
 
-          <div className="flex justify-end gap-2 mt-4">
-            <button className="btn-outline-white" onClick={onClose}>Cancel</button>
-            <button className="btn-primary" onClick={handleSave} disabled={!title || !description}>
+          <div className={styles.saveButtonMain}>
+            <button className={`btn-primary ${styles.saveButton}`} onClick={handleSave} disabled={!isValid}>
               Save
             </button>
           </div>
         </div>
-      </CustomModal>
+      </Modal>
 
       {showUploadModal && (
         <UploadModal

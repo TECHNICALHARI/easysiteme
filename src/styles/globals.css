@@ -503,3 +503,10 @@ input[type="date"]::-webkit-calendar-picker-indicator {
   text-transform: uppercase;
   letter-spacing: 0.02em;
 }
+
+.errorText {
+  font-size: 0.7rem;
+  padding-left: 1.2rem;
+  padding-top: 0.4rem;
+  color: #e53935;
+}
