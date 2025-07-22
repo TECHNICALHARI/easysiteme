@@ -26,10 +26,14 @@ import CustomModal from '../../common/CustomModal';
 import UploadModal from '../../common/UploadModal';
 import EmbedFormModal from './EmbedFormModal';
 import RichTextEditor from '../../common/RichTextEditor';
+import SortableTestimonial from './SortableTestimonial';
+import SortableFAQ from './SortableFAQ';
+import ServiceFormModal from './ServiceFormModal';
+import SortableService from './SortableService';
 
 const PLAN_LIMITS = {
-  free: { links: 3, headers: 1, embeds: 0, contact: false, resume: false, featured: false, about: false, map: false },
-  premium: { links: 50, headers: 10, embeds: 10, contact: true, resume: true, featured: true, about: true, map: true },
+  free: { links: 3, headers: 1, embeds: 0, contact: false, resume: false, featured: false, about: false, map: false, testimonials: 0, faqs: 0, services: 0 },
+  premium: { links: 50, headers: 10, embeds: 10, contact: true, resume: true, featured: true, about: true, map: true, testimonials: 5, faqs: 10, services: 10 },
 };
 
 export default function ProfileTab({ form, setForm }: { form: any; setForm: (f: any) => void }) {
@@ -49,12 +53,25 @@ export default function ProfileTab({ form, setForm }: { form: any; setForm: (f: 
   const [showEmbedModal, setShowEmbedModal] = useState(false);
   const [editEmbedIndex, setEditEmbedIndex] = useState<number | null>(null);
 
+  const [showTestimonialModal, setShowTestimonialModal] = useState(false);
+  const [editTestimonialIndex, setEditTestimonialIndex] = useState<number | null>(null);
+  const [testimonialName, setTestimonialName] = useState('');
+  const [testimonialMessage, setTestimonialMessage] = useState('');
+  const [testimonialAvatar, setTestimonialAvatar] = useState('');
+  const [testimonialAvatarPreview, setTestimonialAvatarPreview] = useState<string | null>(null);
+  const [showTestimonialUpload, setShowTestimonialUpload] = useState(false);
+  const [showFAQModal, setShowFAQModal] = useState(false);
+  const [editFAQIndex, setEditFAQIndex] = useState<number | null>(null);
+  const [faqQuestion, setFaqQuestion] = useState('');
+  const [faqAnswer, setFaqAnswer] = useState('');
+  const [showServiceModal, setShowServiceModal] = useState(false);
+  const [editServiceIndex, setEditServiceIndex] = useState<number | null>(null);
   const sensors = useSensors(
     useSensor(PointerSensor),
     useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates })
   );
 
-  const handleDragEnd = (type: 'links' | 'headers' | 'embeds') => (event: DragEndEvent) => {
+  const handleDragEnd = (type: 'links' | 'headers' | 'embeds' | 'testimonials' | 'faqs' | 'services') => (event: DragEndEvent) => {
     const { active, over } = event;
     if (!active?.id || !over?.id || active.id === over.id) return;
     const oldIndex = form[type].findIndex((i: any) => i.id === active.id);
@@ -108,9 +125,70 @@ export default function ProfileTab({ form, setForm }: { form: any; setForm: (f: 
     setEditEmbedIndex(null);
   };
 
+  const handleSaveTestimonial = () => {
+    const updated = [...(form.testimonials || [])];
+    const newData = {
+      id: editTestimonialIndex !== null ? form.testimonials[editTestimonialIndex].id : `testimonial-${Date.now()}`,
+      name: testimonialName,
+      message: testimonialMessage,
+      avatar: testimonialAvatar,
+    };
+
+    if (editTestimonialIndex !== null) {
+      updated[editTestimonialIndex] = newData;
+    } else {
+      updated.push(newData);
+    }
+    setForm({ ...form, testimonials: updated });
+    setShowTestimonialModal(false);
+    setEditTestimonialIndex(null);
+    setTestimonialName('');
+    setTestimonialMessage('');
+    setTestimonialAvatar('');
+    setTestimonialAvatarPreview(null);
+  };
+  const handleSaveFAQ = () => {
+    const updated = [...(form.faqs || [])];
+    const newData = {
+      id: editFAQIndex !== null ? form.faqs[editFAQIndex].id : `faq-${Date.now()}`,
+      question: faqQuestion,
+      answer: faqAnswer,
+    };
+    if (editFAQIndex !== null) {
+      updated[editFAQIndex] = newData;
+    } else {
+      updated.push(newData);
+    }
+    setForm({ ...form, faqs: updated });
+    setShowFAQModal(false);
+    setEditFAQIndex(null);
+    setFaqQuestion('');
+    setFaqAnswer('');
+  };
+
+  const handleSaveService = (data: any) => {
+    const updated = [...(form.services || [])];
+    const newData = {
+      id: editServiceIndex !== null ? form.services[editServiceIndex].id : `service-${Date.now()}`,
+      ...data,
+    };
+    if (editServiceIndex !== null) {
+      updated[editServiceIndex] = newData;
+    } else {
+      updated.push(newData);
+    }
+    setForm({ ...form, services: updated });
+    setShowServiceModal(false);
+    setEditServiceIndex(null);
+  };
+
   useEffect(() => {
     if (form.avatar) setUploadPreview(form.avatar);
   }, [form.avatar]);
+
+  useEffect(() => {
+    if (testimonialAvatar) setTestimonialAvatarPreview(testimonialAvatar);
+  }, [testimonialAvatar]);
 
   return (
     <>
@@ -389,6 +467,131 @@ export default function ProfileTab({ form, setForm }: { form: any; setForm: (f: 
           </div>
         )}
 
+        {limits.testimonials > 0 && (
+          <div className={styles.sectionMain}>
+            <div className={styles.SecHeadAndBtn}>
+              <h4>Testimonials <span className="badge-pro">Pro</span></h4>
+              <button
+                className="btn-primary"
+                onClick={() => {
+                  setEditTestimonialIndex(null);
+                  setTestimonialName('');
+                  setTestimonialMessage('');
+                  setTestimonialAvatar('');
+                  setTestimonialAvatarPreview(null);
+                  setShowTestimonialModal(true);
+                }}
+                disabled={(form.testimonials || []).length >= limits.testimonials}
+              >
+                + Add Testimonial
+              </button>
+            </div>
+            <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd('testimonials')}>
+              <SortableContext items={(form.testimonials || []).map((t: any) => t.id)} strategy={verticalListSortingStrategy}>
+                <div className="grid gap-3">
+                  {(form.testimonials || []).map((t: any, i: number) => (
+                    <SortableTestimonial
+                      key={t.id}
+                      id={t.id}
+                      testimonial={t}
+                      onEdit={() => {
+                        setEditTestimonialIndex(i);
+                        setTestimonialName(t.name);
+                        setTestimonialMessage(t.message);
+                        setTestimonialAvatar(t.avatar || '');
+                        setTestimonialAvatarPreview(t.avatar || '');
+                        setShowTestimonialModal(true);
+                      }}
+                      onDelete={() =>
+                        setForm({ ...form, testimonials: form.testimonials.filter((_: any, j: number) => j !== i) })
+                      }
+                    />
+                  ))}
+                </div>
+              </SortableContext>
+
+            </DndContext>
+          </div>
+        )}
+
+        {limits.faqs > 0 && (
+          <div className={styles.sectionMain}>
+            <div className={styles.SecHeadAndBtn}>
+              <h4>FAQs <span className="badge-pro">Pro</span></h4>
+              <button
+                className="btn-primary"
+                onClick={() => {
+                  setEditFAQIndex(null);
+                  setFaqQuestion('');
+                  setFaqAnswer('');
+                  setShowFAQModal(true);
+                }}
+                disabled={(form.faqs || []).length >= limits.faqs}
+              >
+                + Add FAQ
+              </button>
+            </div>
+            <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd('faqs')}>
+              <SortableContext items={(form.faqs || []).map((f: any) => f.id)} strategy={verticalListSortingStrategy}>
+                <div className="grid gap-3">
+                  {(form.faqs || []).map((faq: any, i: number) => (
+                    <SortableFAQ
+                      key={faq.id}
+                      id={faq.id}
+                      faq={faq}
+                      onEdit={() => {
+                        setEditFAQIndex(i);
+                        setFaqQuestion(faq.question);
+                        setFaqAnswer(faq.answer);
+                        setShowFAQModal(true);
+                      }}
+                      onDelete={() =>
+                        setForm({ ...form, faqs: form.faqs.filter((_: any, j: number) => j !== i) })
+                      }
+                    />
+                  ))}
+                </div>
+              </SortableContext>
+            </DndContext>
+          </div>
+        )}
+
+        {limits.services > 0 && (
+          <div className={styles.sectionMain}>
+            <div className={styles.SecHeadAndBtn}>
+              <h4>Services <span className="badge-pro">Pro</span></h4>
+              <button
+                className="btn-primary"
+                onClick={() => {
+                  setEditServiceIndex(null);
+                  setShowServiceModal(true);
+                }}
+                disabled={(form.services || []).length >= limits.services}
+              >
+                + Add Service
+              </button>
+            </div>
+            <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd('services')}>
+              <SortableContext items={(form.services || []).map((s: any) => s.id)} strategy={verticalListSortingStrategy}>
+                {(form.services || []).map((service: any, i: number) => (
+                  <SortableService
+                    key={service.id}
+                    id={service.id}
+                    service={service}
+                    onEdit={() => {
+                      setEditServiceIndex(i);
+                      setShowServiceModal(true);
+                    }}
+                    onDelete={() =>
+                      setForm({ ...form, services: form.services.filter((_: any, j: number) => j !== i) })
+                    }
+                  />
+                ))}
+              </SortableContext>
+            </DndContext>
+          </div>
+        )}
+
       </div>
 
       {showModal && (
@@ -433,6 +636,111 @@ export default function ProfileTab({ form, setForm }: { form: any; setForm: (f: 
           onSave={handleSaveEmbed}
           onClose={() => { setShowEmbedModal(false); setEditEmbedIndex(null); }}
           initialData={editEmbedIndex !== null ? form.embeds[editEmbedIndex] : undefined}
+        />
+      )}
+
+      {showTestimonialModal && (
+        <CustomModal onClose={() => setShowTestimonialModal(false)} width="500px">
+          <div className="flex flex-col gap-4">
+            <h2 className={styles.modalHeader}>{editTestimonialIndex !== null ? 'Edit Testimonial' : 'Add Testimonial'}</h2>
+            <input
+              className="input"
+              placeholder="Name"
+              value={testimonialName}
+              onChange={(e) => setTestimonialName(e.target.value)}
+            />
+            <textarea
+              className="input"
+              rows={3}
+              placeholder="Testimonial message"
+              value={testimonialMessage}
+              onChange={(e) => setTestimonialMessage(e.target.value)}
+            />
+            <div className="flex flex-col items-center justify-center gap-2">
+              <div className={styles.previewCircle} onClick={() => setShowTestimonialUpload(true)}>
+                {testimonialAvatarPreview ? (
+                  <>
+                    <button
+                      className={styles.removeBtn}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setTestimonialAvatar('');
+                        setTestimonialAvatarPreview(null);
+                      }}
+                    >
+                      <X size={14} />
+                    </button>
+                    <img src={testimonialAvatarPreview} alt="Avatar" className={styles.previewImage} />
+                  </>
+                ) : (
+                  <div className={styles.previewPlaceholder}>
+                    <ImagePlus className="text-gray-400" size={24} />
+                    <span className="text-xs text-gray-500 mt-1">Upload Avatar</span>
+                  </div>
+                )}
+              </div>
+            </div>
+            <div className="flex justify-end gap-2 mt-4">
+              <button className="btn-outline-white" onClick={() => setShowTestimonialModal(false)}>Cancel</button>
+              <button className="btn-primary" onClick={handleSaveTestimonial}>Save</button>
+            </div>
+          </div>
+        </CustomModal>
+      )}
+
+      {showFAQModal && (
+        <CustomModal onClose={() => setShowFAQModal(false)} width="500px">
+          <div className="flex flex-col gap-4">
+            <h2 className={styles.modalHeader}>{editFAQIndex !== null ? 'Edit FAQ' : 'Add FAQ'}</h2>
+            <input
+              className="input"
+              placeholder="Question"
+              value={faqQuestion}
+              onChange={(e) => setFaqQuestion(e.target.value)}
+            />
+            <textarea
+              className="input"
+              rows={3}
+              placeholder="Answer"
+              value={faqAnswer}
+              onChange={(e) => setFaqAnswer(e.target.value)}
+            />
+            <div className="flex justify-end gap-2 mt-4">
+              <button className="btn-outline-white" onClick={() => setShowFAQModal(false)}>Cancel</button>
+              <button className="btn-primary" onClick={handleSaveFAQ}>Save</button>
+            </div>
+          </div>
+        </CustomModal>
+      )}
+
+      {showTestimonialUpload && (
+        <UploadModal
+          onClose={() => setShowTestimonialUpload(false)}
+          onSelectImage={(val) => {
+            if (typeof val === 'string') {
+              setTestimonialAvatar(val);
+              setTestimonialAvatarPreview(val);
+            } else {
+              const reader = new FileReader();
+              reader.onload = () => {
+                if (typeof reader.result === 'string') {
+                  setTestimonialAvatar(reader.result);
+                  setTestimonialAvatarPreview(reader.result);
+                }
+              };
+              reader.readAsDataURL(val);
+            }
+            setShowTestimonialUpload(false);
+          }}
+          showTabs={false}
+        />
+      )}
+
+      {showServiceModal && (
+        <ServiceFormModal
+          onClose={() => setShowServiceModal(false)}
+          onSave={handleSaveService}
+          initialData={editServiceIndex !== null ? form.services[editServiceIndex] : undefined}
         />
       )}
     </>

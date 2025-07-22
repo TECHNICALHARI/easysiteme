@@ -122,7 +122,7 @@ export default function UploadModal({
     };
 
     return (
-        <Modal title='Select an Icon or Upload an Image' onClose={onClose} width="500px" noPadding={true}>
+        <Modal title={showTabs ? 'Select an Icon or Upload an Image' : 'Upload an Image'} onClose={onClose} width="500px" noPadding={true}>
             <div className={styles.tabsWrapper}>
                 {showTabs && (
                     <nav className={styles.tabNav}>
