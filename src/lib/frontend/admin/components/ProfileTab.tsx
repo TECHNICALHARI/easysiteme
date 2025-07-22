@@ -38,10 +38,11 @@ import ContactInfoSection from './ContactInfoSection';
 import FeaturedMediaModal from './FeaturedMediaModal';
 import FeaturedMediaSection from './FeaturedMediaSection';
 import SortableFeaturedMediaItem from './FeaturedMediaSection';
+import ProfileTagsSection from './ProfileTagsSection';
 
 const PLAN_LIMITS = {
-  free: { links: 3, headers: 1, embeds: 0, contact: false, resume: false, featured: false, about: false, map: false, testimonials: 0, faqs: 0, services: 0 },
-  premium: { links: 50, headers: 10, embeds: 10, contact: true, resume: true, featured: true, about: true, map: true, testimonials: 5, faqs: 10, services: 10 },
+  free: { links: 3, headers: 1, embeds: 0, contact: false, resume: false, featured: false, about: false, map: false, testimonials: 0, faqs: 0, services: 0, tags: 5 },
+  premium: { links: 50, headers: 10, embeds: 10, contact: true, resume: true, featured: true, about: true, map: true, testimonials: 5, faqs: 10, services: 10, tags: 2 },
 };
 
 export default function ProfileTab({ form, setForm }: { form: any; setForm: (f: any) => void }) {
@@ -76,6 +77,8 @@ export default function ProfileTab({ form, setForm }: { form: any; setForm: (f: 
   const [editServiceIndex, setEditServiceIndex] = useState<number | null>(null);
   const [showFeaturedModal, setShowFeaturedModal] = useState(false);
   const [editFeaturedIndex, setEditFeaturedIndex] = useState<number | null>(null);
+  const [bannerPreview, setBannerPreview] = useState<string | null>(form.bannerImage || null);
+  const [showUploadBannerModal, setShowUploadBannerModal] = useState(false);
   const sensors = useSensors(
     useSensor(PointerSensor),
     useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates })
@@ -213,6 +216,16 @@ export default function ProfileTab({ form, setForm }: { form: any; setForm: (f: 
     if (testimonialAvatar) setTestimonialAvatarPreview(testimonialAvatar);
   }, [testimonialAvatar]);
 
+  useEffect(() => {
+    if (form.bannerImage) setBannerPreview(form.bannerImage);
+  }, [form.bannerImage]);
+
+  useEffect(() => {
+    console.log('Banner preview:', bannerPreview);
+  }, [bannerPreview]);
+
+
+
   return (
     <>
       <div className={styles.TabPageMain}>
@@ -240,6 +253,36 @@ export default function ProfileTab({ form, setForm }: { form: any; setForm: (f: 
                 value={form.bio}
                 onChange={(e) => setForm({ ...form, bio: e.target.value })}
               />
+
+              <div className="flex flex-col gap-2 mt-4">
+                <label className="font-medium">Cover Banner / Hero Image</label>
+                {bannerPreview ? (
+                  <div className="relative w-full">
+                    <img
+                      src={bannerPreview}
+                      alt="Cover Banner"
+                      className="w-full h-40 object-cover rounded-lg border"
+                    />
+                    <button
+                      onClick={() => {
+                        setForm({ ...form, bannerImage: '' });
+                        setBannerPreview(null);
+                      }}
+                      className="absolute top-2 right-2 bg-white/80 rounded-full p-1 hover:bg-white"
+                      title="Remove Image"
+                    >
+                      <X size={16} />
+                    </button>
+                  </div>
+                ) : (
+                  <button className="btn-secondary w-fit" onClick={() => setShowUploadBannerModal(true)}>
+                    Upload Cover Image
+                  </button>
+                )}
+
+              </div>
+
+
             </div>
             <div className="flex flex-col items-center justify-center gap-2">
               <div className={styles.previewCircle} onClick={() => setShowUploadModal(true)}>
@@ -331,7 +374,7 @@ export default function ProfileTab({ form, setForm }: { form: any; setForm: (f: 
         </div>
 
         {limits.contact && (
-          <ContactInfoSection form={form} setForm={setForm} />
+          <ContactInfoSection form={form} setForm={setForm}  />
         )}
 
         {/* Pro: Location (Map) */}
@@ -620,6 +663,7 @@ export default function ProfileTab({ form, setForm }: { form: any; setForm: (f: 
             </DndContext>
           </div>
         )}
+        <ProfileTagsSection form={form} setForm={setForm} limit={limits.tags} />
 
       </div>
 
@@ -742,12 +786,36 @@ export default function ProfileTab({ form, setForm }: { form: any; setForm: (f: 
         />
       )}
 
-       {showFeaturedModal && (
+      {showFeaturedModal && (
         <FeaturedMediaModal
           onClose={() => setShowFeaturedModal(false)}
           onSave={handleSaveFeatured}
           initialData={editFeaturedIndex !== null ? form.featured?.[editFeaturedIndex] : undefined}
         />
+      )}
+
+      {showUploadBannerModal && (
+        <UploadModal
+          onClose={() => setShowUploadBannerModal(false)}
+          onSelectImage={(val) => {
+            if (typeof val === 'string') {
+              setForm({ ...form, bannerImage: val });
+              setBannerPreview(val);
+              setShowUploadBannerModal(false);
+            } else if (val instanceof File) {
+              const reader = new FileReader();
+              reader.onloadend = () => {
+                if (typeof reader.result === 'string') {
+                  setForm({ ...form, bannerImage: reader.result });
+                  setBannerPreview(reader.result);
+                }
+                setShowUploadBannerModal(false);
+              };
+              reader.readAsDataURL(val);
+            }
+          }}
+        />
+
       )}
     </>
   );
