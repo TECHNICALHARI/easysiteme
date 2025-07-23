@@ -11,27 +11,51 @@ import Container from '@/lib/frontend/admin/layout/Container';
 
 export default function Dashboard() {
     const [form, setForm] = useState<FormData>({
-        fullName: '',
-        username: '',
-        title: '',
-        bio: '',
-        avatar: '',
-        links: [],
-        headers: [],
-        gallery: [],
-        youtube: '',
-        instagram: '',
-        calendly: '',
-        posts: [],
-        metaTitle: '',
-        metaDescription: '',
-        nsfwWarning: false,
-        preferredLink: 'primary',
-        customDomain: '',
-        emojiLink: '',
-        gaId: '',
-        theme: 'theme-default',
+        profile: {
+            fullName: '',
+            username: '',
+            title: '',
+            bio: '',
+            avatar: '',
+            bannerImage: '',
+            about: '',
+            headers: [],
+            links: [],
+            embeds: [],
+            testimonials: [],
+            faqs: [],
+            services: [],
+            featured: [],
+            tags: [],
+            fullAddress: '',
+            latitude: '',
+            longitude: '',
+            resumeUrl: '',
+        },
+        design: {
+            theme: 'theme-default',
+            emojiLink: '',
+        },
+        seo: {
+            metaTitle: '',
+            metaDescription: '',
+        },
+        settings: {
+            nsfwWarning: false,
+            preferredLink: 'primary',
+            customDomain: '',
+            gaId: '',
+        },
+        socials: {
+            youtube: '',
+            instagram: '',
+            calendly: '',
+        },
+        posts: {
+            posts: [],
+        },
     });
+
     useAutoSave(form);
     return (
         <div className={styles.dashboardWrapper}>

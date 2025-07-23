@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, ActionDispatch, FC } from 'react';
 import {
   DndContext,
   closestCenter,
@@ -17,9 +17,8 @@ import {
   verticalListSortingStrategy,
 } from '@dnd-kit/sortable';
 
-import { ImagePlus, MapPin, FileText, Youtube, Link as LinkIcon, X, Pencil, Trash2 } from 'lucide-react';
+import { ImagePlus, FileText, Youtube, Link as LinkIcon, X, Pencil, Trash2 } from 'lucide-react';
 import styles from '@/styles/admin.module.css';
-
 import SortableLink from './SortableLink';
 import LinkFormModal from './LinkFormModal';
 import CustomModal from '../../common/CustomModal';
@@ -30,23 +29,29 @@ import SortableTestimonial from './SortableTestimonial';
 import SortableFAQ from './SortableFAQ';
 import ServiceFormModal from './ServiceFormModal';
 import SortableService from './SortableService';
-import Modal from '../../common/Modal';
 import { TestimonialFormModal } from './TestimonialFormModal';
 import { FAQFormModal } from './FAQFormModal';
 import { HeaderFormModal } from './HeaderFormModal';
 import ContactInfoSection from './ContactInfoSection';
 import FeaturedMediaModal from './FeaturedMediaModal';
-import FeaturedMediaSection from './FeaturedMediaSection';
 import SortableFeaturedMediaItem from './FeaturedMediaSection';
 import ProfileTagsSection from './ProfileTagsSection';
+import { FormData, ProfileTypeMap, ReorderableProfileKeys } from '../../types/form';
 
 const PLAN_LIMITS = {
   free: { links: 3, headers: 1, embeds: 0, contact: false, resume: false, featured: false, about: false, map: false, testimonials: 0, faqs: 0, services: 0, tags: 5 },
   premium: { links: 50, headers: 10, embeds: 10, contact: true, resume: true, featured: true, about: true, map: true, testimonials: 5, faqs: 10, services: 10, tags: 2 },
 };
 
-export default function ProfileTab({ form, setForm }: { form: any; setForm: (f: any) => void }) {
-  const plan = 'premium'; // assume premium
+interface props {
+  form: FormData;
+  setForm: React.Dispatch<React.SetStateAction<FormData>>
+}
+
+
+
+const ProfileTab: FC<props> = ({ form, setForm }) => {
+  const plan = 'premium';
   const limits = PLAN_LIMITS[plan];
 
   const [showModal, setShowModal] = useState(false);
@@ -57,7 +62,7 @@ export default function ProfileTab({ form, setForm }: { form: any; setForm: (f: 
   const [editHeaderIndex, setEditHeaderIndex] = useState<number | null>(null);
 
   const [showUploadModal, setShowUploadModal] = useState(false);
-  const [uploadPreview, setUploadPreview] = useState<string | null>(form.avatar || null);
+  const [uploadPreview, setUploadPreview] = useState<string | null>(form.profile.avatar || null);
 
   const [showEmbedModal, setShowEmbedModal] = useState(false);
   const [editEmbedIndex, setEditEmbedIndex] = useState<number | null>(null);
@@ -69,120 +74,83 @@ export default function ProfileTab({ form, setForm }: { form: any; setForm: (f: 
   const [testimonialAvatar, setTestimonialAvatar] = useState('');
   const [testimonialAvatarPreview, setTestimonialAvatarPreview] = useState<string | null>(null);
   const [showTestimonialUpload, setShowTestimonialUpload] = useState(false);
+
   const [showFAQModal, setShowFAQModal] = useState(false);
   const [editFAQIndex, setEditFAQIndex] = useState<number | null>(null);
   const [faqQuestion, setFaqQuestion] = useState('');
   const [faqAnswer, setFaqAnswer] = useState('');
+
   const [showServiceModal, setShowServiceModal] = useState(false);
   const [editServiceIndex, setEditServiceIndex] = useState<number | null>(null);
+
   const [showFeaturedModal, setShowFeaturedModal] = useState(false);
   const [editFeaturedIndex, setEditFeaturedIndex] = useState<number | null>(null);
-  const [bannerPreview, setBannerPreview] = useState<string | null>(form.bannerImage || null);
+
+  const [bannerPreview, setBannerPreview] = useState<string | null>(form.profile.bannerImage || null);
   const [showUploadBannerModal, setShowUploadBannerModal] = useState(false);
+  console.log(uploadPreview, "uploadPreview")
   const sensors = useSensors(
     useSensor(PointerSensor),
     useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates })
   );
 
-  const handleDragEnd = (type: 'links' | 'headers' | 'embeds' | 'testimonials' | 'faqs' | 'services' | 'featured') => (event: DragEndEvent) => {
+  const handleDragEnd = <T extends ReorderableProfileKeys>(type: T) => (event: DragEndEvent) => {
     const { active, over } = event;
     if (!active?.id || !over?.id || active.id === over.id) return;
-    const oldIndex = form[type].findIndex((i: any) => i.id === active.id);
-    const newIndex = form[type].findIndex((i: any) => i.id === over.id);
+
+    const sectionItems = form.profile[type] as ProfileTypeMap[T];
+
+    const oldIndex = sectionItems.findIndex((i) => i.id === active.id);
+    const newIndex = sectionItems.findIndex((i) => i.id === over.id);
+
     if (oldIndex !== -1 && newIndex !== -1) {
-      const reordered = arrayMove(form[type], oldIndex, newIndex);
-      setForm({ ...form, [type]: reordered });
+      const reordered = arrayMove([...sectionItems], oldIndex, newIndex);
+
+      setForm((prev) => ({
+        ...prev,
+        profile: {
+          ...prev.profile,
+          [type]: reordered as any,
+        },
+      }));
     }
   };
 
 
+
   const handleImageRemove = () => {
-    setForm({ ...form, avatar: '' });
+    setForm({ ...form, profile: { ...form.profile, avatar: '' } });
     setUploadPreview(null);
   };
 
   const handleAddLink = (data: any) => {
-    const updated = [...form.links];
+    const updated = [...form.profile.links];
     if (editIndex !== null) {
       updated[editIndex] = data;
     } else {
       updated.push({ ...data, id: `link-${Date.now()}` });
     }
-    setForm({ ...form, links: updated });
+    setForm({ ...form, profile: { ...form.profile, links: updated } });
     setShowModal(false);
     setEditIndex(null);
   };
 
-  const handleSaveHeader = () => {
-    const updated = [...form.headers];
-    if (editHeaderIndex !== null) {
-      updated[editHeaderIndex].title = headerTitle;
-    } else {
-      updated.push({ id: `header-${Date.now()}`, title: headerTitle });
-    }
-    setForm({ ...form, headers: updated });
-    setHeaderTitle('');
-    setEditHeaderIndex(null);
-    setShowHeaderModal(false);
-  };
-
   const handleSaveEmbed = (data: { title: string; url: string }) => {
-    const updated = [...(form.embeds || [])];
+    const updated = [...(form.profile.embeds || [])];
     if (editEmbedIndex !== null) {
       updated[editEmbedIndex] = { ...updated[editEmbedIndex], ...data };
     } else {
       updated.push({ ...data, id: `embed-${Date.now()}` });
     }
-    setForm({ ...form, embeds: updated });
+    setForm({ ...form, profile: { ...form.profile, embeds: updated } });
     setShowEmbedModal(false);
     setEditEmbedIndex(null);
   };
 
-  const handleSaveTestimonial = () => {
-    const updated = [...(form.testimonials || [])];
-    const newData = {
-      id: editTestimonialIndex !== null ? form.testimonials[editTestimonialIndex].id : `testimonial-${Date.now()}`,
-      name: testimonialName,
-      message: testimonialMessage,
-      avatar: testimonialAvatar,
-    };
-
-    if (editTestimonialIndex !== null) {
-      updated[editTestimonialIndex] = newData;
-    } else {
-      updated.push(newData);
-    }
-    setForm({ ...form, testimonials: updated });
-    setShowTestimonialModal(false);
-    setEditTestimonialIndex(null);
-    setTestimonialName('');
-    setTestimonialMessage('');
-    setTestimonialAvatar('');
-    setTestimonialAvatarPreview(null);
-  };
-  const handleSaveFAQ = () => {
-    const updated = [...(form.faqs || [])];
-    const newData = {
-      id: editFAQIndex !== null ? form.faqs[editFAQIndex].id : `faq-${Date.now()}`,
-      question: faqQuestion,
-      answer: faqAnswer,
-    };
-    if (editFAQIndex !== null) {
-      updated[editFAQIndex] = newData;
-    } else {
-      updated.push(newData);
-    }
-    setForm({ ...form, faqs: updated });
-    setShowFAQModal(false);
-    setEditFAQIndex(null);
-    setFaqQuestion('');
-    setFaqAnswer('');
-  };
-
   const handleSaveService = (data: any) => {
-    const updated = [...(form.services || [])];
+    const updated = [...(form.profile.services || [])];
     const newData = {
-      id: editServiceIndex !== null ? form.services[editServiceIndex].id : `service-${Date.now()}`,
+      id: editServiceIndex !== null ? form.profile.services[editServiceIndex].id : `service-${Date.now()}`,
       ...data,
     };
     if (editServiceIndex !== null) {
@@ -190,40 +158,35 @@ export default function ProfileTab({ form, setForm }: { form: any; setForm: (f: 
     } else {
       updated.push(newData);
     }
-    setForm({ ...form, services: updated });
+    setForm({ ...form, profile: { ...form.profile, services: updated } });
     setShowServiceModal(false);
     setEditServiceIndex(null);
   };
 
   const handleSaveFeatured = (newFeatured: any) => {
-    const updated = [...(form.featured || [])];
+    const updated = [...(form.profile.featured || [])];
     if (editFeaturedIndex !== null) {
       updated[editFeaturedIndex] = { ...updated[editFeaturedIndex], ...newFeatured };
     } else {
       const id = `featured-${Date.now() + Math.random()}`;
       updated.push({ ...newFeatured, id });
     }
-    setForm({ ...form, featured: updated });
+    setForm({ ...form, profile: { ...form.profile, featured: updated } });
     setShowFeaturedModal(false);
     setEditFeaturedIndex(null);
   };
 
   useEffect(() => {
-    if (form.avatar) setUploadPreview(form.avatar);
-  }, [form.avatar]);
+    if (form.profile.avatar) setUploadPreview(form.profile.avatar);
+  }, [form.profile.avatar]);
 
   useEffect(() => {
     if (testimonialAvatar) setTestimonialAvatarPreview(testimonialAvatar);
   }, [testimonialAvatar]);
 
   useEffect(() => {
-    if (form.bannerImage) setBannerPreview(form.bannerImage);
-  }, [form.bannerImage]);
-
-  useEffect(() => {
-    console.log('Banner preview:', bannerPreview);
-  }, [bannerPreview]);
-
+    if (form.profile.bannerImage) setBannerPreview(form.profile.bannerImage);
+  }, [form.profile.bannerImage]);
 
 
   return (
@@ -234,7 +197,6 @@ export default function ProfileTab({ form, setForm }: { form: any; setForm: (f: 
           <p>Personalize your page with your name, image, bio, contact info, embeds, and more.</p>
         </div>
 
-        {/* Basic Info */}
         <div className={styles.sectionMain}>
           <div className={styles.sectionHead}><h3>👤 Profile Information</h3></div>
           <div className={styles.linkFormInputImg}>
@@ -243,15 +205,15 @@ export default function ProfileTab({ form, setForm }: { form: any; setForm: (f: 
                 className="input"
                 type="text"
                 placeholder="Full Name"
-                value={form.fullName}
-                onChange={(e) => setForm({ ...form, fullName: e.target.value })}
+                value={form.profile.fullName}
+                onChange={(e) => setForm({ ...form, profile: { ...form.profile, fullName: e.target.value } })}
               />
               <textarea
                 className="input my-4"
                 rows={3}
                 placeholder="Short Bio"
-                value={form.bio}
-                onChange={(e) => setForm({ ...form, bio: e.target.value })}
+                value={form.profile.bio}
+                onChange={(e) => setForm({ ...form, profile: { ...form.profile, bio: e.target.value } })}
               />
 
               <div className="flex flex-col gap-2 mt-4">
@@ -265,7 +227,7 @@ export default function ProfileTab({ form, setForm }: { form: any; setForm: (f: 
                     />
                     <button
                       onClick={() => {
-                        setForm({ ...form, bannerImage: '' });
+                        setForm({ ...form, profile: { ...form.profile, bannerImage: '' } });
                         setBannerPreview(null);
                       }}
                       className="absolute top-2 right-2 bg-white/80 rounded-full p-1 hover:bg-white"
@@ -275,15 +237,15 @@ export default function ProfileTab({ form, setForm }: { form: any; setForm: (f: 
                     </button>
                   </div>
                 ) : (
-                  <button className="btn-secondary w-fit" onClick={() => setShowUploadBannerModal(true)}>
-                    Upload Cover Image
-                  </button>
+                  <div className={styles.SecHeadAndBtn}>
+                    <button className="btn-primary" onClick={() => setShowUploadBannerModal(true)}>
+                      Upload Cover Image
+                    </button>
+                  </div>
                 )}
-
               </div>
-
-
             </div>
+
             <div className="flex flex-col items-center justify-center gap-2">
               <div className={styles.previewCircle} onClick={() => setShowUploadModal(true)}>
                 {uploadPreview ? (
@@ -304,42 +266,52 @@ export default function ProfileTab({ form, setForm }: { form: any; setForm: (f: 
           </div>
         </div>
 
-        {/* About (Rich Text) */}
         {limits.about && (
           <div className={styles.sectionMain}>
             <div className={styles.SecHeadAndBtn}>
               <h4 className={styles.sectionLabel}>About <span className="badge-pro">Pro</span></h4>
             </div>
             <RichTextEditor
-              value={form.about || ''}
-              onChange={(val) => setForm({ ...form, about: val })}
+              value={form.profile.about || ''}
+              onChange={(val) => setForm({ ...form, profile: { ...form.profile, about: val } })}
               placeholder="Tell your story, skills, mission..."
             />
           </div>
         )}
 
-        {/* Headers */}
         <div className={styles.sectionMain}>
           <div className={styles.SecHeadAndBtn}>
             <h4>Headers</h4>
             <button
               className="btn-primary"
               onClick={() => setShowHeaderModal(true)}
-              disabled={form.headers.length >= limits.headers}
+              disabled={form.profile.headers.length >= limits.headers}
             >
               + Add Header
             </button>
           </div>
           <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd('headers')}>
-            <SortableContext items={form.headers.map((h: any) => h.id)} strategy={verticalListSortingStrategy}>
+            <SortableContext items={form.profile.headers.map((h: any) => h.id)} strategy={verticalListSortingStrategy}>
               <div className="grid gap-3">
-                {form.headers.map((header: any, i: number) => (
+                {form.profile.headers.map((header: any, i: number) => (
                   <SortableLink
                     key={header.id}
                     id={header.id}
                     link={{ ...header, type: 'header' }}
-                    onEdit={() => { setEditHeaderIndex(i); setHeaderTitle(header.title); setShowHeaderModal(true); }}
-                    onDelete={() => setForm({ ...form, headers: form.headers.filter((_: any, j: number) => j !== i) })}
+                    onEdit={() => {
+                      setEditHeaderIndex(i);
+                      setHeaderTitle(header.title);
+                      setShowHeaderModal(true);
+                    }}
+                    onDelete={() =>
+                      setForm({
+                        ...form,
+                        profile: {
+                          ...form.profile,
+                          headers: form.profile.headers.filter((_, j) => j !== i),
+                        },
+                      })
+                    }
                     isHeader
                   />
                 ))}
@@ -348,24 +320,38 @@ export default function ProfileTab({ form, setForm }: { form: any; setForm: (f: 
           </DndContext>
         </div>
 
-        {/* Links */}
         <div className={styles.sectionMain}>
           <div className={styles.SecHeadAndBtn}>
             <h4>Links</h4>
-            <button className="btn-primary" onClick={() => setShowModal(true)} disabled={form.links.length >= limits.links}>
+            <button
+              className="btn-primary"
+              onClick={() => setShowModal(true)}
+              disabled={form.profile.links.length >= limits.links}
+            >
               + Add Link
             </button>
           </div>
           <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd('links')}>
-            <SortableContext items={form.links.map((l: any) => l.id)} strategy={verticalListSortingStrategy}>
+            <SortableContext items={form.profile.links.map((l: any) => l.id)} strategy={verticalListSortingStrategy}>
               <div className="grid gap-4">
-                {form.links.map((link: any, i: number) => (
+                {form.profile.links.map((link: any, i: number) => (
                   <SortableLink
                     key={link.id}
                     id={link.id}
                     link={link}
-                    onEdit={() => { setEditIndex(i); setShowModal(true); }}
-                    onDelete={() => setForm({ ...form, links: form.links.filter((_: any, j: number) => j !== i) })}
+                    onEdit={() => {
+                      setEditIndex(i);
+                      setShowModal(true);
+                    }}
+                    onDelete={() =>
+                      setForm({
+                        ...form,
+                        profile: {
+                          ...form.profile,
+                          links: form.profile.links.filter((_, j) => j !== i),
+                        },
+                      })
+                    }
                   />
                 ))}
               </div>
@@ -374,10 +360,9 @@ export default function ProfileTab({ form, setForm }: { form: any; setForm: (f: 
         </div>
 
         {limits.contact && (
-          <ContactInfoSection form={form} setForm={setForm}  />
+          <ContactInfoSection form={form} setForm={setForm} />
         )}
 
-        {/* Pro: Location (Map) */}
         {limits.map && (
           <div className={styles.sectionMain}>
             <div className={styles.SecHeadAndBtn}>
@@ -387,22 +372,22 @@ export default function ProfileTab({ form, setForm }: { form: any; setForm: (f: 
               <input
                 className="input"
                 placeholder="Enter your business or coaching location (e.g. Building name, street, area, city)"
-                value={form.fullAddress || ''}
-                onChange={(e) => setForm({ ...form, fullAddress: e.target.value })}
+                value={form.profile.fullAddress || ''}
+                onChange={(e) => setForm({ ...form, profile: { ...form.profile, fullAddress: e.target.value } })}
               />
               <input
                 className="input"
                 type="text"
                 placeholder="Latitude (optional)"
-                value={form.latitude || ''}
-                onChange={(e) => setForm({ ...form, latitude: e.target.value })}
+                value={form.profile.latitude || ''}
+                onChange={(e) => setForm({ ...form, profile: { ...form.profile, latitude: e.target.value } })}
               />
               <input
                 className="input"
                 type="text"
                 placeholder="Longitude (optional)"
-                value={form.longitude || ''}
-                onChange={(e) => setForm({ ...form, longitude: e.target.value })}
+                value={form.profile.longitude || ''}
+                onChange={(e) => setForm({ ...form, profile: { ...form.profile, longitude: e.target.value } })}
               />
             </div>
             <p className="text-sm text-gray-500 mt-2">
@@ -414,22 +399,24 @@ export default function ProfileTab({ form, setForm }: { form: any; setForm: (f: 
                 <li>Paste latitude in the first field, longitude in the second.</li>
               </ol>
             </p>
-            {(form.latitude && form.longitude) || form.fullAddress ? (
+            {(form.profile.latitude && form.profile.longitude) || form.profile.fullAddress ? (
               <div className="mt-4">
                 <iframe
                   className="rounded-xl w-full h-64 border"
                   loading="lazy"
                   referrerPolicy="no-referrer-when-downgrade"
-                  src={form.latitude && form.longitude
-                    ? `https://www.google.com/maps?q=${form.latitude},${form.longitude}&output=embed`
-                    : `https://www.google.com/maps?q=${encodeURIComponent(form.fullAddress)}&output=embed`
+                  src={
+                    form.profile.latitude && form.profile.longitude
+                      ? `https://www.google.com/maps?q=${form.profile.latitude},${form.profile.longitude}&output=embed`
+                      : `https://www.google.com/maps?q=${encodeURIComponent(form.profile.fullAddress || '')}&output=embed`
                   }
                   title="Business Location"
                 ></iframe>
                 <a
-                  href={form.latitude && form.longitude
-                    ? `https://www.google.com/maps/dir/?api=1&destination=${form.latitude},${form.longitude}`
-                    : `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(form.fullAddress)}`
+                  href={
+                    form.profile.latitude && form.profile.longitude
+                      ? `https://www.google.com/maps/dir/?api=1&destination=${form.profile.latitude},${form.profile.longitude}`
+                      : `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(form.profile.fullAddress || '')}`
                   }
                   target="_blank"
                   rel="noopener noreferrer"
@@ -442,11 +429,13 @@ export default function ProfileTab({ form, setForm }: { form: any; setForm: (f: 
           </div>
         )}
 
-        {/* Pro: Resume */}
         {limits.resume && (
           <div className={styles.sectionMain}>
             <div className={styles.SecHeadAndBtn}>
-              <h4>Upload Resume <FileText size={16} className="inline-block ml-1 mb-1" /> <span className="badge-pro">Pro</span></h4>
+              <h4>
+                Upload Resume <FileText size={16} className="inline-block ml-1 mb-1" />{" "}
+                <span className="badge-pro">Pro</span>
+              </h4>
             </div>
             <input
               type="file"
@@ -457,8 +446,11 @@ export default function ProfileTab({ form, setForm }: { form: any; setForm: (f: 
                 if (file) {
                   const reader = new FileReader();
                   reader.onload = () => {
-                    if (typeof reader.result === 'string') {
-                      setForm({ ...form, resumeUrl: reader.result });
+                    if (typeof reader.result === "string") {
+                      setForm({
+                        ...form,
+                        profile: { ...form.profile, resumeUrl: reader.result },
+                      });
                     }
                   };
                   reader.readAsDataURL(file);
@@ -467,11 +459,14 @@ export default function ProfileTab({ form, setForm }: { form: any; setForm: (f: 
             />
           </div>
         )}
+
         {limits.featured && (
           <div className={styles.sectionMain}>
             <div className={styles.SecHeadAndBtn}>
               <h4>
-                Featured Media <Youtube size={16} className="inline-block ml-1 mb-1" /> <span className="badge-pro">Pro</span>
+                Featured Media{" "}
+                <Youtube size={16} className="inline-block ml-1 mb-1" />{" "}
+                <span className="badge-pro">Pro</span>
               </h4>
               <button
                 className="btn-primary"
@@ -479,16 +474,22 @@ export default function ProfileTab({ form, setForm }: { form: any; setForm: (f: 
                   setEditFeaturedIndex(null);
                   setShowFeaturedModal(true);
                 }}
-                disabled={(form.featured || []).length >= 10}
+                disabled={(form.profile.featured || []).length >= 10}
               >
                 + Add Media
               </button>
             </div>
-
-            <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd('featured')}>
-              <SortableContext items={(form.featured || []).map((f: any) => f.id)} strategy={verticalListSortingStrategy}>
+            <DndContext
+              sensors={sensors}
+              collisionDetection={closestCenter}
+              onDragEnd={handleDragEnd("featured")}
+            >
+              <SortableContext
+                items={(form.profile.featured || []).map((f: any) => f.id)}
+                strategy={verticalListSortingStrategy}
+              >
                 <div className="grid gap-3">
-                  {(form.featured || []).map((featured: any, i: number) => (
+                  {(form.profile.featured || []).map((featured: any, i: number) => (
                     <SortableFeaturedMediaItem
                       key={featured.id}
                       id={featured.id}
@@ -497,7 +498,17 @@ export default function ProfileTab({ form, setForm }: { form: any; setForm: (f: 
                         setEditFeaturedIndex(i);
                         setShowFeaturedModal(true);
                       }}
-                      onDelete={() => setForm({ ...form, featured: form.featured.filter((_: any, j: number) => j !== i) })}
+                      onDelete={() =>
+                        setForm({
+                          ...form,
+                          profile: {
+                            ...form.profile,
+                            featured: form.profile.featured.filter(
+                              (_: any, j: number) => j !== i
+                            ),
+                          },
+                        })
+                      }
                     />
                   ))}
                 </div>
@@ -509,27 +520,49 @@ export default function ProfileTab({ form, setForm }: { form: any; setForm: (f: 
         {limits.embeds > 0 && (
           <div className={styles.sectionMain}>
             <div className={styles.SecHeadAndBtn}>
-              <div className={styles.SecHeadAndBtn}>
-                <h4>Embed Widgets <LinkIcon size={16} className="inline-block ml-1 mb-1" /> <span className="badge-pro">Pro</span></h4>
-              </div>
+              <h4>
+                Embed Widgets{" "}
+                <LinkIcon size={16} className="inline-block ml-1 mb-1" />{" "}
+                <span className="badge-pro">Pro</span>
+              </h4>
               <button
                 className="btn-primary"
                 onClick={() => setShowEmbedModal(true)}
-                disabled={(form.embeds || []).length >= limits.embeds}
+                disabled={(form.profile.embeds || []).length >= limits.embeds}
               >
                 + Add Embed
               </button>
             </div>
-            <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd('embeds')}>
-              <SortableContext items={(form.embeds || []).map((e: any) => e.id)} strategy={verticalListSortingStrategy}>
+            <DndContext
+              sensors={sensors}
+              collisionDetection={closestCenter}
+              onDragEnd={handleDragEnd("embeds")}
+            >
+              <SortableContext
+                items={(form.profile.embeds || []).map((e: any) => e.id)}
+                strategy={verticalListSortingStrategy}
+              >
                 <div className="grid gap-3">
-                  {(form.embeds || []).map((embed: any, i: number) => (
+                  {(form.profile.embeds || []).map((embed: any, i: number) => (
                     <SortableLink
                       key={embed.id}
                       id={embed.id}
-                      link={{ ...embed, type: 'embed' }}
-                      onEdit={() => { setEditEmbedIndex(i); setShowEmbedModal(true); }}
-                      onDelete={() => setForm({ ...form, embeds: form.embeds.filter((_: any, j: number) => j !== i) })}
+                      link={{ ...embed, type: "embed" }}
+                      onEdit={() => {
+                        setEditEmbedIndex(i);
+                        setShowEmbedModal(true);
+                      }}
+                      onDelete={() =>
+                        setForm({
+                          ...form,
+                          profile: {
+                            ...form.profile,
+                            embeds: form.profile.embeds.filter(
+                              (_: any, j: number) => j !== i
+                            ),
+                          },
+                        })
+                      }
                       isEmbed
                     />
                   ))}
@@ -542,26 +575,37 @@ export default function ProfileTab({ form, setForm }: { form: any; setForm: (f: 
         {limits.testimonials > 0 && (
           <div className={styles.sectionMain}>
             <div className={styles.SecHeadAndBtn}>
-              <h4>Testimonials <span className="badge-pro">Pro</span></h4>
+              <h4>
+                Testimonials <span className="badge-pro">Pro</span>
+              </h4>
               <button
                 className="btn-primary"
                 onClick={() => {
                   setEditTestimonialIndex(null);
-                  setTestimonialName('');
-                  setTestimonialMessage('');
-                  setTestimonialAvatar('');
+                  setTestimonialName("");
+                  setTestimonialMessage("");
+                  setTestimonialAvatar("");
                   setTestimonialAvatarPreview(null);
                   setShowTestimonialModal(true);
                 }}
-                disabled={(form.testimonials || []).length >= limits.testimonials}
+                disabled={
+                  (form.profile.testimonials || []).length >= limits.testimonials
+                }
               >
                 + Add Testimonial
               </button>
             </div>
-            <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd('testimonials')}>
-              <SortableContext items={(form.testimonials || []).map((t: any) => t.id)} strategy={verticalListSortingStrategy}>
+            <DndContext
+              sensors={sensors}
+              collisionDetection={closestCenter}
+              onDragEnd={handleDragEnd("testimonials")}
+            >
+              <SortableContext
+                items={(form.profile.testimonials || []).map((t: any) => t.id)}
+                strategy={verticalListSortingStrategy}
+              >
                 <div className="grid gap-3">
-                  {(form.testimonials || []).map((t: any, i: number) => (
+                  {(form.profile.testimonials || []).map((t: any, i: number) => (
                     <SortableTestimonial
                       key={t.id}
                       id={t.id}
@@ -570,21 +614,29 @@ export default function ProfileTab({ form, setForm }: { form: any; setForm: (f: 
                         setEditTestimonialIndex(i);
                         setTestimonialName(t.name);
                         setTestimonialMessage(t.message);
-                        setTestimonialAvatar(t.avatar || '');
-                        setTestimonialAvatarPreview(t.avatar || '');
+                        setTestimonialAvatar(t.avatar || "");
+                        setTestimonialAvatarPreview(t.avatar || "");
                         setShowTestimonialModal(true);
                       }}
                       onDelete={() =>
-                        setForm({ ...form, testimonials: form.testimonials.filter((_: any, j: number) => j !== i) })
+                        setForm({
+                          ...form,
+                          profile: {
+                            ...form.profile,
+                            testimonials: form.profile.testimonials.filter(
+                              (_: any, j: number) => j !== i
+                            ),
+                          },
+                        })
                       }
                     />
                   ))}
                 </div>
               </SortableContext>
-
             </DndContext>
           </div>
         )}
+
 
         {limits.faqs > 0 && (
           <div className={styles.sectionMain}>
@@ -598,15 +650,15 @@ export default function ProfileTab({ form, setForm }: { form: any; setForm: (f: 
                   setFaqAnswer('');
                   setShowFAQModal(true);
                 }}
-                disabled={(form.faqs || []).length >= limits.faqs}
+                disabled={form.profile.faqs.length >= limits.faqs}
               >
                 + Add FAQ
               </button>
             </div>
             <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd('faqs')}>
-              <SortableContext items={(form.faqs || []).map((f: any) => f.id)} strategy={verticalListSortingStrategy}>
+              <SortableContext items={form.profile.faqs.map((f: any) => f.id)} strategy={verticalListSortingStrategy}>
                 <div className="grid gap-3">
-                  {(form.faqs || []).map((faq: any, i: number) => (
+                  {form.profile.faqs.map((faq: any, i: number) => (
                     <SortableFAQ
                       key={faq.id}
                       id={faq.id}
@@ -618,7 +670,13 @@ export default function ProfileTab({ form, setForm }: { form: any; setForm: (f: 
                         setShowFAQModal(true);
                       }}
                       onDelete={() =>
-                        setForm({ ...form, faqs: form.faqs.filter((_: any, j: number) => j !== i) })
+                        setForm({
+                          ...form,
+                          profile: {
+                            ...form.profile,
+                            faqs: form.profile.faqs.filter((_: any, j: number) => j !== i),
+                          },
+                        })
                       }
                     />
                   ))}
@@ -638,122 +696,160 @@ export default function ProfileTab({ form, setForm }: { form: any; setForm: (f: 
                   setEditServiceIndex(null);
                   setShowServiceModal(true);
                 }}
-                disabled={(form.services || []).length >= limits.services}
+                disabled={form.profile.services.length >= limits.services}
               >
                 + Add Service
               </button>
             </div>
             <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd('services')}>
-              <SortableContext items={(form.services || []).map((s: any) => s.id)} strategy={verticalListSortingStrategy}>
-                {(form.services || []).map((service: any, i: number) => (
-                  <SortableService
-                    key={service.id}
-                    id={service.id}
-                    service={service}
-                    onEdit={() => {
-                      setEditServiceIndex(i);
-                      setShowServiceModal(true);
-                    }}
-                    onDelete={() =>
-                      setForm({ ...form, services: form.services.filter((_: any, j: number) => j !== i) })
-                    }
-                  />
-                ))}
+              <SortableContext items={form.profile.services.map((s: any) => s.id)} strategy={verticalListSortingStrategy}>
+                <div className="grid gap-3">
+                  {form.profile.services.map((service: any, i: number) => (
+                    <SortableService
+                      key={service.id}
+                      id={service.id}
+                      service={service}
+                      onEdit={() => {
+                        setEditServiceIndex(i);
+                        setShowServiceModal(true);
+                      }}
+                      onDelete={() =>
+                        setForm({
+                          ...form,
+                          profile: {
+                            ...form.profile,
+                            services: form.profile.services.filter((_: any, j: number) => j !== i),
+                          },
+                        })
+                      }
+                    />
+                  ))}
+                </div>
               </SortableContext>
             </DndContext>
           </div>
         )}
-        <ProfileTagsSection form={form} setForm={setForm} limit={limits.tags} />
 
+        <ProfileTagsSection form={form} setForm={setForm} limit={limits.tags} />
       </div>
 
       {showModal && (
         <LinkFormModal
           onSave={handleAddLink}
-          onClose={() => { setShowModal(false); setEditIndex(null); }}
-          initialData={editIndex !== null ? form.links[editIndex] : undefined}
+          onClose={() => {
+            setShowModal(false);
+            setEditIndex(null);
+          }}
+          initialData={editIndex !== null ? form.profile.links[editIndex] : undefined}
         />
       )}
 
       {showHeaderModal && (
         <HeaderFormModal
-          initialData={editHeaderIndex !== null ? form.headers?.[editHeaderIndex] : undefined}
+          initialData={editHeaderIndex !== null ? form.profile.headers?.[editHeaderIndex] : undefined}
           onClose={() => setShowHeaderModal(false)}
           onSave={(newHeader) => {
+            const updated = [...form.profile.headers];
             if (editHeaderIndex !== null) {
-              const updated = [...form.headers];
-              updated[editHeaderIndex] = { ...updated[editHeaderIndex], ...newHeader };
-              setForm({ ...form, headers: updated });
+              updated[editHeaderIndex] = {
+                ...updated[editHeaderIndex],
+                ...newHeader,
+              };
             } else {
               const id = `header-${Date.now() + Math.random()}`;
-              setForm({ ...form, headers: [...(form.headers || []), { ...newHeader, id }] });
+              updated.push({ ...newHeader, id });
             }
+            setForm({ ...form, profile: { ...form.profile, headers: updated } });
             setShowHeaderModal(false);
           }}
         />
       )}
-
 
       {showUploadModal && (
         <UploadModal
           onClose={() => setShowUploadModal(false)}
           onSelectImage={(val) => {
             if (typeof val === 'string') {
-              setForm({ ...form, avatar: val });
+              setForm({ ...form, profile: { ...form.profile, avatar: val } });
               setUploadPreview(val);
+            }
+            else {
+              const reader = new FileReader();
+              reader.onload = () => {
+                setForm({ ...form, profile: { ...form.profile, avatar: reader.result as string } });
+                setUploadPreview(reader.result as string)
+              };
+              reader.readAsDataURL(val);
             }
             setShowUploadModal(false);
           }}
+          showTabs={false}
         />
       )}
 
       {showEmbedModal && (
         <EmbedFormModal
           onSave={handleSaveEmbed}
-          onClose={() => { setShowEmbedModal(false); setEditEmbedIndex(null); }}
-          initialData={editEmbedIndex !== null ? form.embeds[editEmbedIndex] : undefined}
+          onClose={() => {
+            setShowEmbedModal(false);
+            setEditEmbedIndex(null);
+          }}
+          initialData={
+            editEmbedIndex !== null ? form.profile.embeds[editEmbedIndex] : undefined
+          }
         />
       )}
+
 
       {showTestimonialModal && (
         <TestimonialFormModal
           onClose={() => setShowTestimonialModal(false)}
           initialData={
-            editTestimonialIndex !== null ? form.testimonials?.[editTestimonialIndex] : undefined
+            editTestimonialIndex !== null ? form.profile.testimonials?.[editTestimonialIndex] : undefined
           }
           onSave={(newTestimonial) => {
             if (editTestimonialIndex !== null) {
-              const updated = [...form.testimonials];
+              const updated = [...form.profile.testimonials];
               updated[editTestimonialIndex] = { ...updated[editTestimonialIndex], ...newTestimonial };
-              setForm({ ...form, testimonials: updated });
+              setForm({ ...form, profile: { ...form.profile, testimonials: updated } });
             } else {
               const id = `testimonial-${Date.now() + Math.random()}`;
-              setForm({ ...form, testimonials: [...(form.testimonials || []), { ...newTestimonial, id }] });
+              setForm({
+                ...form,
+                profile: {
+                  ...form.profile,
+                  testimonials: [...(form.profile.testimonials || []), { ...newTestimonial, id }],
+                },
+              });
             }
             setShowTestimonialModal(false);
           }}
         />
       )}
 
-
       {showFAQModal && (
         <FAQFormModal
           onClose={() => setShowFAQModal(false)}
-          initialData={editFAQIndex !== null ? form.faqs?.[editFAQIndex] : undefined}
+          initialData={editFAQIndex !== null ? form.profile.faqs?.[editFAQIndex] : undefined}
           onSave={(newFaq) => {
             if (editFAQIndex !== null) {
-              const updated = [...form.faqs];
+              const updated = [...form.profile.faqs];
               updated[editFAQIndex] = { ...updated[editFAQIndex], ...newFaq };
-              setForm({ ...form, faqs: updated });
+              setForm({ ...form, profile: { ...form.profile, faqs: updated } });
             } else {
               const id = `faq-${Date.now() + Math.random()}`;
-              setForm({ ...form, faqs: [...(form.faqs || []), { ...newFaq, id }] });
+              setForm({
+                ...form,
+                profile: {
+                  ...form.profile,
+                  faqs: [...(form.profile.faqs || []), { ...newFaq, id }],
+                },
+              });
             }
             setShowFAQModal(false);
           }}
         />
       )}
-
 
       {showTestimonialUpload && (
         <UploadModal
@@ -782,7 +878,10 @@ export default function ProfileTab({ form, setForm }: { form: any; setForm: (f: 
         <ServiceFormModal
           onClose={() => setShowServiceModal(false)}
           onSave={handleSaveService}
-          initialData={editServiceIndex !== null ? form.services[editServiceIndex] : undefined}
+          initialData={editServiceIndex !== null ? {
+            ...form.profile.services[editServiceIndex],
+            price: form.profile.services[editServiceIndex].price?.toString(),
+          } : undefined}
         />
       )}
 
@@ -790,7 +889,7 @@ export default function ProfileTab({ form, setForm }: { form: any; setForm: (f: 
         <FeaturedMediaModal
           onClose={() => setShowFeaturedModal(false)}
           onSave={handleSaveFeatured}
-          initialData={editFeaturedIndex !== null ? form.featured?.[editFeaturedIndex] : undefined}
+          initialData={editFeaturedIndex !== null ? form.profile.featured?.[editFeaturedIndex] : undefined}
         />
       )}
 
@@ -799,14 +898,14 @@ export default function ProfileTab({ form, setForm }: { form: any; setForm: (f: 
           onClose={() => setShowUploadBannerModal(false)}
           onSelectImage={(val) => {
             if (typeof val === 'string') {
-              setForm({ ...form, bannerImage: val });
+              setForm({ ...form, profile: { ...form.profile, bannerImage: val } });
               setBannerPreview(val);
               setShowUploadBannerModal(false);
             } else if (val instanceof File) {
               const reader = new FileReader();
               reader.onloadend = () => {
                 if (typeof reader.result === 'string') {
-                  setForm({ ...form, bannerImage: reader.result });
+                  setForm({ ...form, profile: { ...form.profile, bannerImage: reader.result } });
                   setBannerPreview(reader.result);
                 }
                 setShowUploadBannerModal(false);
@@ -814,9 +913,11 @@ export default function ProfileTab({ form, setForm }: { form: any; setForm: (f: 
               reader.readAsDataURL(val);
             }
           }}
+          showTabs={false}
         />
-
       )}
+
     </>
   );
 }
+export default ProfileTab
