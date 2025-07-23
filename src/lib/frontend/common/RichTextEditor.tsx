@@ -25,6 +25,7 @@ type Props = {
   onChange: (value: string) => void;
   placeholder?: string;
   className?: string;
+  disable?: boolean;
 };
 
 export default function RichTextEditor({
@@ -32,9 +33,9 @@ export default function RichTextEditor({
   onChange,
   placeholder = 'Write something...',
   className = '',
+  disable = false
 }: Props) {
   const fileInputRef = useRef<HTMLInputElement | null>(null);
-
   const editor = useEditor({
     extensions: [
       StarterKit,
@@ -57,6 +58,13 @@ export default function RichTextEditor({
       onChange(editor.getHTML());
     },
   });
+
+  useEffect(() => {
+    if (editor) {
+      editor.setEditable(!disable);
+    }
+  }, [disable, editor]);
+
 
   useEffect(() => {
     if (editor && value !== editor.getHTML()) {
@@ -84,7 +92,7 @@ export default function RichTextEditor({
   if (!editor) return null;
 
   return (
-    <div className="border rounded-md bg-white">
+    <div className={`border rounded-md ${disable ? 'bg-gray-100 opacity-70 cursor-not-allowed' : 'bg-white'}`}>
       {/* Toolbar */}
       <div className="flex flex-wrap gap-2 border-b p-2 items-center">
         <button

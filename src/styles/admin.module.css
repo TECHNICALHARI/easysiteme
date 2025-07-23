@@ -353,6 +353,116 @@
 /* service end */
 /* linkTab end */
 
+/* locked content box style start */
+/* admin.module.css */
+
+.lockedWrapper {
+    position: relative;
+    background-color: var(--color-muted);
+    padding: 1rem;
+    border-radius: 0.5rem;
+    border: 1px dashed #d1d5db;
+    text-align: center;
+    overflow: hidden;
+}
+
+.lockedContent {
+    position: relative;
+    z-index: 10;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+}
+
+.lockIcon {
+    color: #9ca3af;
+}
+
+.lockText {
+    color: #4b5563;
+    font-size: 0.875rem;
+    margin: 0;
+}
+
+.lockedOverlay {
+    position: absolute;
+    inset: 0;
+    background-color: rgba(255, 255, 255, 0.6);
+    backdrop-filter: blur(4px);
+    border-radius: 0.5rem;
+    pointer-events: none;
+    z-index: 5;
+}
+
+:root[data-theme='dark'] .lockedOverlay {
+    background-color: rgba(0, 0, 0, 0.4);
+}
+
+/* Notice Mode */
+.noticeBox {
+    margin-top: 0.5rem;
+    padding: 0.5rem 1rem;
+    background-color: #fef9c3;
+    color: #92400e;
+    border: 1px solid #fef08a;
+    border-radius: 0.375rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.875rem;
+}
+
+.noticeLeft {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.noticeIcon {
+    color: #eab308;
+}
+
+/* locked content box style end */
+
+/* resume file start */
+.resumeUploadBox {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    margin-top: 0.5rem;
+}
+
+.resumeUploadLabel {
+    display: inline-block;
+    padding: 0.75rem 1rem;
+    background-color: #f5f5f5;
+    border: 2px dashed #ccc;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 500;
+    color: #333;
+    text-align: center;
+    transition: background-color 0.2s ease;
+}
+
+.resumeUploadLabel:hover {
+    background-color: #eaeaea;
+}
+
+.resumeHiddenInput {
+    display: none;
+}
+
+.resumeActions {
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+}
+
+/* resume file end */
+
 @media (max-width: 1024px) {
     .mobilePreview {
         display: none;

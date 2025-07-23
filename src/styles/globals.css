@@ -154,6 +154,45 @@ html {
   transform: scale(1.05);
 }
 
+.btn-secondary {
+  background-color: #f9fafb;
+  color: #4f46e5;
+  padding: 0.65rem 1.25rem;
+  font-weight: 500;
+  border-radius: 9999px;
+  border: 1px solid #e5e7eb;
+  transition: all 0.25s ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.btn-secondary:hover {
+  background-color: #eef2ff;
+  border-color: #c7d2fe;
+  color: #4338ca;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.04);
+}
+
+.btn-destructive {
+  background-color: #fee2e2;
+  color: #b91c1c;
+  border: 1px solid #fca5a5;
+  padding: 0.5rem 1rem;
+  border-radius: 9999px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  transition: all 0.2s ease-in-out;
+  cursor: pointer;
+}
+
+.btn-destructive:hover {
+  background-color: #fca5a5;
+  color: #7f1d1d;
+  border-color: #ef4444;
+}
+
 button:disabled,
 button[disabled] {
   background-color: var(--color-brand);

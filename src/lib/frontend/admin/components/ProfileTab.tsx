@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, ActionDispatch, FC } from 'react';
+import { useState, useEffect, ActionDispatch, FC, useRef } from 'react';
 import {
   DndContext,
   closestCenter,
@@ -17,7 +17,7 @@ import {
   verticalListSortingStrategy,
 } from '@dnd-kit/sortable';
 
-import { ImagePlus, FileText, Youtube, Link as LinkIcon, X, Pencil, Trash2 } from 'lucide-react';
+import { ImagePlus, FileText, Youtube, Link as LinkIcon, X, Pencil, Trash2, MapPin } from 'lucide-react';
 import styles from '@/styles/admin.module.css';
 import SortableLink from './SortableLink';
 import LinkFormModal from './LinkFormModal';
@@ -37,11 +37,10 @@ import FeaturedMediaModal from './FeaturedMediaModal';
 import SortableFeaturedMediaItem from './FeaturedMediaSection';
 import ProfileTagsSection from './ProfileTagsSection';
 import { FormData, ProfileTypeMap, ReorderableProfileKeys } from '../../types/form';
+import { PLAN_FEATURES } from '@/config/PLAN_FEATURES';
+import LockedOverlay from '../layout/LockedOverlay';
+import ResumeUpload, { ResumeUploadRef } from './ResumeUpload';
 
-const PLAN_LIMITS = {
-  free: { links: 3, headers: 1, embeds: 0, contact: false, resume: false, featured: false, about: false, map: false, testimonials: 0, faqs: 0, services: 0, tags: 5 },
-  premium: { links: 50, headers: 10, embeds: 10, contact: true, resume: true, featured: true, about: true, map: true, testimonials: 5, faqs: 10, services: 10, tags: 2 },
-};
 
 interface props {
   form: FormData;
@@ -51,8 +50,8 @@ interface props {
 
 
 const ProfileTab: FC<props> = ({ form, setForm }) => {
-  const plan = 'premium';
-  const limits = PLAN_LIMITS[plan];
+  const plan = 'free';
+  const limits = PLAN_FEATURES[plan];
 
   const [showModal, setShowModal] = useState(false);
   const [editIndex, setEditIndex] = useState<number | null>(null);
@@ -88,7 +87,7 @@ const ProfileTab: FC<props> = ({ form, setForm }) => {
 
   const [bannerPreview, setBannerPreview] = useState<string | null>(form.profile.bannerImage || null);
   const [showUploadBannerModal, setShowUploadBannerModal] = useState(false);
-  console.log(uploadPreview, "uploadPreview")
+  const resumeRef = useRef<ResumeUploadRef>(null);
   const sensors = useSensors(
     useSensor(PointerSensor),
     useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates })
@@ -189,6 +188,39 @@ const ProfileTab: FC<props> = ({ form, setForm }) => {
   }, [form.profile.bannerImage]);
 
 
+
+  const headersLimitReached = (form.profile.headers ?? []).length >= limits.headers;
+  const linksLimitReached = (form.profile.links ?? []).length >= limits.links;
+
+  const isServicesEnabled = limits.faqs > 0;
+  const servicesLimitReached = (form.profile.services?.length || 0) >= limits.services;
+  const showServicesLimitNotice = isServicesEnabled && servicesLimitReached;
+
+
+  const isfaqsEnabled = limits.faqs > 0;
+  const faqsLimitReached = (form.profile.faqs?.length || 0) >= limits.faqs;
+  const showFaqsLimitNotice = isfaqsEnabled && faqsLimitReached;
+
+  const isTestimonialsEnabled = limits.testimonials > 0;
+  const testimonialsLimitReached = (form.profile.testimonials?.length || 0) >= limits.testimonials;
+  const showTestimonialsLimitNotice = isTestimonialsEnabled && testimonialsLimitReached;
+
+
+  const isFeaturedEnabled = limits.featured > 0;
+  const featuredLimitReached = (form.profile.featured?.length || 0) >= limits.featured;
+  const showFeaturedLimitNotice = isFeaturedEnabled && featuredLimitReached;
+  // const postsLimitReached = (form.profile.posts ?? []).length >= limits.posts;
+  const isEmbedEnabled = limits.embeds > 0;
+  const embedsLimitReached = (form.profile.embeds?.length || 0) >= limits.embeds;
+  const showLimitMessage = isEmbedEnabled && embedsLimitReached;
+
+  const aboutDisabled = !limits.about;
+  const bannerImageDisabled = !limits.bannerImage;
+  const contactDisabled = !limits.contact;
+  const mapDisabled = !limits.map;
+  const resumeDisabled = !limits.resume;
+  const customThemeDisabled = !limits.customTheme;
+
   return (
     <>
       <div className={styles.TabPageMain}>
@@ -218,31 +250,33 @@ const ProfileTab: FC<props> = ({ form, setForm }) => {
 
               <div className="flex flex-col gap-2 mt-4">
                 <label className="font-medium">Cover Banner / Hero Image</label>
-                {bannerPreview ? (
-                  <div className="relative w-full">
-                    <img
-                      src={bannerPreview}
-                      alt="Cover Banner"
-                      className="w-full h-40 object-cover rounded-lg border"
-                    />
-                    <button
-                      onClick={() => {
-                        setForm({ ...form, profile: { ...form.profile, bannerImage: '' } });
-                        setBannerPreview(null);
-                      }}
-                      className="absolute top-2 right-2 bg-white/80 rounded-full p-1 hover:bg-white"
-                      title="Remove Image"
-                    >
-                      <X size={16} />
-                    </button>
-                  </div>
-                ) : (
-                  <div className={styles.SecHeadAndBtn}>
-                    <button className="btn-primary" onClick={() => setShowUploadBannerModal(true)}>
-                      Upload Cover Image
-                    </button>
-                  </div>
-                )}
+                <LockedOverlay enabled={!bannerImageDisabled} mode='overlay'>
+                  {bannerPreview ? (
+                    <div className="relative w-full">
+                      <img
+                        src={bannerPreview}
+                        alt="Cover Banner"
+                        className="w-full h-40 object-cover rounded-lg border"
+                      />
+                      <button
+                        onClick={() => {
+                          setForm({ ...form, profile: { ...form.profile, bannerImage: '' } });
+                          setBannerPreview(null);
+                        }}
+                        className="absolute top-2 right-2 bg-white/80 rounded-full p-1 hover:bg-white"
+                        title="Remove Image"
+                      >
+                        <X size={16} />
+                      </button>
+                    </div>
+                  ) : (
+                    <div className={styles.SecHeadAndBtn}>
+                      <button className="btn-primary" onClick={() => setShowUploadBannerModal(true)}>
+                        Upload Cover Image
+                      </button>
+                    </div>
+                  )}
+                </LockedOverlay>
               </div>
             </div>
 
@@ -265,19 +299,19 @@ const ProfileTab: FC<props> = ({ form, setForm }) => {
             </div>
           </div>
         </div>
-
-        {limits.about && (
-          <div className={styles.sectionMain}>
-            <div className={styles.SecHeadAndBtn}>
-              <h4 className={styles.sectionLabel}>About <span className="badge-pro">Pro</span></h4>
-            </div>
+        <div className={styles.sectionMain}>
+          <div className={styles.SecHeadAndBtn}>
+            <h4 className={styles.sectionLabel}>About <span className="badge-pro">Pro</span></h4>
+          </div>
+          <LockedOverlay enabled={!aboutDisabled} mode='notice'>
             <RichTextEditor
               value={form.profile.about || ''}
               onChange={(val) => setForm({ ...form, profile: { ...form.profile, about: val } })}
               placeholder="Tell your story, skills, mission..."
+              disable={aboutDisabled}
             />
-          </div>
-        )}
+          </LockedOverlay>
+        </div>
 
         <div className={styles.sectionMain}>
           <div className={styles.SecHeadAndBtn}>
@@ -285,39 +319,45 @@ const ProfileTab: FC<props> = ({ form, setForm }) => {
             <button
               className="btn-primary"
               onClick={() => setShowHeaderModal(true)}
-              disabled={form.profile.headers.length >= limits.headers}
+              disabled={headersLimitReached}
             >
               + Add Header
             </button>
           </div>
-          <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd('headers')}>
-            <SortableContext items={form.profile.headers.map((h: any) => h.id)} strategy={verticalListSortingStrategy}>
-              <div className="grid gap-3">
-                {form.profile.headers.map((header: any, i: number) => (
-                  <SortableLink
-                    key={header.id}
-                    id={header.id}
-                    link={{ ...header, type: 'header' }}
-                    onEdit={() => {
-                      setEditHeaderIndex(i);
-                      setHeaderTitle(header.title);
-                      setShowHeaderModal(true);
-                    }}
-                    onDelete={() =>
-                      setForm({
-                        ...form,
-                        profile: {
-                          ...form.profile,
-                          headers: form.profile.headers.filter((_, j) => j !== i),
-                        },
-                      })
-                    }
-                    isHeader
-                  />
-                ))}
-              </div>
-            </SortableContext>
-          </DndContext>
+          <LockedOverlay
+            mode='notice'
+            enabled={!headersLimitReached}
+            limitReached={headersLimitReached}
+          >
+            <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd('headers')}>
+              <SortableContext items={form.profile.headers.map((h: any) => h.id)} strategy={verticalListSortingStrategy}>
+                <div className="grid gap-3">
+                  {form.profile.headers.map((header: any, i: number) => (
+                    <SortableLink
+                      key={header.id}
+                      id={header.id}
+                      link={{ ...header, type: 'header' }}
+                      onEdit={() => {
+                        setEditHeaderIndex(i);
+                        setHeaderTitle(header.title);
+                        setShowHeaderModal(true);
+                      }}
+                      onDelete={() =>
+                        setForm({
+                          ...form,
+                          profile: {
+                            ...form.profile,
+                            headers: form.profile.headers.filter((_, j) => j !== i),
+                          },
+                        })
+                      }
+                      isHeader
+                    />
+                  ))}
+                </div>
+              </SortableContext>
+            </DndContext>
+          </LockedOverlay>
         </div>
 
         <div className={styles.sectionMain}>
@@ -326,53 +366,63 @@ const ProfileTab: FC<props> = ({ form, setForm }) => {
             <button
               className="btn-primary"
               onClick={() => setShowModal(true)}
-              disabled={form.profile.links.length >= limits.links}
+              disabled={linksLimitReached}
             >
               + Add Link
             </button>
           </div>
-          <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd('links')}>
-            <SortableContext items={form.profile.links.map((l: any) => l.id)} strategy={verticalListSortingStrategy}>
-              <div className="grid gap-4">
-                {form.profile.links.map((link: any, i: number) => (
-                  <SortableLink
-                    key={link.id}
-                    id={link.id}
-                    link={link}
-                    onEdit={() => {
-                      setEditIndex(i);
-                      setShowModal(true);
-                    }}
-                    onDelete={() =>
-                      setForm({
-                        ...form,
-                        profile: {
-                          ...form.profile,
-                          links: form.profile.links.filter((_, j) => j !== i),
-                        },
-                      })
-                    }
-                  />
-                ))}
-              </div>
-            </SortableContext>
-          </DndContext>
+          <LockedOverlay
+            mode='notice'
+            enabled={!linksLimitReached}
+            limitReached={linksLimitReached}
+          >
+            <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd('links')}>
+              <SortableContext items={form.profile.links.map((l: any) => l.id)} strategy={verticalListSortingStrategy}>
+                <div className="grid gap-4">
+                  {form.profile.links.map((link: any, i: number) => (
+                    <SortableLink
+                      key={link.id}
+                      id={link.id}
+                      link={link}
+                      onEdit={() => {
+                        setEditIndex(i);
+                        setShowModal(true);
+                      }}
+                      onDelete={() =>
+                        setForm({
+                          ...form,
+                          profile: {
+                            ...form.profile,
+                            links: form.profile.links.filter((_, j) => j !== i),
+                          },
+                        })
+                      }
+                    />
+                  ))}
+                </div>
+              </SortableContext>
+            </DndContext>
+          </LockedOverlay>
         </div>
 
         {limits.contact && (
           <ContactInfoSection form={form} setForm={setForm} />
         )}
 
-        {limits.map && (
-          <div className={styles.sectionMain}>
-            <div className={styles.SecHeadAndBtn}>
-              <h4>📍 Location <span className="badge-pro">Pro</span></h4>
-            </div>
+        <div className={styles.sectionMain}>
+          <div className={styles.SecHeadAndBtn}>
+            <h4 className={styles.sectionLabel}>
+              <MapPin size={18} className="inline-block mr-1 mb-1 text-gray-700" />
+              Business Location <span className="badge-pro">Pro</span>
+            </h4>
+          </div>
+          <LockedOverlay enabled={!mapDisabled} mode='notice'>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
               <input
                 className="input"
                 placeholder="Enter your business or coaching location (e.g. Building name, street, area, city)"
                 value={form.profile.fullAddress || ''}
+                disabled={mapDisabled}
                 onChange={(e) => setForm({ ...form, profile: { ...form.profile, fullAddress: e.target.value } })}
               />
               <input
@@ -380,6 +430,7 @@ const ProfileTab: FC<props> = ({ form, setForm }) => {
                 type="text"
                 placeholder="Latitude (optional)"
                 value={form.profile.latitude || ''}
+                disabled={mapDisabled}
                 onChange={(e) => setForm({ ...form, profile: { ...form.profile, latitude: e.target.value } })}
               />
               <input
@@ -387,6 +438,7 @@ const ProfileTab: FC<props> = ({ form, setForm }) => {
                 type="text"
                 placeholder="Longitude (optional)"
                 value={form.profile.longitude || ''}
+                disabled={mapDisabled}
                 onChange={(e) => setForm({ ...form, profile: { ...form.profile, longitude: e.target.value } })}
               />
             </div>
@@ -399,86 +451,129 @@ const ProfileTab: FC<props> = ({ form, setForm }) => {
                 <li>Paste latitude in the first field, longitude in the second.</li>
               </ol>
             </p>
-            {(form.profile.latitude && form.profile.longitude) || form.profile.fullAddress ? (
-              <div className="mt-4">
-                <iframe
-                  className="rounded-xl w-full h-64 border"
-                  loading="lazy"
-                  referrerPolicy="no-referrer-when-downgrade"
-                  src={
-                    form.profile.latitude && form.profile.longitude
-                      ? `https://www.google.com/maps?q=${form.profile.latitude},${form.profile.longitude}&output=embed`
-                      : `https://www.google.com/maps?q=${encodeURIComponent(form.profile.fullAddress || '')}&output=embed`
-                  }
-                  title="Business Location"
-                ></iframe>
-                <a
-                  href={
-                    form.profile.latitude && form.profile.longitude
-                      ? `https://www.google.com/maps/dir/?api=1&destination=${form.profile.latitude},${form.profile.longitude}`
-                      : `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(form.profile.fullAddress || '')}`
-                  }
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="btn-primary mt-3 inline-block"
-                >
-                  Navigate Here
-                </a>
-              </div>
-            ) : null}
-          </div>
-        )}
+            <div className="mt-4">
+              <iframe
+                className="rounded-xl w-full h-64 border"
+                loading="lazy"
+                referrerPolicy="no-referrer-when-downgrade"
+                src={
+                  form.profile.latitude && form.profile.longitude
+                    ? `https://www.google.com/maps?q=${form.profile.latitude},${form.profile.longitude}&output=embed`
+                    : form.profile.fullAddress
+                      ? `https://www.google.com/maps?q=${encodeURIComponent(form.profile.fullAddress)}&output=embed`
+                      : `https://www.google.com/maps?q=28.6139,77.2090&output=embed`
+                }
+                title="Business Location"
+              ></iframe>
 
-        {limits.resume && (
-          <div className={styles.sectionMain}>
-            <div className={styles.SecHeadAndBtn}>
-              <h4>
-                Upload Resume <FileText size={16} className="inline-block ml-1 mb-1" />{" "}
-                <span className="badge-pro">Pro</span>
-              </h4>
+              <a
+                href={
+                  form.profile.latitude && form.profile.longitude
+                    ? `https://www.google.com/maps/dir/?api=1&destination=${form.profile.latitude},${form.profile.longitude}`
+                    : form.profile.fullAddress
+                      ? `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(form.profile.fullAddress)}`
+                      : `https://www.google.com/maps?q=28.6139,77.2090`
+                }
+                target="_blank"
+                rel="noopener noreferrer"
+                className="btn-primary mt-3 inline-block"
+              >
+                Navigate Here
+              </a>
+
+              {mapDisabled && !form.profile.latitude && !form.profile.longitude && !form.profile.fullAddress && (
+                <p className="text-xs text-center text-gray-500 mt-2 italic">
+                  This is a sample location preview. Upgrade to set your business location.
+                </p>
+              )}
             </div>
-            <input
-              type="file"
-              accept=".pdf"
-              className="input"
-              onChange={(e) => {
-                const file = e.target.files?.[0];
-                if (file) {
+
+          </LockedOverlay>
+        </div>
+
+        <div className={styles.sectionMain}>
+          <div className={styles.SecHeadAndBtn}>
+            <h4 className={styles.sectionLabel}>
+              <FileText size={18} className="inline-block mr-1 mb-1 text-gray-700" />
+              Upload Resume <span className="badge-pro">Pro</span>
+            </h4>
+          </div>
+          <LockedOverlay enabled={!resumeDisabled}>
+            <div className={styles.resumeUploadBox}>
+              <ResumeUpload
+                ref={resumeRef}
+                onSelectFile={(file) => {
+                  if (form.profile.resumeUrl?.startsWith('blob:')) {
+                    URL.revokeObjectURL(form.profile.resumeUrl);
+                  }
+
                   const reader = new FileReader();
                   reader.onload = () => {
-                    if (typeof reader.result === "string") {
+                    const blob = new Blob([reader.result as ArrayBuffer], { type: file.type });
+                    const url = URL.createObjectURL(blob);
+                    setForm({
+                      ...form,
+                      profile: { ...form.profile, resumeUrl: url },
+                    });
+                  };
+                  reader.readAsArrayBuffer(file);
+                }}
+              />
+
+              {form.profile.resumeUrl && (
+                <div className={styles.resumeActions}>
+                  <a
+                    href={form.profile.resumeUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="btn-secondary"
+                  >
+                    View Resume
+                  </a>
+                  <button
+                    className="btn-destructive"
+                    onClick={() => {
+                      if (form.profile.resumeUrl?.startsWith('blob:')) {
+                        URL.revokeObjectURL(form.profile.resumeUrl);
+                      }
                       setForm({
                         ...form,
-                        profile: { ...form.profile, resumeUrl: reader.result },
+                        profile: { ...form.profile, resumeUrl: '' },
                       });
-                    }
-                  };
-                  reader.readAsDataURL(file);
-                }
-              }}
-            />
-          </div>
-        )}
-
-        {limits.featured && (
-          <div className={styles.sectionMain}>
-            <div className={styles.SecHeadAndBtn}>
-              <h4>
-                Featured Media{" "}
-                <Youtube size={16} className="inline-block ml-1 mb-1" />{" "}
-                <span className="badge-pro">Pro</span>
-              </h4>
-              <button
-                className="btn-primary"
-                onClick={() => {
-                  setEditFeaturedIndex(null);
-                  setShowFeaturedModal(true);
-                }}
-                disabled={(form.profile.featured || []).length >= 10}
-              >
-                + Add Media
-              </button>
+                      resumeRef.current?.reset();
+                    }}
+                  >
+                    Remove
+                  </button>
+                </div>
+              )}
             </div>
+          </LockedOverlay>
+        </div>
+
+        <div className={styles.sectionMain}>
+          <div className={styles.SecHeadAndBtn}>
+            <h4>
+              Featured Media{" "}
+              <Youtube size={16} className="inline-block ml-1 mb-1" />{" "}
+              <span className="badge-pro">Pro</span>
+            </h4>
+            <button
+              className="btn-primary"
+              onClick={() => {
+                setEditFeaturedIndex(null);
+                setShowFeaturedModal(true);
+              }}
+              disabled={featuredLimitReached}
+            >
+              + Add Media
+            </button>
+          </div>
+          <LockedOverlay
+            enabled={isFeaturedEnabled && !featuredLimitReached}
+            limitReached={showFeaturedLimitNotice}
+            mode="notice"
+          >
             <DndContext
               sensors={sensors}
               collisionDetection={closestCenter}
@@ -514,25 +609,29 @@ const ProfileTab: FC<props> = ({ form, setForm }) => {
                 </div>
               </SortableContext>
             </DndContext>
-          </div>
-        )}
+          </LockedOverlay>
+        </div>
 
-        {limits.embeds > 0 && (
-          <div className={styles.sectionMain}>
-            <div className={styles.SecHeadAndBtn}>
-              <h4>
-                Embed Widgets{" "}
-                <LinkIcon size={16} className="inline-block ml-1 mb-1" />{" "}
-                <span className="badge-pro">Pro</span>
-              </h4>
-              <button
-                className="btn-primary"
-                onClick={() => setShowEmbedModal(true)}
-                disabled={(form.profile.embeds || []).length >= limits.embeds}
-              >
-                + Add Embed
-              </button>
-            </div>
+        <div className={styles.sectionMain}>
+          <div className={styles.SecHeadAndBtn}>
+            <h4>
+              Embed Widgets{" "}
+              <LinkIcon size={16} className="inline-block ml-1 mb-1" />{" "}
+              <span className="badge-pro">Pro</span>
+            </h4>
+            <button
+              className="btn-primary"
+              onClick={() => setShowEmbedModal(true)}
+              disabled={embedsLimitReached}
+            >
+              + Add Embed
+            </button>
+          </div>
+          <LockedOverlay
+            enabled={isEmbedEnabled && !embedsLimitReached}
+            limitReached={showLimitMessage}
+            mode="notice"
+          >
             <DndContext
               sensors={sensors}
               collisionDetection={closestCenter}
@@ -569,32 +668,30 @@ const ProfileTab: FC<props> = ({ form, setForm }) => {
                 </div>
               </SortableContext>
             </DndContext>
-          </div>
-        )}
+          </LockedOverlay>
+        </div>
 
-        {limits.testimonials > 0 && (
-          <div className={styles.sectionMain}>
-            <div className={styles.SecHeadAndBtn}>
-              <h4>
-                Testimonials <span className="badge-pro">Pro</span>
-              </h4>
-              <button
-                className="btn-primary"
-                onClick={() => {
-                  setEditTestimonialIndex(null);
-                  setTestimonialName("");
-                  setTestimonialMessage("");
-                  setTestimonialAvatar("");
-                  setTestimonialAvatarPreview(null);
-                  setShowTestimonialModal(true);
-                }}
-                disabled={
-                  (form.profile.testimonials || []).length >= limits.testimonials
-                }
-              >
-                + Add Testimonial
-              </button>
-            </div>
+        <div className={styles.sectionMain}>
+          <div className={styles.SecHeadAndBtn}>
+            <h4>
+              Testimonials <span className="badge-pro">Pro</span>
+            </h4>
+            <button
+              className="btn-primary"
+              onClick={() => {
+                setEditTestimonialIndex(null);
+                setTestimonialName("");
+                setTestimonialMessage("");
+                setTestimonialAvatar("");
+                setTestimonialAvatarPreview(null);
+                setShowTestimonialModal(true);
+              }}
+              disabled={testimonialsLimitReached}
+            >
+              + Add Testimonial
+            </button>
+          </div>
+          <LockedOverlay enabled={isTestimonialsEnabled && !testimonialsLimitReached} limitReached={showTestimonialsLimitNotice} mode='notice'>
             <DndContext
               sensors={sensors}
               collisionDetection={closestCenter}
@@ -634,27 +731,25 @@ const ProfileTab: FC<props> = ({ form, setForm }) => {
                 </div>
               </SortableContext>
             </DndContext>
+          </LockedOverlay>
+        </div>
+        <div className={styles.sectionMain}>
+          <div className={styles.SecHeadAndBtn}>
+            <h4>FAQs <span className="badge-pro">Pro</span></h4>
+            <button
+              className="btn-primary"
+              onClick={() => {
+                setEditFAQIndex(null);
+                setFaqQuestion('');
+                setFaqAnswer('');
+                setShowFAQModal(true);
+              }}
+              disabled={faqsLimitReached}
+            >
+              + Add FAQ
+            </button>
           </div>
-        )}
-
-
-        {limits.faqs > 0 && (
-          <div className={styles.sectionMain}>
-            <div className={styles.SecHeadAndBtn}>
-              <h4>FAQs <span className="badge-pro">Pro</span></h4>
-              <button
-                className="btn-primary"
-                onClick={() => {
-                  setEditFAQIndex(null);
-                  setFaqQuestion('');
-                  setFaqAnswer('');
-                  setShowFAQModal(true);
-                }}
-                disabled={form.profile.faqs.length >= limits.faqs}
-              >
-                + Add FAQ
-              </button>
-            </div>
+          <LockedOverlay enabled={isfaqsEnabled && !faqsLimitReached} limitReached={showFaqsLimitNotice} mode='notice'>
             <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd('faqs')}>
               <SortableContext items={form.profile.faqs.map((f: any) => f.id)} strategy={verticalListSortingStrategy}>
                 <div className="grid gap-3">
@@ -683,24 +778,24 @@ const ProfileTab: FC<props> = ({ form, setForm }) => {
                 </div>
               </SortableContext>
             </DndContext>
-          </div>
-        )}
+          </LockedOverlay>
+        </div>
 
-        {limits.services > 0 && (
-          <div className={styles.sectionMain}>
-            <div className={styles.SecHeadAndBtn}>
-              <h4>Services <span className="badge-pro">Pro</span></h4>
-              <button
-                className="btn-primary"
-                onClick={() => {
-                  setEditServiceIndex(null);
-                  setShowServiceModal(true);
-                }}
-                disabled={form.profile.services.length >= limits.services}
-              >
-                + Add Service
-              </button>
-            </div>
+        <div className={styles.sectionMain}>
+          <div className={styles.SecHeadAndBtn}>
+            <h4>Services <span className="badge-pro">Pro</span></h4>
+            <button
+              className="btn-primary"
+              onClick={() => {
+                setEditServiceIndex(null);
+                setShowServiceModal(true);
+              }}
+              disabled={servicesLimitReached}
+            >
+              + Add Service
+            </button>
+          </div>
+          <LockedOverlay enabled={isServicesEnabled && !servicesLimitReached} limitReached={showServicesLimitNotice} mode='notice'>
             <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd('services')}>
               <SortableContext items={form.profile.services.map((s: any) => s.id)} strategy={verticalListSortingStrategy}>
                 <div className="grid gap-3">
@@ -727,10 +822,15 @@ const ProfileTab: FC<props> = ({ form, setForm }) => {
                 </div>
               </SortableContext>
             </DndContext>
-          </div>
-        )}
-
-        <ProfileTagsSection form={form} setForm={setForm} limit={limits.tags} />
+          </LockedOverlay>
+        </div>
+       
+          <ProfileTagsSection
+            form={form}
+            setForm={setForm}
+            limit={limits.tags}
+          />
+      
       </div>
 
       {showModal && (
