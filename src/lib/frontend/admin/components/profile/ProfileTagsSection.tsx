@@ -2,7 +2,7 @@
 
 import { X } from 'lucide-react';
 import styles from '@/styles/admin.module.css';
-import LockedOverlay from '../layout/LockedOverlay';
+import LockedOverlay from '../../layout/LockedOverlay';
 
 export default function ProfileTagsSection({
   form,

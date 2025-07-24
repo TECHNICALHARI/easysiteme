@@ -3,7 +3,8 @@
 import { FC, useState } from 'react';
 import styles from '@/styles/admin.module.css';
 import { FormData } from '../../types/form';
-import ProfileTab from './ProfileTab';
+import ProfileTab from './profile/ProfileTab';
+import PostTab from './posts/PostTab';
 const tabs = ['Profile', 'Posts', 'Design', 'Subscribers', 'Stats', 'Settings'];
 
 interface props {
@@ -29,8 +30,8 @@ const AllTabs: FC<props> = ({ form, setForm }) => {
 
             <div className={styles.tabContent}>
                 {activeTab === 'Profile' && <ProfileTab form={form} setForm={setForm} />}
-                {/* {activeTab === 'Posts' && <PostsTab form={form} setForm={setForm} />}
-                {activeTab === 'Design' && <DesignTab form={form} setForm={setForm} />}
+                {activeTab === 'Posts' && <PostTab form={form} setForm={setForm} />}
+                {/* {activeTab === 'Design' && <DesignTab form={form} setForm={setForm} />}
                 {activeTab === 'Subscribers' && <SubscribersTab form={form} setForm={setForm} />}
                 {activeTab === 'Stats' && <StatsTab form={form} setForm={setForm} />}
                 {activeTab === 'Settings' && <SettingsTab form={form} setForm={setForm} />} */}

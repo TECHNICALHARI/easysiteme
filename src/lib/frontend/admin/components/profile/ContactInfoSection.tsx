@@ -2,7 +2,7 @@
 
 import { Dispatch, SetStateAction } from 'react';
 import styles from '@/styles/admin.module.css';
-import ToggleSwitch from '../../common/ToggleSwitch';
+import ToggleSwitch from '../../../common/ToggleSwitch';
 
 export default function ContactInfoSection({
     form,

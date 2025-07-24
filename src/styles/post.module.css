@@ -1,0 +1,154 @@
+.container {
+  max-width: 768px;
+  margin: auto;
+  padding: 2rem 1rem;
+  font-family: 'Inter', sans-serif;
+  color: #1f2937;
+}
+
+.banner img {
+  width: 100%;
+  border-radius: 10px;
+  object-fit: cover;
+  height: auto;
+  max-height: 400px;
+  margin-bottom: 1.5rem;
+}
+
+.contentBox h1 {
+  font-size: 2.25rem;
+  font-weight: 700;
+  margin-bottom: 1rem;
+}
+
+.description {
+  color: #6b7280;
+  font-size: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.contentBox article {
+  font-size: 1.05rem;
+  line-height: 1.75;
+}
+
+.contentBox article ul {
+  list-style: disc;
+  margin-left: 1.5rem;
+}
+
+.loading {
+  padding: 4rem;
+  text-align: center;
+  font-size: 1.25rem;
+}
+
+
+.thumbPreview {
+  width: 100%;
+  height: 180px;
+  border: 2px dashed #6366f1;
+  border-radius: 12px;
+  position: relative;
+  overflow: hidden;
+  background-color: #fafafa;
+}
+
+.thumbImage {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.removeBtn {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  background: white;
+  border: none;
+  border-radius: 9999px;
+  padding: 4px;
+  cursor: pointer;
+  box-shadow: 0 0 4px rgba(0, 0, 0, 0.1);
+}
+
+/* sortable post start */
+.sortablePost_card {
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.sortablePost_inner {
+  display: flex;
+  align-items: flex-start;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.sortablePost_thumb {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.sortablePost_grip {
+  cursor: grab;
+  color: #9ca3af;
+  margin-top: 2px;
+  background: none;
+  border: none;
+}
+
+.sortablePost_image {
+  width: 56px;
+  height: 56px;
+  object-fit: cover;
+  border-radius: 6px;
+  border: 1px solid #ddd;
+}
+
+.sortablePost_content {
+  flex: 1;
+  min-width: 180px;
+}
+
+.sortablePost_title {
+  font-weight: 600;
+  font-size: 0.95rem;
+  color: #111827;
+  margin-bottom: 2px;
+}
+
+.sortablePost_description {
+  font-size: 0.8rem;
+  color: #4b5563;
+  line-height: 1.4;
+}
+
+.sortablePost_readMore {
+  margin-left: 6px;
+  color: #3b82f6;
+  text-decoration: underline;
+  background: none;
+  border: none;
+  font-size: 0.75rem;
+  cursor: pointer;
+}
+
+.sortablePost_actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-left: auto;
+}
+
+/* sortable post end */

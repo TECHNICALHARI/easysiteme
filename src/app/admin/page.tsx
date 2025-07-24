@@ -57,6 +57,8 @@ export default function Dashboard() {
     });
 
     useAutoSave(form);
+
+    console.log(form, "form")
     return (
         <div className={styles.dashboardWrapper}>
             <AdminHeader />

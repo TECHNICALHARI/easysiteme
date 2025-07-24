@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import styles from "@/styles/admin.module.css"
-import Modal from "../../common/Modal";
+import Modal from "../../../common/Modal";
 export function FAQFormModal({
     onSave,
     onClose,

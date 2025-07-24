@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import Modal from '../../common/Modal';
+import Modal from '../../../common/Modal';
 import styles from '@/styles/admin.module.css';
 
 export default function FeaturedMediaModal({

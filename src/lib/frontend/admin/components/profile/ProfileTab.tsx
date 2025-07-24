@@ -21,10 +21,10 @@ import { ImagePlus, FileText, Youtube, Link as LinkIcon, X, Pencil, Trash2, MapP
 import styles from '@/styles/admin.module.css';
 import SortableLink from './SortableLink';
 import LinkFormModal from './LinkFormModal';
-import CustomModal from '../../common/CustomModal';
-import UploadModal from '../../common/UploadModal';
+import CustomModal from '../../../common/CustomModal';
+import UploadModal from '../../../common/UploadModal';
 import EmbedFormModal from './EmbedFormModal';
-import RichTextEditor from '../../common/RichTextEditor';
+import RichTextEditor from '../../../common/RichTextEditor';
 import SortableTestimonial from './SortableTestimonial';
 import SortableFAQ from './SortableFAQ';
 import ServiceFormModal from './ServiceFormModal';
@@ -36,9 +36,9 @@ import ContactInfoSection from './ContactInfoSection';
 import FeaturedMediaModal from './FeaturedMediaModal';
 import SortableFeaturedMediaItem from './FeaturedMediaSection';
 import ProfileTagsSection from './ProfileTagsSection';
-import { FormData, ProfileTypeMap, ReorderableProfileKeys } from '../../types/form';
+import { FormData, ProfileTypeMap, ReorderableProfileKeys } from '../../../types/form';
 import { PLAN_FEATURES } from '@/config/PLAN_FEATURES';
-import LockedOverlay from '../layout/LockedOverlay';
+import LockedOverlay from '../../layout/LockedOverlay';
 import ResumeUpload, { ResumeUploadRef } from './ResumeUpload';
 
 

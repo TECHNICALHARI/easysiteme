@@ -1,10 +1,10 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import UploadModal from '../../common/UploadModal';
+import UploadModal from '../../../common/UploadModal';
 import styles from '@/styles/admin.module.css';
 import { ImagePlus, X } from 'lucide-react';
-import Modal from '../../common/Modal';
+import Modal from '../../../common/Modal';
 
 export default function ServiceFormModal({
   onSave,

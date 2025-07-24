@@ -100,7 +100,18 @@ export interface ProfileTabData extends ProfileInfo, ContactInfo, Resume {
   services: Service[];
   featured: FeaturedMedia[];
 }
-
+export interface Post {
+  id: string;
+  title: string;
+  slug: string;
+  description: string;
+  content: string;
+  thumbnail: string;
+  seoTitle: string;
+  seoDescription: string;
+  tags: string[];
+  published: boolean;
+}
 export interface PostsTabData {
   posts: any[]; // replace with actual Post type
 }

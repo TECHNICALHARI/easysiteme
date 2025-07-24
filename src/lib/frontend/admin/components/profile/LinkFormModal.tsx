@@ -2,10 +2,10 @@
 
 import { useState, useEffect } from 'react';
 import { ImagePlus, X } from 'lucide-react';
-import CustomModal from '../../common/CustomModal';
-import UploadModal, { staticIconMap } from '../../common/UploadModal';
+import CustomModal from '../../../common/CustomModal';
+import UploadModal, { staticIconMap } from '../../../common/UploadModal';
 import styles from '@/styles/admin.module.css';
-import Modal from '../../common/Modal';
+import Modal from '../../../common/Modal';
 
 interface LinkFormModalProps {
   onSave: (data: any) => void;

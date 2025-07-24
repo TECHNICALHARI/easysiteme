@@ -35,7 +35,7 @@ export const PLAN_FEATURES: Record<PlanType, PlanFeatureConfig> = {
     customTheme: false,
     headers: 1,
     tags: 2,
-    posts: 0,
+    posts: 1,
   },
   pro: {
     links: 5,

@@ -4,7 +4,7 @@ import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { GripVertical, Pencil, Trash2 } from 'lucide-react';
 import styles from '@/styles/admin.module.css';
-import { staticIconMap } from '../../common/UploadModal';
+import { staticIconMap } from '../../../common/UploadModal';
 
 export default function SortableLink({ id, link, onDelete, onEdit }: any) {
   console.log(link, "link")
