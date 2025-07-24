@@ -3,7 +3,14 @@
 import { FC } from 'react';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import { GripVertical, Pencil, Trash2, ExternalLink } from 'lucide-react';
+import {
+  GripVertical,
+  Pencil,
+  Trash2,
+  ExternalLink,
+  Globe,
+  EyeOff,
+} from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import styles from '@/styles/post.module.css';
 
@@ -12,6 +19,7 @@ interface Post {
   title: string;
   description: string;
   thumbnail: string;
+  published: boolean;
 }
 
 interface Props {
@@ -19,9 +27,10 @@ interface Props {
   post: Post;
   onEdit: () => void;
   onDelete: () => void;
+  onTogglePublish: () => void;
 }
 
-const SortablePost: FC<Props> = ({ id, post, onEdit, onDelete }) => {
+const SortablePost: FC<Props> = ({ id, post, onEdit, onDelete, onTogglePublish }) => {
   const router = useRouter();
   const { attributes, listeners, setNodeRef, transform, transition } = useSortable({ id });
 
@@ -38,17 +47,14 @@ const SortablePost: FC<Props> = ({ id, post, onEdit, onDelete }) => {
   return (
     <div ref={setNodeRef} style={style} className={styles.sortablePost_card}>
       <div className={styles.sortablePost_inner}>
-        <div className={styles.sortablePost_thumb}>
-          <button {...attributes} {...listeners} className={styles.sortablePost_grip}>
-            <GripVertical size={18} />
-          </button>
+        <div className={"flex items-start gap-3"}>
+          <GripVertical size={18} className="cursor-move text-muted" {...listeners} {...attributes} />
           <img
             src={post.thumbnail}
             alt={post.title}
             className={styles.sortablePost_image}
           />
         </div>
-
         <div className={styles.sortablePost_content}>
           <p className={styles.sortablePost_title}>{post.title}</p>
           <p className={styles.sortablePost_description}>
@@ -62,31 +68,45 @@ const SortablePost: FC<Props> = ({ id, post, onEdit, onDelete }) => {
               </button>
             )}
           </p>
-        </div>
+          <div className={styles.sortablePost_status}>
+            <span
+              className={
+                post.published
+                  ? styles.sortablePost_statusPublished
+                  : styles.sortablePost_statusDraft
+              }
+            >
+              {post.published ? 'Published' : 'Draft'}
+            </span>
+          </div>
 
-        <div className={styles.sortablePost_actions}>
-          <button
-            onClick={() => router.push(`/admin/posts/${post.id}`)}
-            className="btn-secondary"
-            title="View Post Details"
-          >
-            <ExternalLink size={14} className="inline-block mr-1" />
-            View
-          </button>
-          <button
-            onClick={onEdit}
-            className="btn-secondary"
-            title="Edit Post"
-          >
-            <Pencil size={14} />
-          </button>
-          <button
-            onClick={onDelete}
-            className="btn-destructive"
-            title="Delete Post"
-          >
-            <Trash2 size={14} />
-          </button>
+          <div className={styles.sortablePost_actions}>
+            <button onClick={() => router.push(`/admin/posts/${post.id}`)} className={styles.sortablePost_btn}>
+              <ExternalLink size={14} />
+              View
+            </button>
+            <button onClick={onEdit} className={styles.sortablePost_btn}>
+              <Pencil size={14} />
+              Edit
+            </button>
+            <button onClick={onTogglePublish} className={styles.sortablePost_btn}>
+              {post.published ? (
+                <>
+                  <EyeOff size={14} />
+                  Unpublish
+                </>
+              ) : (
+                <>
+                  <Globe size={14} />
+                  Publish
+                </>
+              )}
+            </button>
+            <button onClick={onDelete} className={styles.sortablePost_deleteBtn}>
+              <Trash2 size={14} />
+              Delete
+            </button>
+          </div>
         </div>
       </div>
     </div>

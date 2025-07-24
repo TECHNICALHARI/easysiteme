@@ -38,6 +38,24 @@
     color: var(--color-brand);
 }
 
+.publishChangesButton {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--color-muted);
+  color: var(--color-text);
+  border: 1px solid var(--color-muted);
+  border-radius: 6px;
+  transition: all 0.2s ease;
+}
+
+.publishChangesButton:hover {
+  background: var(--color-brand);
+  color: white;
+  border-color: var(--color-brand);
+}
+
+
 .dashboardLayout {
     max-width: 100%;
     width: 100vw;
@@ -462,6 +480,11 @@
 }
 
 /* resume file end */
+
+.addEditFormContainer{
+    max-width: 60%;
+    margin: auto;
+}
 @media (max-width: 1024px) {
     .mobilePreview {
         display: none;
@@ -469,5 +492,8 @@
 
     .pageContainer {
         width: 100%;
+    }
+    .addEditFormContainer{
+          max-width: 90%;
     }
 }

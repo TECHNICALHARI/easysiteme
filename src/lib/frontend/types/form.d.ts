@@ -113,7 +113,7 @@ export interface Post {
   published: boolean;
 }
 export interface PostsTabData {
-  posts: any[]; // replace with actual Post type
+  posts: Post[]; // replace with actual Post type
 }
 
 export interface FormData {

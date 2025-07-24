@@ -30,7 +30,7 @@ const AllTabs: FC<props> = ({ form, setForm }) => {
 
             <div className={styles.tabContent}>
                 {activeTab === 'Profile' && <ProfileTab form={form} setForm={setForm} />}
-                {activeTab === 'Posts' && <PostTab form={form} setForm={setForm} />}
+                {activeTab === 'Posts' && <PostTab />}
                 {/* {activeTab === 'Design' && <DesignTab form={form} setForm={setForm} />}
                 {activeTab === 'Subscribers' && <SubscribersTab form={form} setForm={setForm} />}
                 {activeTab === 'Stats' && <StatsTab form={form} setForm={setForm} />}
