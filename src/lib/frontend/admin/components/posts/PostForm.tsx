@@ -2,14 +2,12 @@
 
 import { useEffect, useMemo } from 'react';
 import styles from '@/styles/post.module.css';
-import adminStyles from "@/styles/admin.module.css"
 import { Trash2 } from 'lucide-react';
 import RichTextEditor from '@/lib/frontend/common/RichTextEditor';
 import ImageUpload from './ImageUpload';
 import { slugify } from '@/lib/frontend/utils/slugify';
 import { Post } from '@/lib/frontend/types/form';
 import Accordion from '@/lib/frontend/common/Accordion';
-import Container from '../../layout/Container';
 
 interface Props {
     postData: Post;
@@ -19,10 +17,14 @@ interface Props {
     isEditing: boolean;
     disableFields: boolean;
     onSave: () => void;
+    slugManuallyEdited: boolean;
+    setSlugManuallyEdited: React.Dispatch<React.SetStateAction<boolean>>;
+    allPosts: Post[];
 }
 
 const MAX_TAGS = 10;
-const SEO_LIMIT = 160;
+const MAX_SEO_TITLE = 60;
+const MAX_SEO_DESCRIPTION = 160;
 
 export default function PostForm({
     postData,
@@ -31,188 +33,289 @@ export default function PostForm({
     errors,
     isEditing,
     disableFields,
-    onSave
+    onSave,
+    slugManuallyEdited,
+    setSlugManuallyEdited,
+    allPosts,
 }: Props) {
+
+
     useEffect(() => {
-        if (!isEditing) {
-            if (postData.title) {
-                setPostData(prev => ({ ...prev, slug: slugify(postData.title) }));
+        if (!slugManuallyEdited) {
+            if (postData.title.trim()) {
+                setPostData((prev) => ({ ...prev, slug: slugify(postData.title) }));
             } else {
-                setPostData(prev => ({ ...prev, slug: '' }));
+                setPostData((prev) => ({ ...prev, slug: '' }));
             }
         }
-    }, [postData.title, isEditing, setPostData]);
+    }, [postData.title, slugManuallyEdited]);
 
-    const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+
+    const handleInputChange = (
+        e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+    ) => {
         const { name, value } = e.target;
         let newValue = value;
-        if (name === 'seoTitle' || name === 'seoDescription') {
-            newValue = newValue.slice(0, SEO_LIMIT);
-        }
-        setPostData(prev => ({ ...prev, [name]: newValue }));
+
+        if (name === 'seoTitle') newValue = value.slice(0, MAX_SEO_TITLE);
+        if (name === 'seoDescription') newValue = value.slice(0, MAX_SEO_DESCRIPTION);
+
+        setPostData((prev) => ({ ...prev, [name]: newValue }));
     };
 
     const handleAddTag = (e: React.KeyboardEvent<HTMLInputElement>) => {
         if (e.key === 'Enter') {
             e.preventDefault();
             const val = e.currentTarget.value.trim();
-            if (val && !postData.tags.includes(val) && postData.tags.length < MAX_TAGS) {
-                setPostData(prev => ({ ...prev, tags: [...prev.tags, val] }));
+            if (
+                val &&
+                !postData.tags.includes(val) &&
+                postData.tags.length < MAX_TAGS
+            ) {
+                setPostData((prev) => ({ ...prev, tags: [...prev.tags, val] }));
                 e.currentTarget.value = '';
             }
         }
     };
 
     const handleRemoveTag = (index: number) => {
-        setPostData(prev => ({
+        setPostData((prev) => ({
             ...prev,
             tags: prev.tags.filter((_, i) => i !== index),
         }));
     };
 
     const isValid = useMemo(() => {
-        return postData.title.trim() && postData.description.trim() && postData.content.trim();
+        return (
+            postData.title.trim() &&
+            postData.description.trim() &&
+            postData.content.trim()
+        );
     }, [postData]);
 
+  
+    const suggestedTags = useMemo(() => {
+        const tagSet = new Set<string>();
+        allPosts.forEach((post) => {
+            post.tags.forEach((tag) => tagSet.add(tag));
+        });
+        return Array.from(tagSet).filter((tag) => !postData.tags.includes(tag));
+    }, [allPosts, postData.tags]);
+
     return (
-        <div className="grid gap-4 mb-6">
-            <input
-                type="text"
-                name="title"
-                className="input"
-                placeholder="Post Title"
-                value={postData.title}
-                onChange={handleInputChange}
-                disabled={disableFields}
-            />
-            {showErrors && errors.title && <p className="errorText">{errors.title}</p>}
-
-            <input
-                type="text"
-                name="slug"
-                className="input"
-                placeholder="Slug"
-                value={postData.slug}
-                onChange={handleInputChange}
-                disabled={disableFields}
-            />
-
-            <textarea
-                name="description"
-                className="input"
-                placeholder="Short Description"
-                rows={2}
-                value={postData.description}
-                onChange={handleInputChange}
-                disabled={disableFields}
-            />
-            {showErrors && errors.description && <p className="errorText">{errors.description}</p>}
-
-            <label className="font-medium block">Thumbnail</label>
-            {postData.thumbnail ? (
-                <div className={styles.thumbPreview}>
-                    <img src={postData.thumbnail} alt="Thumb" className={styles.thumbImage} />
-                    <button
-                        onClick={() => setPostData(prev => ({ ...prev, thumbnail: '' }))}
-                        className={styles.removeBtn}
-                    >
-                        <Trash2 size={14} />
-                    </button>
+        <form>
+            <div className="grid gap-4 mb-6">
+                <div>
+                    <h3 className={styles.labelText}>
+                        Title <span className="text-red-500">*</span>
+                    </h3>
+                    <input
+                        type="text"
+                        name="title"
+                        className="input"
+                        placeholder="Enter post title"
+                        value={postData.title}
+                        onChange={handleInputChange}
+                        disabled={disableFields}
+                    />
+                    {showErrors && errors.title && <p className="errorText">{errors.title}</p>}
                 </div>
-            ) : (
-                <ImageUpload
-                    onSelect={(file) => {
-                        const reader = new FileReader();
-                        reader.onload = () => {
-                            if (typeof reader.result === 'string') {
-                                setPostData(prev => ({ ...prev, thumbnail: reader.result as string }));
+
+                <div>
+                    <h3 className={styles.labelText}>Slug</h3>
+                    <input
+                        type="text"
+                        name="slug"
+                        className="input"
+                        placeholder="Auto-generated from title"
+                        value={postData.slug}
+                        onChange={(e) => {
+                            const newSlug = e.target.value;
+                            setPostData((prev) => ({ ...prev, slug: newSlug }));
+                            if (newSlug.trim() === '') {
+                                setSlugManuallyEdited(false);
+                            } else {
+                                setSlugManuallyEdited(true);
                             }
-                        };
-                        reader.readAsDataURL(file);
-                    }}
-                    disabled={disableFields}
-                />
-            )}
-            {showErrors && errors.thumbnail && <p className="errorText">{errors.thumbnail}</p>}
-
-            <label className="font-medium block">Content</label>
-            <RichTextEditor
-                value={postData.content}
-                onChange={(val) => setPostData(prev => ({ ...prev, content: val }))}
-                placeholder="Write your blog post..."
-                disable={disableFields}
-            />
-
-            {/* Draft toggle */}
-            <label className="flex items-center gap-2 mt-2">
-                <input
-                    type="checkbox"
-                    disabled={disableFields}
-                    checked={!postData.published}
-                    onChange={() => setPostData(prev => ({ ...prev, published: !prev.published }))}
-                />
-                <span className="text-sm">Save as Draft</span>
-            </label>
-
-            {/* Accordion Section */}
-            <Accordion title="SEO & Tags" defaultOpen={true}>
-                <div className="grid gap-3">
-                    <input
-                        type="text"
-                        name="seoTitle"
-                        className="input"
-                        placeholder={`SEO Title (max ${SEO_LIMIT} chars)`}
-                        value={postData.seoTitle}
-                        onChange={handleInputChange}
+                        }}
                         disabled={disableFields}
                     />
-                    <div className="text-right text-xs text-gray-400">{postData.seoTitle.length}/{SEO_LIMIT}</div>
+                </div>
 
+                <div>
+                    <h3 className={styles.labelText}>
+                        Description <span className="text-red-500">*</span>
+                    </h3>
                     <textarea
-                        name="seoDescription"
+                        name="description"
                         className="input"
-                        placeholder={`SEO Description (max ${SEO_LIMIT} chars)`}
-                        rows={2}
-                        value={postData.seoDescription}
+                        placeholder="Short summary of your post"
+                        rows={4}
+                        value={postData.description}
                         onChange={handleInputChange}
                         disabled={disableFields}
                     />
-                    <div className="text-right text-xs text-gray-400">{postData.seoDescription.length}/{SEO_LIMIT}</div>
+                    {showErrors && errors.description && <p className="errorText">{errors.description}</p>}
+                </div>
 
-                    <input
-                        type="text"
-                        className="input"
-                        placeholder="Add tags and press Enter (max 10)"
-                        onKeyDown={handleAddTag}
-                        disabled={disableFields || postData.tags.length >= MAX_TAGS}
-                    />
-                    {postData.tags.length > 0 && (
-                        <div className="flex flex-wrap gap-2">
-                            {postData.tags.map((tag, i) => (
-                                <div key={i} className="bg-gray-100 px-3 py-1 rounded-full text-sm flex items-center">
-                                    {tag}
-                                    <button
-                                        onClick={() => handleRemoveTag(i)}
-                                        className="ml-2 hover:text-red-600"
-                                    >
-                                        <Trash2 size={12} />
-                                    </button>
-                                </div>
-                            ))}
+                <div>
+                    <h3 className={styles.labelText}>Thumbnail</h3>
+                    {postData.thumbnail ? (
+                        <div className={styles.thumbPreview}>
+                            <img src={postData.thumbnail} alt="Thumbnail" className={styles.thumbImage} />
+                            <button
+                                onClick={() => setPostData((prev) => ({ ...prev, thumbnail: '' }))}
+                                className={styles.removeBtn}
+                                type="button"
+                            >
+                                <Trash2 size={14} />
+                            </button>
                         </div>
+                    ) : (
+                        <ImageUpload
+                            onSelect={(file) => {
+                                const reader = new FileReader();
+                                reader.onload = () => {
+                                    if (typeof reader.result === 'string') {
+                                        setPostData((prev) => ({
+                                            ...prev,
+                                            thumbnail: reader.result as string,
+                                        }));
+                                    }
+                                };
+                                reader.readAsDataURL(file);
+                            }}
+                            disabled={disableFields}
+                        />
                     )}
                 </div>
-            </Accordion>
 
-            <div className="flex justify-end mt-4">
-                <button
-                    className="btn-primary"
-                    onClick={onSave}
-                    disabled={!isValid || disableFields}
-                >
-                    {isEditing ? 'Update Post' : 'Publish Post'}
-                </button>
+                <div>
+                    <h3 className={styles.labelText}>
+                        Content <span className="text-red-500">*</span>
+                    </h3>
+                    <RichTextEditor
+                        value={postData.content}
+                        onChange={(val) => setPostData((prev) => ({ ...prev, content: val }))}
+                        placeholder="Write your blog content here..."
+                        disable={disableFields}
+                    />
+                    {showErrors && errors.content && <p className="errorText">{errors.content}</p>}
+                </div>
+
+                <h3 className="flex items-center gap-2 mt-2">
+                    <input
+                        type="checkbox"
+                        disabled={disableFields}
+                        checked={!postData.published}
+                        onChange={() =>
+                            setPostData((prev) => ({ ...prev, published: !prev.published }))
+                        }
+                    />
+                    <span className="text-sm">Save as Draft</span>
+                </h3>
+
+                <Accordion title="SEO & Tags" defaultOpen={false}>
+                    <div className="grid gap-3">
+                        <div>
+                            <h3 className={styles.labelText}>SEO Title</h3>
+                            <input
+                                type="text"
+                                name="seoTitle"
+                                className="input"
+                                placeholder={`Max ${MAX_SEO_TITLE} characters`}
+                                value={postData.seoTitle}
+                                onChange={handleInputChange}
+                                disabled={disableFields}
+                            />
+                            <div className="text-right text-xs text-gray-400">
+                                {postData.seoTitle.length}/{MAX_SEO_TITLE}
+                            </div>
+                        </div>
+
+                        <div>
+                            <h3 className={styles.labelText}>SEO Description</h3>
+                            <textarea
+                                name="seoDescription"
+                                className="input"
+                                placeholder={`Max ${MAX_SEO_DESCRIPTION} characters`}
+                                rows={3}
+                                value={postData.seoDescription}
+                                onChange={handleInputChange}
+                                disabled={disableFields}
+                            />
+                            <div className="text-right text-xs text-gray-400">
+                                {postData.seoDescription.length}/{MAX_SEO_DESCRIPTION}
+                            </div>
+                        </div>
+
+                        <div>
+                            <h3 className={styles.labelText}>Tags</h3>
+                            <input
+                                type="text"
+                                className="input"
+                                placeholder="Press Enter to add tag"
+                                onKeyDown={handleAddTag}
+                                disabled={disableFields || postData.tags.length >= MAX_TAGS}
+                            />
+
+                            {postData.tags.length > 0 && (
+                                <div className="flex flex-wrap gap-2 mt-2">
+                                    {postData.tags.map((tag, i) => (
+                                        <div
+                                            key={i}
+                                            className="bg-gray-100 px-3 py-1 rounded-full text-sm flex items-center"
+                                        >
+                                            {tag}
+                                            <button
+                                                onClick={() => handleRemoveTag(i)}
+                                                className="ml-2 hover:text-red-600"
+                                                type="button"
+                                            >
+                                                <Trash2 size={12} />
+                                            </button>
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
+
+                            {suggestedTags.length > 0 && (
+                                <div className="mt-4">
+                                    <h3 className={styles.labelText}>Suggested Tags</h3>
+                                    <div className="flex flex-wrap gap-2 mt-1">
+                                        {suggestedTags.map((tag, i) => (
+                                            <button
+                                                type="button"
+                                                key={i}
+                                                className="bg-gray-200 hover:bg-gray-300 px-3 py-1 rounded-full text-sm"
+                                                onClick={() =>
+                                                    setPostData((prev) => ({
+                                                        ...prev,
+                                                        tags: [...prev.tags, tag],
+                                                    }))
+                                                }
+                                            >
+                                                {tag}
+                                            </button>
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                </Accordion>
+
+                <div className="flex justify-end mt-4">
+                    <button
+                        className="btn-primary"
+                        onClick={onSave}
+                        disabled={!isValid || disableFields}
+                        type="button"
+                    >
+                        {isEditing ? 'Update Post' : 'Publish Post'}
+                    </button>
+                </div>
             </div>
-        </div>
+        </form>
     );
 }

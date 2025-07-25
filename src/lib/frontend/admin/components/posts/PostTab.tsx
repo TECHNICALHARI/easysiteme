@@ -27,7 +27,7 @@ const PostTab = () => {
     const { form, setForm } = useAdminForm();
 
     const posts = form.posts.posts || [];
-    const plan = 'pro';
+    const plan = 'free';
     const limits = PLAN_FEATURES[plan];
     const postsLimitReached = posts.length >= limits.posts;
     const isPostsEnabled = limits.posts > 0;
@@ -73,44 +73,50 @@ const PostTab = () => {
 
     return (
         <div className={styles.TabPageMain}>
-            <div className={styles.SecHeadAndBtn}>
-                <h4 className={styles.sectionLabel}>Posts <span className="badge-pro">Pro</span></h4>
-                <button
-                    className="btn-primary"
-                    disabled={postsLimitReached}
-                    onClick={() => router.push('/admin/posts/add')}
-                >
-                    + Add Post
-                </button>
+            <div className={styles.sectionHead}>
+                <h3>Share Posts, Blogs & Updates</h3>
+                <p>Write and manage content that showcases your voice — from articles and announcements to guides and stories. Add rich text, images, SEO, and more to publish directly to your site.</p>
             </div>
+            <div className={styles.sectionMain}>
+                <div className={styles.SecHeadAndBtn}>
+                    <h4 className={styles.sectionLabel}>Posts <span className="badge-pro">Pro</span></h4>
+                    <button
+                        className="btn-primary"
+                        disabled={postsLimitReached}
+                        onClick={() => router.push('/admin/posts/add')}
+                    >
+                        + Add Post
+                    </button>
+                </div>
 
-            <LockedOverlay
-                enabled={isPostsEnabled && !postsLimitReached}
-                limitReached={showPostLimitNotice}
-                mode="notice"
-            >
-                {posts.length > 0 && (
-                    <>
-                        <h4 className="text-lg font-semibold mb-3">Your Posts</h4>
-                        <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
-                            <SortableContext items={posts.map((p) => p.id)} strategy={verticalListSortingStrategy}>
-                                <div className="grid gap-3">
-                                    {posts.map((post, index) => (
-                                        <SortablePost
-                                            key={post.id}
-                                            id={post.id}
-                                            post={post}
-                                            onEdit={() => router.push(`/posts/${post.id}/edit`)}
-                                            onDelete={() => handleDelete(index)}
-                                            onTogglePublish={() => handleTogglePublish(index)}
-                                        />
-                                    ))}
-                                </div>
-                            </SortableContext>
-                        </DndContext>
-                    </>
-                )}
-            </LockedOverlay>
+                <LockedOverlay
+                    enabled={isPostsEnabled && !postsLimitReached}
+                    limitReached={showPostLimitNotice}
+                    mode="notice"
+                >
+                    {posts.length > 0 && (
+                        <>
+                            <h4 className="text-lg font-semibold mb-3">Your Posts</h4>
+                            <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+                                <SortableContext items={posts.map((p) => p.id)} strategy={verticalListSortingStrategy}>
+                                    <div className="grid gap-3">
+                                        {posts.map((post, index) => (
+                                            <SortablePost
+                                                key={post.id}
+                                                id={post.id}
+                                                post={post}
+                                                onEdit={() => router.push(`/admin/posts/${post.id}/edit`)}
+                                                onDelete={() => handleDelete(index)}
+                                                onTogglePublish={() => handleTogglePublish(index)}
+                                            />
+                                        ))}
+                                    </div>
+                                </SortableContext>
+                            </DndContext>
+                        </>
+                    )}
+                </LockedOverlay>
+            </div>
         </div>
     );
 };

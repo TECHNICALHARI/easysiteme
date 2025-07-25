@@ -39,20 +39,20 @@
 }
 
 .publishChangesButton {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  background: var(--color-muted);
-  color: var(--color-text);
-  border: 1px solid var(--color-muted);
-  border-radius: 6px;
-  transition: all 0.2s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: var(--color-muted);
+    color: var(--color-text);
+    border: 1px solid var(--color-muted);
+    border-radius: 6px;
+    transition: all 0.2s ease;
 }
 
 .publishChangesButton:hover {
-  background: var(--color-brand);
-  color: white;
-  border-color: var(--color-brand);
+    background: var(--color-brand);
+    color: white;
+    border-color: var(--color-brand);
 }
 
 
@@ -480,11 +480,15 @@
 }
 
 /* resume file end */
+/* add edit form start */
 
-.addEditFormContainer{
-    max-width: 60%;
-    margin: auto;
+.addEditFormContainer {
+    max-width: 60rem;
+    margin: 0 auto;
+    padding: 2rem 1rem;
 }
+
+/* add edit form end */
 @media (max-width: 1024px) {
     .mobilePreview {
         display: none;
@@ -493,7 +497,10 @@
     .pageContainer {
         width: 100%;
     }
-    .addEditFormContainer{
-          max-width: 90%;
+}
+
+@media (min-width: 768px) {
+    .addEditFormContainer {
+        padding: 3rem;
     }
 }

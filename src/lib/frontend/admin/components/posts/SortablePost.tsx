@@ -49,11 +49,14 @@ const SortablePost: FC<Props> = ({ id, post, onEdit, onDelete, onTogglePublish }
       <div className={styles.sortablePost_inner}>
         <div className={"flex items-start gap-3"}>
           <GripVertical size={18} className="cursor-move text-muted" {...listeners} {...attributes} />
-          <img
-            src={post.thumbnail}
-            alt={post.title}
-            className={styles.sortablePost_image}
-          />
+          {
+            post.thumbnail &&
+            <img
+              src={post.thumbnail}
+              alt={post.title}
+              className={styles.sortablePost_image}
+            />
+          }
         </div>
         <div className={styles.sortablePost_content}>
           <p className={styles.sortablePost_title}>{post.title}</p>

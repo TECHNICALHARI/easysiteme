@@ -6,6 +6,7 @@ import { useRouter, useParams } from 'next/navigation';
 import { Post } from '@/lib/frontend/types/form';
 import { useAdminForm } from '@/lib/frontend/admin/context/AdminFormContext';
 import PostForm from '@/lib/frontend/admin/components/posts/PostForm';
+import styles from '@/styles/admin.module.css';
 
 export default function EditPostPage() {
   const router = useRouter();
@@ -14,20 +15,30 @@ export default function EditPostPage() {
 
   const postId = params?.id as string;
 
-  const existingPost = form.posts.posts.find((p) => p.id === postId);
-
-  // Handle 404 or invalid ID
-  if (!existingPost) {
-    return <div className="p-4 text-red-500">Post not found.</div>;
-  }
-
-  const [postData, setPostData] = useState<Post>(existingPost);
-  const [showErrors, setShowErrors] = useState(false);
+  const [postData, setPostData] = useState<Post | null>(null);
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [showErrors, setShowErrors] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [slugManuallyEdited, setSlugManuallyEdited] = useState(false);
+
+  useEffect(() => {
+    const fetchPost = async () => {
+      const localPost = form.posts.posts.find((p) => p.id === postId);
+      if (localPost) {
+        setPostData(localPost);
+      } else {
+        setPostData(null);
+      }
+      setIsLoading(false);
+    };
+
+    fetchPost();
+  }, [form.posts.posts, postId]);
 
   const validatePost = (): boolean => {
-    const newErrors: Record<string, string> = {};
+    if (!postData) return false;
 
+    const newErrors: Record<string, string> = {};
     if (!postData.title.trim()) newErrors.title = 'Title is required';
     if (!postData.description.trim()) newErrors.description = 'Description is required';
     if (!postData.content.trim()) newErrors.content = 'Content is required';
@@ -39,7 +50,7 @@ export default function EditPostPage() {
   };
 
   const handleUpdate = () => {
-    if (!validatePost()) return;
+    if (!postData || !validatePost()) return;
 
     const updatedPosts = form.posts.posts.map((p) =>
       p.id === postId ? postData : p
@@ -47,24 +58,43 @@ export default function EditPostPage() {
 
     setForm((prev) => ({
       ...prev,
-      posts: { ...prev.posts, posts: updatedPosts },
+      posts: {
+        ...prev.posts,
+        posts: updatedPosts,
+      },
     }));
 
-    router.push('/admin'); // Redirect to posts tab (or show a success message)
+    router.push('/admin');
   };
 
+  if (isLoading) {
+    return <div className="p-4 text-gray-500">Loading post...</div>;
+  }
+
+  if (!postData) {
+    return <div className="p-4 text-red-500">Post not found.</div>;
+  }
+
   return (
-    <div className="section">
-      <h1 className="section-title mb-6">Edit Post</h1>
-      <PostForm
-        postData={postData}
-        setPostData={setPostData}
-        isEditing={true}
-        showErrors={showErrors}
-        errors={errors}
-        disableFields={false}
-        onSave={handleUpdate}
-      />
+    <div className={styles.PostAddEditMain}>
+      <div className={styles.addEditFormContainer}>
+        <h2 className={"section-title"}>Edit Your Post</h2>
+        <div className={styles.sectionMain}>
+
+          <PostForm
+            postData={postData}
+            setPostData={setPostData as React.Dispatch<React.SetStateAction<Post>>}
+            isEditing={true}
+            showErrors={showErrors}
+            errors={errors}
+            disableFields={false}
+            onSave={handleUpdate}
+            slugManuallyEdited={slugManuallyEdited}
+            setSlugManuallyEdited={setSlugManuallyEdited}
+            allPosts={form?.posts?.posts}
+          />
+        </div>
+      </div>
     </div>
   );
 }

@@ -6,7 +6,10 @@ import { useState } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 import PostForm from '@/lib/frontend/admin/components/posts/PostForm';
 import { Post } from '@/lib/frontend/types/form';
-import styles from "@/styles/admin.module.css"
+import LockedOverlay from '@/lib/frontend/admin/layout/LockedOverlay';
+import { PLAN_FEATURES } from '@/config/PLAN_FEATURES';
+import styles from '@/styles/admin.module.css';
+
 export default function AddPostPage() {
     const router = useRouter();
     const { form, setForm } = useAdminForm();
@@ -26,12 +29,17 @@ export default function AddPostPage() {
 
     const [errors, setErrors] = useState<Record<string, string>>({});
     const [showErrors, setShowErrors] = useState(false);
+    const [slugManuallyEdited, setSlugManuallyEdited] = useState(false);
+    const plan = 'free';
+    const limits = PLAN_FEATURES[plan];
+    const postsLimitReached = form.posts.posts.length >= limits.posts;
+    const isPostsEnabled = limits.posts > 0;
+    const showPostLimitNotice = isPostsEnabled && postsLimitReached;
 
     const validate = () => {
         const errs: Record<string, string> = {};
         if (!postData.title.trim()) errs.title = 'Title is required';
         if (!postData.description.trim()) errs.description = 'Description is required';
-        if (!postData.thumbnail.trim()) errs.thumbnail = 'Thumbnail is required';
         if (!postData.content.trim()) errs.content = 'Content is required';
         return errs;
     };
@@ -52,22 +60,33 @@ export default function AddPostPage() {
             },
         }));
 
-        router.push('/admin'); // back to admin panel
+        router.push('/admin');
     };
 
     return (
-        <div className={styles.addEditFormContainer}>
-            <div className={styles.sectionMain}>
-                <h1 className="section-title mb-6">Add New Post</h1>
-                <PostForm
-                    postData={postData}
-                    setPostData={setPostData}
-                    isEditing={false}
-                    showErrors={showErrors}
-                    errors={errors}
-                    disableFields={false}
-                    onSave={handleSave}
-                />
+        <div className={styles.PostAddEditMain}>
+            <div className={styles.addEditFormContainer}>
+                  <h2 className={"section-title"}>Create a New Post</h2>
+                <div className={styles.sectionMain}>
+                    <LockedOverlay
+                        enabled={isPostsEnabled && !postsLimitReached}
+                        limitReached={showPostLimitNotice}
+                        mode="notice"
+                    >
+                        <PostForm
+                            postData={postData}
+                            setPostData={setPostData}
+                            isEditing={false}
+                            showErrors={showErrors}
+                            errors={errors}
+                            disableFields={!isPostsEnabled || postsLimitReached}
+                            onSave={handleSave}
+                            slugManuallyEdited={slugManuallyEdited}
+                            setSlugManuallyEdited={setSlugManuallyEdited}
+                            allPosts={form?.posts?.posts}
+                        />
+                    </LockedOverlay>
+                </div>
             </div>
         </div>
     );
