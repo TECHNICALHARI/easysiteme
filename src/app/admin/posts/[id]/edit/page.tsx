@@ -7,6 +7,8 @@ import { Post } from '@/lib/frontend/types/form';
 import { useAdminForm } from '@/lib/frontend/admin/context/AdminFormContext';
 import PostForm from '@/lib/frontend/admin/components/posts/PostForm';
 import styles from '@/styles/admin.module.css';
+import GoBackButton from '@/lib/frontend/common/GoBackButton';
+import NoData from '@/lib/frontend/common/NoData';
 
 export default function EditPostPage() {
   const router = useRouter();
@@ -64,7 +66,7 @@ export default function EditPostPage() {
       },
     }));
 
-    router.push('/admin');
+    router.push('/admin?tab=Posts');
   };
 
   if (isLoading) {
@@ -72,28 +74,26 @@ export default function EditPostPage() {
   }
 
   if (!postData) {
-    return <div className="p-4 text-red-500">Post not found.</div>;
+    return <NoData showGoBackButton={true} title="Post Not Found" description="We couldn’t locate this post." />;
   }
 
   return (
-    <div className={styles.PostAddEditMain}>
-      <div className={styles.addEditFormContainer}>
-        <h2 className={"section-title"}>Edit Your Post</h2>
-        <div className={styles.sectionMain}>
-
-          <PostForm
-            postData={postData}
-            setPostData={setPostData as React.Dispatch<React.SetStateAction<Post>>}
-            isEditing={true}
-            showErrors={showErrors}
-            errors={errors}
-            disableFields={false}
-            onSave={handleUpdate}
-            slugManuallyEdited={slugManuallyEdited}
-            setSlugManuallyEdited={setSlugManuallyEdited}
-            allPosts={form?.posts?.posts}
-          />
-        </div>
+    <div className={styles.addEditFormContainer}>
+      <GoBackButton />
+      <h2 className={"section-title"}>Edit Your Post</h2>
+      <div className={styles.sectionMain}>
+        <PostForm
+          postData={postData}
+          setPostData={setPostData as React.Dispatch<React.SetStateAction<Post>>}
+          isEditing={true}
+          showErrors={showErrors}
+          errors={errors}
+          disableFields={false}
+          onSave={handleUpdate}
+          slugManuallyEdited={slugManuallyEdited}
+          setSlugManuallyEdited={setSlugManuallyEdited}
+          allPosts={form?.posts?.posts}
+        />
       </div>
     </div>
   );

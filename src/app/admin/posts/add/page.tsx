@@ -9,6 +9,7 @@ import { Post } from '@/lib/frontend/types/form';
 import LockedOverlay from '@/lib/frontend/admin/layout/LockedOverlay';
 import { PLAN_FEATURES } from '@/config/PLAN_FEATURES';
 import styles from '@/styles/admin.module.css';
+import GoBackButton from '@/lib/frontend/common/GoBackButton';
 
 export default function AddPostPage() {
     const router = useRouter();
@@ -59,34 +60,32 @@ export default function AddPostPage() {
                 posts: [...prev.posts.posts, postData],
             },
         }));
-
-        router.push('/admin');
+        router.push('/admin?tab=Posts');
     };
 
     return (
-        <div className={styles.PostAddEditMain}>
-            <div className={styles.addEditFormContainer}>
-                  <h2 className={"section-title"}>Create a New Post</h2>
-                <div className={styles.sectionMain}>
-                    <LockedOverlay
-                        enabled={isPostsEnabled && !postsLimitReached}
-                        limitReached={showPostLimitNotice}
-                        mode="notice"
-                    >
-                        <PostForm
-                            postData={postData}
-                            setPostData={setPostData}
-                            isEditing={false}
-                            showErrors={showErrors}
-                            errors={errors}
-                            disableFields={!isPostsEnabled || postsLimitReached}
-                            onSave={handleSave}
-                            slugManuallyEdited={slugManuallyEdited}
-                            setSlugManuallyEdited={setSlugManuallyEdited}
-                            allPosts={form?.posts?.posts}
-                        />
-                    </LockedOverlay>
-                </div>
+        <div className={styles.addEditFormContainer}>
+            <GoBackButton />
+            <h2 className={"section-title"}>Create a New Post</h2>
+            <div className={styles.sectionMain}>
+                <LockedOverlay
+                    enabled={isPostsEnabled && !postsLimitReached}
+                    limitReached={showPostLimitNotice}
+                    mode="notice"
+                >
+                    <PostForm
+                        postData={postData}
+                        setPostData={setPostData}
+                        isEditing={false}
+                        showErrors={showErrors}
+                        errors={errors}
+                        disableFields={!isPostsEnabled || postsLimitReached}
+                        onSave={handleSave}
+                        slugManuallyEdited={slugManuallyEdited}
+                        setSlugManuallyEdited={setSlugManuallyEdited}
+                        allPosts={form?.posts?.posts}
+                    />
+                </LockedOverlay>
             </div>
         </div>
     );

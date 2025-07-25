@@ -1,50 +1,94 @@
 'use client';
 
-import { useParams } from 'next/navigation';
-import { useEffect, useState } from 'react';
-import styles from '@/styles/post.module.css';
+import React, { JSX, useEffect, useState } from 'react';
+import { useParams, useRouter } from 'next/navigation';
+import { BadgeCheck, EyeOff, Tag, FileText, Pencil } from 'lucide-react';
 
-interface Post {
-  id: string;
-  title: string;
-  description: string;
-  content: string;
-  thumbnail: string;
-}
+import { useAdminForm } from '@/lib/frontend/admin/context/AdminFormContext';
+import { Post } from '@/lib/frontend/types/form';
+import RichTextRenderer from '@/lib/frontend/common/RichTextRenderer';
+import styles from '@/styles/postdetails.module.css';
+import NoData from '@/lib/frontend/common/NoData';
+import GoBackButton from '@/lib/frontend/common/GoBackButton';
 
-const dummyPosts: Post[] = [
-  {
-    id: '1',
-    title: 'How I Designed My Portfolio',
-    description: 'A behind-the-scenes on the design process.',
-    content: `<p>This is a full-length blog post content written with <strong>rich text</strong> formatting.</p>
-              <ul><li>Concept Sketches</li><li>Wireframes</li><li>Prototyping</li></ul>`,
-    thumbnail: 'https://source.unsplash.com/800x400/?design,portfolio',
-  },
-  // Add more for testing...
-];
+export default function ViewPostPage(): JSX.Element {
+  const { form } = useAdminForm();
+  const router = useRouter();
+  const params = useParams();
 
-export default function PostDetailPage() {
-  const { id } = useParams();
+  const id = typeof params?.id === 'string' ? params.id : Array.isArray(params?.id) ? params.id[0] : '';
   const [post, setPost] = useState<Post | null>(null);
 
   useEffect(() => {
-    const selected = dummyPosts.find((p) => p.id === id);
-    setPost(selected || null);
-  }, [id]);
+    const selected = form.posts.posts.find((p) => p.id === id);
+    if (selected) setPost(selected);
+  }, [form.posts.posts, id]);
 
-  if (!post) return <div className={styles.loading}>Loading post...</div>;
+  if (!post) {
+    return <NoData showGoBackButton={true} title="Post Not Found" description="We couldn’t locate this post." />;
+  }
 
   return (
-    <div className={styles.container}>
-      <div className={styles.banner}>
-        <img src={post.thumbnail} alt={post.title} />
-      </div>
-      <div className={styles.contentBox}>
-        <h1>{post.title}</h1>
-        <p className={styles.description}>{post.description}</p>
-        <article dangerouslySetInnerHTML={{ __html: post.content }} />
-      </div>
-    </div>
+    <>
+      <GoBackButton className='mt-4' />
+      <section className={styles.postWrapper}>
+        <div className={styles.postCard}>
+          <header className={styles.header}>
+            <div className={styles.headerLeft}>
+              <h1 className={styles.title}>{post.title}</h1>
+              <p className={styles.slug}>/{post.slug}</p>
+            </div>
+            <button
+              className={styles.editButton}
+              onClick={() => router.push(`/admin/posts/${post.id}/edit`)}
+            >
+              <Pencil size={16} /> Edit
+            </button>
+          </header>
+
+          {post.thumbnail && (
+            <div className={styles.thumbnailWrapper}>
+              <img src={post.thumbnail} alt="Post Thumbnail" className={styles.thumbnail} />
+            </div>
+          )}
+
+          <div className={styles.meta}>
+            <span className={`${styles.status} ${post.published ? styles.published : styles.draft}`}>
+              {post.published ? <><BadgeCheck size={16} /> Published</> : <><EyeOff size={16} /> Draft</>}
+            </span>
+
+            {post.tags.length > 0 && (
+              <div className={styles.tags}>
+                {post.tags.map((tag, i) => (
+                  <span key={i} className={styles.tag}>
+                    <Tag size={12} /> {tag}
+                  </span>
+                ))}
+              </div>
+            )}
+          </div>
+
+          <section className={styles.section}>
+            <h3><FileText size={18} /> Description</h3>
+            <p className={styles.description}>{post.description}</p>
+          </section>
+
+          <section className={styles.section}>
+            <h3><FileText size={18} /> Content</h3>
+            <div className={styles.content}>
+              <RichTextRenderer html={post.content} />
+            </div>
+          </section>
+
+          {(post.seoTitle || post.seoDescription) && (
+            <section className={styles.section}>
+              <h3>SEO Preview</h3>
+              {post.seoTitle && <p><strong>SEO Title:</strong> {post.seoTitle}</p>}
+              {post.seoDescription && <p><strong>SEO Description:</strong> {post.seoDescription}</p>}
+            </section>
+          )}
+        </div>
+      </section>
+    </>
   );
 }

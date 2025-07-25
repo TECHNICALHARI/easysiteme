@@ -1,48 +1,6 @@
-.container {
-  max-width: 768px;
-  margin: auto;
-  padding: 2rem 1rem;
-  font-family: 'Inter', sans-serif;
-  color: #1f2937;
-}
+/* post details start */
 
-.banner img {
-  width: 100%;
-  border-radius: 10px;
-  object-fit: cover;
-  height: auto;
-  max-height: 400px;
-  margin-bottom: 1.5rem;
-}
-
-.contentBox h1 {
-  font-size: 2.25rem;
-  font-weight: 700;
-  margin-bottom: 1rem;
-}
-
-.description {
-  color: #6b7280;
-  font-size: 1rem;
-  margin-bottom: 1.5rem;
-}
-
-.contentBox article {
-  font-size: 1.05rem;
-  line-height: 1.75;
-}
-
-.contentBox article ul {
-  list-style: disc;
-  margin-left: 1.5rem;
-}
-
-.loading {
-  padding: 4rem;
-  text-align: center;
-  font-size: 1.25rem;
-}
-
+/* post details end */
 
 .thumbPreview {
   width: 100%;
