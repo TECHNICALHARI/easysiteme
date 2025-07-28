@@ -1,0 +1,191 @@
+/* Base - Brand Theme */
+.brand {
+  --bg: var(--color-bg);
+  --text: var(--color-text);
+  --accent: var(--color-brand);
+  --button-bg: var(--color-brand);
+  --button-text: white;
+  --button-hover: var(--color-brand-dark);
+}
+
+/* Gradient / Aesthetic Themes */
+.aurora {
+  --bg: linear-gradient(to right, #f3e5f5, #e0f7fa);
+  --text: #3c096c;
+  --accent: #9d4edd;
+  --button-bg: linear-gradient(135deg, #a4508b, #5f0a87);
+  --button-text: white;
+  --button-hover: #4a148c;
+}
+
+.frost {
+  --bg: #e0f2f1;
+  --text: #004d40;
+  --accent: #26a69a;
+  --button-bg: rgba(38, 166, 154, 0.7);
+  --button-text: white;
+  --button-hover: #00796b;
+}
+
+.midnight {
+  --bg: #121212;
+  --text: #ffffff;
+  --accent: #bb86fc;
+  --button-bg: #3700b3;
+  --button-text: #fff;
+  --button-hover: #6200ee;
+}
+
+.sunset {
+  --bg: linear-gradient(to right, #fca5a5, #fcd34d);
+  --text: #4b1d06;
+  --accent: #fb923c;
+  --button-bg: #f97316;
+  --button-text: white;
+  --button-hover: #ea580c;
+}
+
+.emerald {
+  --bg: #e8f5e9;
+  --text: #1b5e20;
+  --accent: #43a047;
+  --button-bg: #43a047;
+  --button-text: white;
+  --button-hover: #2e7d32;
+}
+
+.ocean {
+  --bg: #e3f2fd;
+  --text: #0d47a1;
+  --accent: #2196f3;
+  --button-bg: #2196f3;
+  --button-text: white;
+  --button-hover: #1976d2;
+}
+
+.noir {
+  --bg: #111;
+  --text: #eee;
+  --accent: #444;
+  --button-bg: #333;
+  --button-text: #fff;
+  --button-hover: #555;
+}
+
+.orchid {
+  --bg: #f3e5f5;
+  --text: #4a148c;
+  --accent: #ba68c8;
+  --button-bg: #ba68c8;
+  --button-text: white;
+  --button-hover: #8e24aa;
+}
+
+.lemonade {
+  --bg: #fffde7;
+  --text: #fbc02d;
+  --accent: #fdd835;
+  --button-bg: #fdd835;
+  --button-text: black;
+  --button-hover: #fbc02d;
+}
+
+.phoenix {
+  --bg: linear-gradient(to right, #fbe9e7, #ffccbc);
+  --text: #bf360c;
+  --accent: #ff7043;
+  --button-bg: #ff7043;
+  --button-text: white;
+  --button-hover: #e64a19;
+}
+
+/* Additional Themes */
+.pearl {
+  --bg: #fdfdfd;
+  --text: #222;
+  --accent: #e0c3fc;
+  --button-bg: #e0c3fc;
+  --button-text: #111;
+  --button-hover: #c084fc;
+}
+
+.blush {
+  --bg: #fff0f3;
+  --text: #8b0000;
+  --accent: #ff7f7f;
+  --button-bg: #ff7f7f;
+  --button-text: white;
+  --button-hover: #e63946;
+}
+
+.cyber {
+  --bg: #0f0f0f;
+  --text: #39ff14;
+  --accent: #00ffff;
+  --button-bg: #00ffff;
+  --button-text: black;
+  --button-hover: #39ff14;
+}
+
+.slate {
+  --bg: #f1f5f9;
+  --text: #1e293b;
+  --accent: #64748b;
+  --button-bg: #64748b;
+  --button-text: white;
+  --button-hover: #475569;
+}
+
+.dawn {
+  --bg: linear-gradient(to right, #ffe5b4, #f8edeb);
+  --text: #5e503f;
+  --accent: #f4a261;
+  --button-bg: #f4a261;
+  --button-text: #fff;
+  --button-hover: #e76f51;
+}
+
+.copper {
+  --bg: #fefae0;
+  --text: #7f5539;
+  --accent: #ddb892;
+  --button-bg: #b08968;
+  --button-text: #fff;
+  --button-hover: #7f5539;
+}
+
+.myst {
+  --bg: #dfe4ea;
+  --text: #2f3542;
+  --accent: #70a1ff;
+  --button-bg: #70a1ff;
+  --button-text: #fff;
+  --button-hover: #1e90ff;
+}
+
+.forest {
+  --bg: #e6fffa;
+  --text: #22543d;
+  --accent: #38a169;
+  --button-bg: #38a169;
+  --button-text: white;
+  --button-hover: #2f855a;
+}
+
+.sand {
+  --bg: #faf3e0;
+  --text: #a67c52;
+  --accent: #deb887;
+  --button-bg: #deb887;
+  --button-text: #000;
+  --button-hover: #c19a6b;
+}
+
+.ice {
+  --bg: #f0faff;
+  --text: #0369a1;
+  --accent: #7dd3fc;
+  --button-bg: #7dd3fc;
+  --button-text: #0c4a6e;
+  --button-hover: #38bdf8;
+}

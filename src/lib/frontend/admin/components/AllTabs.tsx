@@ -6,6 +6,7 @@ import styles from '@/styles/admin.module.css';
 import { FormData } from '../../types/form';
 import ProfileTab from './profile/ProfileTab';
 import PostTab from './posts/PostTab';
+import DesignTab from './design/DesignTab';
 
 const tabs = ['Profile', 'Posts', 'Design', 'Subscribers', 'Stats', 'Settings'];
 
@@ -21,7 +22,6 @@ const AllTabs: FC<Props> = ({ form, setForm }) => {
   const tabFromQuery = searchParams.get('tab');
   const [activeTab, setActiveTab] = useState(tabFromQuery || 'Profile');
 
-  // Sync query with state
   useEffect(() => {
     if (tabFromQuery && tabFromQuery !== activeTab) {
       setActiveTab(tabFromQuery);
@@ -52,8 +52,7 @@ const AllTabs: FC<Props> = ({ form, setForm }) => {
       <div className={styles.tabContent}>
         {activeTab === 'Profile' && <ProfileTab form={form} setForm={setForm} />}
         {activeTab === 'Posts' && <PostTab />}
-        {/* Uncomment others as needed */}
-        {/* {activeTab === 'Design' && <DesignTab form={form} setForm={setForm} />} */}
+        {activeTab === 'Design' && <DesignTab />}
         {/* {activeTab === 'Subscribers' && <SubscribersTab form={form} setForm={setForm} />} */}
         {/* {activeTab === 'Stats' && <StatsTab form={form} setForm={setForm} />} */}
         {/* {activeTab === 'Settings' && <SettingsTab form={form} setForm={setForm} />} */}

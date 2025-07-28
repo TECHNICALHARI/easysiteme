@@ -3,7 +3,7 @@ export type PlanType = "free" | "pro" | "premium";
 export interface PlanFeatureConfig {
   links: number;
   about: boolean;
-//   profileImage: boolean;
+  //   profileImage: boolean;
   bannerImage: boolean;
   contact: boolean;
   embeds: number;
@@ -17,6 +17,7 @@ export interface PlanFeatureConfig {
   headers: number;
   tags: number;
   posts: number;
+  brandingOff: boolean;
 }
 
 export const PLAN_FEATURES: Record<PlanType, PlanFeatureConfig> = {
@@ -36,6 +37,7 @@ export const PLAN_FEATURES: Record<PlanType, PlanFeatureConfig> = {
     headers: 1,
     tags: 2,
     posts: 10,
+    brandingOff: false,
   },
   pro: {
     links: 5,
@@ -53,6 +55,7 @@ export const PLAN_FEATURES: Record<PlanType, PlanFeatureConfig> = {
     headers: 5,
     tags: 10,
     posts: 5,
+    brandingOff: true,
   },
   premium: {
     links: 50,
@@ -70,5 +73,6 @@ export const PLAN_FEATURES: Record<PlanType, PlanFeatureConfig> = {
     headers: 10,
     tags: 20,
     posts: 50,
+    brandingOff: true,
   },
 };

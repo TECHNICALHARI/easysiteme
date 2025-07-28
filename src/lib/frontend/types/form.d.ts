@@ -74,6 +74,7 @@ export interface SEO {
 export interface Design {
   theme: string;
   emojiLink?: string;
+  brandingOff?: boolean;
 }
 
 export interface Settings {

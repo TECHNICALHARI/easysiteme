@@ -31,8 +31,9 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
       resumeUrl: '',
     },
     design: {
-      theme: 'theme-default',
+      theme: 'brand',
       emojiLink: '',
+      brandingOff: false
     },
     seo: {
       metaTitle: '',

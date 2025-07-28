@@ -8,10 +8,7 @@ import { useAdminForm } from '@/lib/frontend/admin/context/AdminFormContext';
 
 export default function Dashboard() {
   const { form, setForm } = useAdminForm();
-
   useAutoSave(form);
-
-  console.log(form, "form")
 
   return (
     <div className={styles.dashboardWrapper}>

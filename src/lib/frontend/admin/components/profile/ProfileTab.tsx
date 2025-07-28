@@ -50,7 +50,7 @@ interface props {
 
 
 const ProfileTab: FC<props> = ({ form, setForm }) => {
-  const plan = 'free';
+  const plan = 'premium';
   const limits = PLAN_FEATURES[plan];
 
   const [showModal, setShowModal] = useState(false);
