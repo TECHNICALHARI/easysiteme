@@ -18,6 +18,7 @@ export interface PlanFeatureConfig {
   tags: number;
   posts: number;
   brandingOff: boolean;
+  layoutType: boolean;
 }
 
 export const PLAN_FEATURES: Record<PlanType, PlanFeatureConfig> = {
@@ -38,6 +39,7 @@ export const PLAN_FEATURES: Record<PlanType, PlanFeatureConfig> = {
     tags: 2,
     posts: 10,
     brandingOff: false,
+    layoutType: false,
   },
   pro: {
     links: 5,
@@ -56,6 +58,7 @@ export const PLAN_FEATURES: Record<PlanType, PlanFeatureConfig> = {
     tags: 10,
     posts: 5,
     brandingOff: true,
+    layoutType: true,
   },
   premium: {
     links: 50,
@@ -74,5 +77,6 @@ export const PLAN_FEATURES: Record<PlanType, PlanFeatureConfig> = {
     tags: 20,
     posts: 50,
     brandingOff: true,
+    layoutType: true,
   },
 };

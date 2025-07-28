@@ -75,11 +75,12 @@ export interface Design {
   theme: string;
   emojiLink?: string;
   brandingOff?: boolean;
+  layoutType: "bio" | "website";
 }
 
 export interface Settings {
   nsfwWarning: boolean;
-  preferredLink: 'primary' | 'custom';
+  preferredLink: "primary" | "custom";
   customDomain: string;
   gaId?: string;
 }
@@ -124,10 +125,17 @@ export interface FormData {
   settings: Settings;
   socials: Socials;
   posts: PostsTabData;
+  plan: "free" | "pro" | "premium";
 }
 
-
-export type ReorderableProfileKeys = 'links' | 'headers' | 'embeds' | 'testimonials' | 'faqs' | 'services' | 'featured';
+export type ReorderableProfileKeys =
+  | "links"
+  | "headers"
+  | "embeds"
+  | "testimonials"
+  | "faqs"
+  | "services"
+  | "featured";
 
 export type ProfileTypeMap = {
   links: Link[];

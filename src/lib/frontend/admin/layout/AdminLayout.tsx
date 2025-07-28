@@ -33,7 +33,8 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
     design: {
       theme: 'brand',
       emojiLink: '',
-      brandingOff: false
+      brandingOff: false,
+      layoutType: 'bio'
     },
     seo: {
       metaTitle: '',
@@ -53,6 +54,7 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
     posts: {
       posts: [],
     },
+    plan: "free"
   });
 
   return (
