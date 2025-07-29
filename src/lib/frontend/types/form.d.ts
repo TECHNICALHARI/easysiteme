@@ -75,12 +75,12 @@ export interface Design {
   theme: string;
   emojiLink?: string;
   brandingOff?: boolean;
-  layoutType: "bio" | "website";
+  layoutType: 'bio' | 'website';
 }
 
 export interface Settings {
   nsfwWarning: boolean;
-  preferredLink: "primary" | "custom";
+  preferredLink: 'primary' | 'custom';
   customDomain: string;
   gaId?: string;
 }
@@ -91,7 +91,10 @@ export interface Socials {
   calendly?: string;
 }
 
-export interface ProfileTabData extends ProfileInfo, ContactInfo, Resume {
+export interface ProfileTabData
+  extends ProfileInfo,
+    ContactInfo,
+    Resume {
   about?: string;
   tags?: string[];
   headers: Header[];
@@ -102,6 +105,7 @@ export interface ProfileTabData extends ProfileInfo, ContactInfo, Resume {
   services: Service[];
   featured: FeaturedMedia[];
 }
+
 export interface Post {
   id: string;
   title: string;
@@ -114,8 +118,29 @@ export interface Post {
   tags: string[];
   published: boolean;
 }
+
 export interface PostsTabData {
-  posts: Post[]; // replace with actual Post type
+  posts: Post[];
+}
+
+export interface SubscriberList {
+  data: {
+    email: string;
+    subscribedOn: string;
+    status: 'Active' | 'Unsubscribed';
+  }[];
+  total: number;
+  active: number;
+  unsubscribed: number;
+}
+
+export interface SubscriberDataTypes {
+  subscriberSettings: {
+    subject: string;
+    thankYouMessage: string;
+    hideSubscribeButton: boolean;
+  };
+  SubscriberList: SubscriberList;
 }
 
 export interface FormData {
@@ -125,17 +150,18 @@ export interface FormData {
   settings: Settings;
   socials: Socials;
   posts: PostsTabData;
-  plan: "free" | "pro" | "premium";
+  subscriberSettings: SubscriberDataTypes;
+  plan: 'free' | 'pro' | 'premium';
 }
 
 export type ReorderableProfileKeys =
-  | "links"
-  | "headers"
-  | "embeds"
-  | "testimonials"
-  | "faqs"
-  | "services"
-  | "featured";
+  | 'links'
+  | 'headers'
+  | 'embeds'
+  | 'testimonials'
+  | 'faqs'
+  | 'services'
+  | 'featured';
 
 export type ProfileTypeMap = {
   links: Link[];

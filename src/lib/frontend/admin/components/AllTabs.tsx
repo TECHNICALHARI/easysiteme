@@ -7,6 +7,9 @@ import { FormData } from '../../types/form';
 import ProfileTab from './profile/ProfileTab';
 import PostTab from './posts/PostTab';
 import DesignTab from './design/DesignTab';
+import SubscribersTab from './subscribers/SubscribersTab';
+import StatsTab from './stats/StatsTab';
+import SettingsTab from './setting/SettingsTab';
 
 const tabs = ['Profile', 'Posts', 'Design', 'Subscribers', 'Stats', 'Settings'];
 
@@ -53,9 +56,9 @@ const AllTabs: FC<Props> = ({ form, setForm }) => {
         {activeTab === 'Profile' && <ProfileTab form={form} setForm={setForm} />}
         {activeTab === 'Posts' && <PostTab />}
         {activeTab === 'Design' && <DesignTab />}
-        {/* {activeTab === 'Subscribers' && <SubscribersTab form={form} setForm={setForm} />} */}
-        {/* {activeTab === 'Stats' && <StatsTab form={form} setForm={setForm} />} */}
-        {/* {activeTab === 'Settings' && <SettingsTab form={form} setForm={setForm} />} */}
+        {activeTab === 'Subscribers' && <SubscribersTab />}
+        {activeTab === 'Stats' && <StatsTab />}
+        {activeTab === 'Settings' && <SettingsTab />}
       </div>
     </div>
   );

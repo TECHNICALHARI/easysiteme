@@ -489,6 +489,30 @@
 }
 
 /* add edit form end */
+
+.subscribeCard {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+}
+
+.subscribeCard h4 {
+    font-size: 1.2rem;
+    font-weight: 600;
+}
+
+.subscribeCard p {
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--color-brand-dark);
+}
+
+.SubsTableMain h4 {
+    font-size: 1rem;
+    font-weight: 600;
+}
+
 @media (max-width: 1024px) {
     .mobilePreview {
         display: none;

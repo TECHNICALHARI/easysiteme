@@ -54,6 +54,19 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
     posts: {
       posts: [],
     },
+    subscriberSettings: {
+      SubscriberList: {
+        data: [],
+        total: 0,
+        active: 0,
+        unsubscribed: 0
+      },
+      subscriberSettings: {
+        hideSubscribeButton: false,
+        subject: "",
+        thankYouMessage: ""
+      }
+    },
     plan: "free"
   });
 
