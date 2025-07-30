@@ -6,7 +6,7 @@ export default function FeaturedSection({ featured }: { featured: FeaturedMedia[
   if (!featured?.length) return null;
 
   return (
-    <section className="w-full max-w-3xl mx-auto px-4 mt-10">
+    <section className="px-4 mt-10" id='featured'>
       <h2 className={styles.sectionTitle}>Featured</h2>
       <div className="grid gap-6 sm:grid-cols-2">
         {featured.map((item) => (

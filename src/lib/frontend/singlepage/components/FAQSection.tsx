@@ -15,7 +15,7 @@ export default function FAQSection({ faqs }: { faqs: FAQ[] }) {
   const [openIndex, setOpenIndex] = useState<number | null>(null);
 
   return (
-    <section className="w-full max-w-3xl mx-auto px-4 mt-10">
+    <section className="w-full max-w-3xl mx-auto px-4 mt-10" id='faq'>
       <h2 className={styles.sectionTitle}>FAQs</h2>
       <div className={styles.faqWrapper}>
         {faqs.map((faq, idx) => {

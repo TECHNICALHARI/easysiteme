@@ -2,19 +2,34 @@
 
 import styles from '@/styles/preview.module.css';
 import { Post } from '@/lib/frontend/types/form';
+import clsx from 'clsx';
 
 export default function PostsSection({ posts }: { posts: Post[] }) {
   if (!posts?.length) return null;
 
   const visiblePosts = posts.slice(0, 4);
+  const isCentered = visiblePosts.length < 4;
 
   return (
-    <section className="w-full max-w-4xl mx-auto px-4 mt-10">
+    <section className="px-4 mt-10" id='posts'>
       <h2 className={styles.sectionTitle}>Featured Articles & Blogs</h2>
 
-      <div className="grid gap-6 sm:grid-cols-2">
+      {posts.length > 4 && (
+        <div className={styles.sectionLinkWrapper}>
+          <a href="/blog" className={styles.sectionLink}>
+            See All →
+          </a>
+        </div>
+      )}
+
+      <div
+        className={clsx(
+          styles.postSliderWrapper,
+          isCentered && styles.centeredPosts
+        )}
+      >
         {visiblePosts.map((post) => (
-          <div key={post.id} className={styles.postCard}>
+          <div key={post.id} className={clsx(styles.postCard, styles.postSlide)}>
             {post.thumbnail && (
               <img
                 src={post.thumbnail}
@@ -37,14 +52,6 @@ export default function PostsSection({ posts }: { posts: Post[] }) {
           </div>
         ))}
       </div>
-
-      {posts.length > 4 && (
-        <div className="text-center mt-8">
-          <a href="/blog" className={styles.ctaButton}>
-            See All Posts
-          </a>
-        </div>
-      )}
     </section>
   );
 }
