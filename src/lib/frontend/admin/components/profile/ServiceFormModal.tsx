@@ -5,29 +5,25 @@ import UploadModal from '../../../common/UploadModal';
 import styles from '@/styles/admin.module.css';
 import { ImagePlus, X } from 'lucide-react';
 import Modal from '../../../common/Modal';
+import { Service } from '@/lib/frontend/types/form';
 
 export default function ServiceFormModal({
   onSave,
   onClose,
   initialData,
 }: {
-  onSave: (data: any) => void;
+  onSave: (data: Service) => void;
   onClose: () => void;
-  initialData?: {
-    title: string;
-    description: string;
-    image?: string;
-    price?: string;
-    link?: string;
-  };
+  initialData?: Service;
 }) {
   const [title, setTitle] = useState(initialData?.title || '');
   const [description, setDescription] = useState(initialData?.description || '');
-  const [price, setPrice] = useState(initialData?.price || '');
-  const [link, setLink] = useState(initialData?.link || '');
+  const [price, setPrice] = useState<string>(initialData?.price || '');
   const [image, setImage] = useState(initialData?.image || '');
+  const [ctaLabel, setCtaLabel] = useState(initialData?.ctaLabel || '');
+  const [ctaLink, setCtaLink] = useState(initialData?.ctaLink || '');
   const [showUploadModal, setShowUploadModal] = useState(false);
-  const [errors, setErrors] = useState<{ title?: string; description?: string; link?: string }>({});
+  const [errors, setErrors] = useState<{ title?: string; description?: string; ctaLink?: string }>({});
   const [isValid, setIsValid] = useState(false);
 
   useEffect(() => {
@@ -35,24 +31,31 @@ export default function ServiceFormModal({
     if (!title.trim()) newErrors.title = 'Title is required.';
     if (!description.trim()) newErrors.description = 'Description is required.';
 
-    if (link.trim()) {
+    if (ctaLink.trim()) {
       try {
-        const parsed = new URL(link.trim());
+        const parsed = new URL(ctaLink.trim());
         if (!['http:', 'https:'].includes(parsed.protocol)) {
-          newErrors.link = 'Link must start with http:// or https://';
+          newErrors.ctaLink = 'CTA Link must start with http:// or https://';
         }
       } catch {
-        newErrors.link = 'Please enter a valid URL.';
+        newErrors.ctaLink = 'Please enter a valid CTA URL.';
       }
     }
 
     setErrors(newErrors);
     setIsValid(Object.keys(newErrors).length === 0);
-  }, [title, description, link]);
+  }, [title, description, ctaLink]);
 
   const handleSave = () => {
     if (!isValid) return;
-    onSave({ title: title.trim(), description: description.trim(), image, price: price.trim(), link: link.trim() });
+    onSave({
+      title: title.trim(),
+      description: description.trim(),
+      image,
+      price,
+      ctaLabel: ctaLabel.trim(),
+      ctaLink: ctaLink.trim(),
+    });
   };
 
   return (
@@ -90,11 +93,20 @@ export default function ServiceFormModal({
           <div>
             <input
               className="input"
-              placeholder="Link (optional)"
-              value={link}
-              onChange={(e) => setLink(e.target.value)}
+              placeholder="CTA Button Label (optional)"
+              value={ctaLabel}
+              onChange={(e) => setCtaLabel(e.target.value)}
             />
-            {errors.link && <span className="errorText">{errors.link}</span>}
+          </div>
+
+          <div>
+            <input
+              className="input"
+              placeholder="CTA Button Link (optional)"
+              value={ctaLink}
+              onChange={(e) => setCtaLink(e.target.value)}
+            />
+            {errors.ctaLink && <span className="errorText">{errors.ctaLink}</span>}
           </div>
 
           <div className="flex flex-col items-center justify-center gap-2">

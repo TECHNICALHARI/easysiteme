@@ -1,166 +1,345 @@
-/* Base - Brand Theme */
+/* ========== BRAND (DEFAULT FALLBACK) ========== */
 .brand {
+  --color-bg: #ffffff;
+  --color-text: #111111;
+  --color-brand: #4f46e5;
+  --color-brand-dark: #4338ca;
+  --color-muted: #f3f4f6;
+
   --bg: var(--color-bg);
   --text: var(--color-text);
   --accent: var(--color-brand);
   --button-bg: var(--color-brand);
-  --button-text: white;
+  --button-text: #ffffff;
   --button-hover: var(--color-brand-dark);
 }
 
-/* Gradient / Aesthetic Themes */
+/* ========== AURORA ========== */
 .aurora {
   --bg: linear-gradient(to right, #f3e5f5, #e0f7fa);
   --text: #3c096c;
   --accent: #9d4edd;
   --button-bg: linear-gradient(135deg, #a4508b, #5f0a87);
-  --button-text: white;
+  --button-text: #ffffff;
   --button-hover: #4a148c;
+
+  --color-bg: var(--bg);
+  --color-text: var(--text);
+  --color-brand: var(--accent);
+  --color-brand-dark: var(--button-hover);
+  --color-muted: #f5f3ff;
 }
 
+[data-theme='dark'] .aurora {
+  --color-bg: #1a1a1a;
+  --color-text: #e9d5ff;
+  --color-brand: #d8b4fe;
+  --color-brand-dark: #a855f7;
+  --color-muted: #2a2a2a;
+}
+
+/* ========== FROST ========== */
 .frost {
   --bg: #e0f2f1;
   --text: #004d40;
   --accent: #26a69a;
   --button-bg: rgba(38, 166, 154, 0.7);
-  --button-text: white;
+  --button-text: #ffffff;
   --button-hover: #00796b;
+
+  --color-bg: var(--bg);
+  --color-text: var(--text);
+  --color-brand: var(--accent);
+  --color-brand-dark: var(--button-hover);
+  --color-muted: #cce9e6;
 }
 
+[data-theme='dark'] .frost {
+  --color-bg: #102421;
+  --color-text: #d2fef5;
+  --color-brand: #4dd0e1;
+  --color-brand-dark: #00acc1;
+  --color-muted: #1c3c37;
+}
+
+/* ========== MIDNIGHT ========== */
 .midnight {
   --bg: #121212;
   --text: #ffffff;
   --accent: #bb86fc;
   --button-bg: #3700b3;
-  --button-text: #fff;
+  --button-text: #ffffff;
   --button-hover: #6200ee;
+
+  --color-bg: var(--bg);
+  --color-text: var(--text);
+  --color-brand: var(--accent);
+  --color-brand-dark: var(--button-hover);
+  --color-muted: #1f1f1f;
 }
 
+/* ========== SUNSET ========== */
 .sunset {
   --bg: linear-gradient(to right, #fca5a5, #fcd34d);
   --text: #4b1d06;
   --accent: #fb923c;
   --button-bg: #f97316;
-  --button-text: white;
+  --button-text: #ffffff;
   --button-hover: #ea580c;
+
+  --color-bg: var(--bg);
+  --color-text: var(--text);
+  --color-brand: var(--accent);
+  --color-brand-dark: var(--button-hover);
+  --color-muted: #ffedd5;
 }
 
+/* ========== EMERALD ========== */
 .emerald {
   --bg: #e8f5e9;
   --text: #1b5e20;
   --accent: #43a047;
   --button-bg: #43a047;
-  --button-text: white;
+  --button-text: #ffffff;
   --button-hover: #2e7d32;
+
+  --color-bg: var(--bg);
+  --color-text: var(--text);
+  --color-brand: var(--accent);
+  --color-brand-dark: var(--button-hover);
+  --color-muted: #d0f0d5;
 }
 
+/* ========== OCEAN ========== */
 .ocean {
   --bg: #e3f2fd;
   --text: #0d47a1;
   --accent: #2196f3;
   --button-bg: #2196f3;
-  --button-text: white;
+  --button-text: #ffffff;
   --button-hover: #1976d2;
+
+  --color-bg: var(--bg);
+  --color-text: var(--text);
+  --color-brand: var(--accent);
+  --color-brand-dark: var(--button-hover);
+  --color-muted: #cfe8fd;
 }
 
+/* ========== NOIR ========== */
 .noir {
-  --bg: #111;
-  --text: #eee;
-  --accent: #444;
-  --button-bg: #333;
-  --button-text: #fff;
-  --button-hover: #555;
+  --bg: #111111;
+  --text: #eeeeee;
+  --accent: #444444;
+  --button-bg: #333333;
+  --button-text: #ffffff;
+  --button-hover: #555555;
+
+  --color-bg: var(--bg);
+  --color-text: var(--text);
+  --color-brand: var(--accent);
+  --color-brand-dark: var(--button-hover);
+  --color-muted: #222222;
 }
 
+/* ========== ORCHID ========== */
 .orchid {
   --bg: #f3e5f5;
   --text: #4a148c;
   --accent: #ba68c8;
   --button-bg: #ba68c8;
-  --button-text: white;
+  --button-text: #ffffff;
   --button-hover: #8e24aa;
+
+  --color-bg: var(--bg);
+  --color-text: var(--text);
+  --color-brand: var(--accent);
+  --color-brand-dark: var(--button-hover);
+  --color-muted: #f0d0ff;
 }
 
+/* ========== LEMONADE ========== */
 .lemonade {
   --bg: #fffde7;
   --text: #fbc02d;
   --accent: #fdd835;
   --button-bg: #fdd835;
-  --button-text: black;
+  --button-text: #000000;
   --button-hover: #fbc02d;
+
+  --color-bg: var(--bg);
+  --color-text: var(--text);
+  --color-brand: var(--accent);
+  --color-brand-dark: var(--button-hover);
+  --color-muted: #fef9c3;
 }
 
+/* ========== PHOENIX ========== */
 .phoenix {
   --bg: linear-gradient(to right, #fbe9e7, #ffccbc);
   --text: #bf360c;
   --accent: #ff7043;
   --button-bg: #ff7043;
-  --button-text: white;
+  --button-text: #ffffff;
   --button-hover: #e64a19;
+
+  --color-bg: var(--bg);
+  --color-text: var(--text);
+  --color-brand: var(--accent);
+  --color-brand-dark: var(--button-hover);
+  --color-muted: #ffe0d5;
 }
 
-/* Additional Themes */
-.pearl {
-  --bg: #fdfdfd;
-  --text: #222;
-  --accent: #e0c3fc;
-  --button-bg: #e0c3fc;
-  --button-text: #111;
-  --button-hover: #c084fc;
-}
-
-.blush {
-  --bg: #fff0f3;
-  --text: #8b0000;
-  --accent: #ff7f7f;
-  --button-bg: #ff7f7f;
-  --button-text: white;
-  --button-hover: #e63946;
-}
-
+/* ========== CYBER ========== */
 .cyber {
   --bg: #0f0f0f;
   --text: #39ff14;
   --accent: #00ffff;
   --button-bg: #00ffff;
-  --button-text: black;
+  --button-text: #000000;
   --button-hover: #39ff14;
+
+  --color-bg: var(--bg);
+  --color-text: var(--text);
+  --color-brand: var(--accent);
+  --color-brand-dark: var(--button-hover);
+  --color-muted: #1a1a1a;
 }
 
+/* ========== SLATE ========== */
 .slate {
   --bg: #f1f5f9;
   --text: #1e293b;
   --accent: #64748b;
   --button-bg: #64748b;
-  --button-text: white;
+  --button-text: #ffffff;
   --button-hover: #475569;
+
+  --color-bg: var(--bg);
+  --color-text: var(--text);
+  --color-brand: var(--accent);
+  --color-brand-dark: var(--button-hover);
+  --color-muted: #e2e8f0;
 }
 
-.dawn {
-  --bg: linear-gradient(to right, #ffe5b4, #f8edeb);
-  --text: #5e503f;
-  --accent: #f4a261;
-  --button-bg: #f4a261;
-  --button-text: #fff;
-  --button-hover: #e76f51;
+[data-theme='dark'] .slate {
+  --color-bg: #1e293b;
+  --color-text: #f1f5f9;
+  --color-brand: #94a3b8;
+  --color-brand-dark: #64748b;
+  --color-muted: #0f172a;
 }
 
-.copper {
-  --bg: #fefae0;
-  --text: #7f5539;
-  --accent: #ddb892;
-  --button-bg: #b08968;
-  --button-text: #fff;
-  --button-hover: #7f5539;
-}
-
+/* ========== MYST ========== */
 .myst {
   --bg: #dfe4ea;
   --text: #2f3542;
   --accent: #70a1ff;
   --button-bg: #70a1ff;
-  --button-text: #fff;
+  --button-text: #ffffff;
   --button-hover: #1e90ff;
+
+  --color-bg: var(--bg);
+  --color-text: var(--text);
+  --color-brand: var(--accent);
+  --color-brand-dark: var(--button-hover);
+  --color-muted: #cfd6e2;
+}
+
+/* ========== DAWN ========== */
+.dawn {
+  --bg: linear-gradient(to right, #ffe5b4, #f8edeb);
+  --text: #5e503f;
+  --accent: #f4a261;
+  --button-bg: #f4a261;
+  --button-text: #ffffff;
+  --button-hover: #e76f51;
+
+  --color-bg: var(--bg);
+  --color-text: var(--text);
+  --color-brand: var(--accent);
+  --color-brand-dark: var(--button-hover);
+  --color-muted: #fff4e6;
+}
+
+[data-theme='dark'] .dawn {
+  --color-bg: #2c1f16;
+  --color-text: #fefae0;
+  --color-brand: #ff9e7b;
+  --color-brand-dark: #c85a3c;
+  --color-muted: #3a2b20;
+}
+
+/* ========== COPPER ========== */
+.copper {
+  --bg: #fefae0;
+  --text: #7f5539;
+  --accent: #ddb892;
+  --button-bg: #b08968;
+  --button-text: #ffffff;
+  --button-hover: #7f5539;
+
+  --color-bg: var(--bg);
+  --color-text: var(--text);
+  --color-brand: var(--accent);
+  --color-brand-dark: var(--button-hover);
+  --color-muted: #f2e9d5;
+}
+
+[data-theme='dark'] .copper {
+  --color-bg: #2f1f14;
+  --color-text: #f8f5ec;
+  --color-brand: #e0b083;
+  --color-brand-dark: #8b5e3c;
+  --color-muted: #3f2d22;
+}
+
+/* ========== PEARL ========== */
+.pearl {
+  --bg: #fdfdfd;
+  --text: #222222;
+  --accent: #e0c3fc;
+  --button-bg: #e0c3fc;
+  --button-text: #111111;
+  --button-hover: #c084fc;
+
+  --color-bg: var(--bg);
+  --color-text: var(--text);
+  --color-brand: var(--accent);
+  --color-brand-dark: var(--button-hover);
+  --color-muted: #f0f0f0;
+}
+
+[data-theme='dark'] .pearl {
+  --color-bg: #1a1a1a;
+  --color-text: #f4f4f4;
+  --color-brand: #d8b4fe;
+  --color-brand-dark: #a855f7;
+  --color-muted: #2c2c2c;
+}
+
+/* ========== BLUSH ========== */
+.blush {
+  --bg: #fff0f3;
+  --text: #8b0000;
+  --accent: #ff7f7f;
+  --button-bg: #ff7f7f;
+  --button-text: #ffffff;
+  --button-hover: #e63946;
+
+  --color-bg: var(--bg);
+  --color-text: var(--text);
+  --color-brand: var(--accent);
+  --color-brand-dark: var(--button-hover);
+  --color-muted: #ffe4e8;
+}
+
+[data-theme='dark'] .blush {
+  --color-bg: #2b0d0d;
+  --color-text: #fff0f0;
+  --color-brand: #ff9999;
+  --color-brand-dark: #c92a2a;
+  --color-muted: #3b1a1a;
 }
 
 .forest {
@@ -168,8 +347,22 @@
   --text: #22543d;
   --accent: #38a169;
   --button-bg: #38a169;
-  --button-text: white;
+  --button-text: #ffffff;
   --button-hover: #2f855a;
+
+  --color-bg: var(--bg);
+  --color-text: var(--text);
+  --color-brand: var(--accent);
+  --color-brand-dark: var(--button-hover);
+  --color-muted: #ccf0e6;
+}
+
+[data-theme='dark'] .forest {
+  --color-bg: #0d2620;
+  --color-text: #defce6;
+  --color-brand: #68d391;
+  --color-brand-dark: #2f855a;
+  --color-muted: #1c3e35;
 }
 
 .sand {
@@ -177,8 +370,22 @@
   --text: #a67c52;
   --accent: #deb887;
   --button-bg: #deb887;
-  --button-text: #000;
+  --button-text: #000000;
   --button-hover: #c19a6b;
+
+  --color-bg: var(--bg);
+  --color-text: var(--text);
+  --color-brand: var(--accent);
+  --color-brand-dark: var(--button-hover);
+  --color-muted: #f6e7c2;
+}
+
+[data-theme='dark'] .sand {
+  --color-bg: #3c2f23;
+  --color-text: #ffedd5;
+  --color-brand: #e3c295;
+  --color-brand-dark: #b98b61;
+  --color-muted: #4f3e30;
 }
 
 .ice {
@@ -188,4 +395,18 @@
   --button-bg: #7dd3fc;
   --button-text: #0c4a6e;
   --button-hover: #38bdf8;
+
+  --color-bg: var(--bg);
+  --color-text: var(--text);
+  --color-brand: var(--accent);
+  --color-brand-dark: var(--button-hover);
+  --color-muted: #e0f5ff;
+}
+
+[data-theme='dark'] .ice {
+  --color-bg: #102a3a;
+  --color-text: #e0f7ff;
+  --color-brand: #90e0ff;
+  --color-brand-dark: #3abff8;
+  --color-muted: #1a3a4f;
 }

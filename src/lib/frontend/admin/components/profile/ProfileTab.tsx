@@ -824,13 +824,13 @@ const ProfileTab: FC<props> = ({ form, setForm }) => {
             </DndContext>
           </LockedOverlay>
         </div>
-       
-          <ProfileTagsSection
-            form={form}
-            setForm={setForm}
-            limit={limits.tags}
-          />
-      
+
+        <ProfileTagsSection
+          form={form}
+          setForm={setForm}
+          limit={limits.tags}
+        />
+
       </div>
 
       {showModal && (
@@ -980,7 +980,7 @@ const ProfileTab: FC<props> = ({ form, setForm }) => {
           onSave={handleSaveService}
           initialData={editServiceIndex !== null ? {
             ...form.profile.services[editServiceIndex],
-            price: form.profile.services[editServiceIndex].price?.toString(),
+            price: form.profile.services[editServiceIndex].price,
           } : undefined}
         />
       )}

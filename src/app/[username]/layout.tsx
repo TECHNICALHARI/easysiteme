@@ -1,12 +1,37 @@
-// app/[username]/layout.tsx
+import type { Metadata } from 'next';
+import { Inter } from 'next/font/google';
+import '@/styles/globals.css';
+import dummyFormData from '@/lib/frontend/utils/dummyForm';
 
-export default function UserLayout({ children }: { children: React.ReactNode }) {
+const inter = Inter({
+  subsets: ['latin'],
+  variable: '--font-base',
+  display: 'swap',
+});
+
+export const metadata: Metadata = {
+  title: dummyFormData.seo.metaTitle || `${dummyFormData.profile.fullName} | OnePage`,
+  description:
+    dummyFormData.seo.metaDescription ||
+    `Check out ${dummyFormData.profile.fullName}’s OnePage profile.`,
+  openGraph: {
+    title: dummyFormData.seo.metaTitle,
+    description: dummyFormData.seo.metaDescription,
+    images: dummyFormData.profile.avatar
+      ? [dummyFormData.profile.avatar]
+      : [],
+  },
+};
+
+export default function UserLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   return (
     <html lang="en">
-      <body style={{ background: "#f9fafb", fontFamily: "sans-serif" }}>
-        {/* You can add Header here if needed */}
+      <body className={`${inter.variable} antialiased`}>
         {children}
-        {/* Footer here if needed */}
       </body>
     </html>
   );

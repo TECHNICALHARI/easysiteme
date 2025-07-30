@@ -40,11 +40,14 @@ export interface FAQ {
   answer: string;
 }
 
-export interface Service {
-  id: string;
+ export interface Service {
+  id?: string;
   title: string;
   description: string;
-  price?: number;
+  price?: string; 
+  image?: string; 
+  ctaLabel?: string; 
+  ctaLink?: string;  
 }
 
 export interface FeaturedMedia {
