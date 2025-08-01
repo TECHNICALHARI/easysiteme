@@ -154,7 +154,7 @@ const dummyFormData: FormData = {
     resumeUrl: "/resume.pdf",
   },
   design: {
-    theme: "forest",
+    theme: "orchid",
     emojiLink: "🚀",
     brandingOff: false,
     layoutType: "bio",

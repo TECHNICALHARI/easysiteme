@@ -41,7 +41,7 @@ export interface FAQ {
 }
 
  export interface Service {
-  id?: string;
+  id: string;
   title: string;
   description: string;
   price?: string; 

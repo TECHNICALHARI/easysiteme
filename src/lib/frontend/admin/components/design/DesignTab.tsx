@@ -85,7 +85,7 @@ const DesignTab = () => {
     const { form, setForm } = useAdminForm();
     const currentTheme = form.design.theme || 'brand';
     const layoutType = form.design.layoutType || 'bio';
-    const plan = form.plan || 'free';
+    const plan = form.plan || 'pro';
     const limits = PLAN_FEATURES[plan];
 
     const handleSelectTheme = (themeId: string) => {

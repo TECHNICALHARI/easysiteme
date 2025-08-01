@@ -149,7 +149,7 @@ const ProfileTab: FC<props> = ({ form, setForm }) => {
   const handleSaveService = (data: any) => {
     const updated = [...(form.profile.services || [])];
     const newData = {
-      id: editServiceIndex !== null ? form.profile.services[editServiceIndex].id : `service-${Date.now()}`,
+      id: editServiceIndex !== null ? form?.profile?.services[editServiceIndex].id : `service-${Date.now()}`,
       ...data,
     };
     if (editServiceIndex !== null) {
