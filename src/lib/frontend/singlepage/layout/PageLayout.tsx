@@ -25,9 +25,9 @@ export default function PageLayout({ children, form }: PageLayoutProps) {
 
   return (
     <>
-      {hasHeaderOrFooterSections && <PageHeader showNav={true} sections={sections} />}
+      {hasHeaderOrFooterSections && <PageHeader showNav={true} sections={sections} form={form} />}
       {children}
-      {hasHeaderOrFooterSections && <PageFooter />}
+      {hasHeaderOrFooterSections && <PageFooter form={form} />}
     </>
   );
 }

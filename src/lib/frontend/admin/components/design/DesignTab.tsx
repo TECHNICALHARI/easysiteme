@@ -58,27 +58,35 @@ const BioLinkCard = ({ themeId, themeName, isSelected, onSelect }: any) => (
 );
 
 const WebsiteCard = ({ themeId, themeName, isSelected, onSelect }: any) => (
+  <div
+    onClick={() => onSelect(themeId)}
+    className={clsx(
+      previewStyles.themeCardWrapper,
+      isSelected && previewStyles.selectedCard
+    )}
+  >
     <div
-        onClick={() => onSelect(themeId)}
-        className={clsx(
-            previewStyles.themeCardWrapper,
-            isSelected && previewStyles.selectedCard
-        )}
+      className={clsx(previewStyles.themePreview, themeStyles[themeId])}
+      data-theme={themeId}
     >
-        <div className={clsx(previewStyles.themePreview, themeStyles[themeId])} data-theme={themeId}>
-            <div className="w-full text-center py-3">
-                <div className="text-base font-semibold">{themeName} Website</div>
-                <div className="text-xs opacity-70">Full layout with sections</div>
-            </div>
-            <div className="w-full h-[120px] bg-white rounded-lg shadow-inner p-2 flex flex-col justify-around">
-                <div className="h-3 bg-gray-300 rounded w-2/3 mx-auto"></div>
-                <div className="h-3 bg-gray-300 rounded w-5/6 mx-auto"></div>
-                <div className="h-3 bg-gray-300 rounded w-1/2 mx-auto"></div>
-                <div className="h-3 bg-gray-300 rounded w-3/4 mx-auto"></div>
-            </div>
-        </div>
-        <div className={previewStyles.themeName}>{themeName}</div>
+      <div className="w-full text-center py-3">
+        <div className="text-base font-semibold">{themeName}</div>
+        <div className="text-xs opacity-70">Website Preview</div>
+      </div>
+
+      <div className="w-full h-[120px] bg-[var(--color-bg)] rounded-lg shadow-inner p-2 flex flex-col justify-around">
+        <div className="h-3 rounded bg-[var(--color-brand)] w-2/3 mx-auto"></div>
+        <div className="h-3 rounded bg-[var(--color-brand-dark)] w-5/6 mx-auto"></div>
+        <div className="h-3 rounded bg-[var(--color-text)]/40 w-1/2 mx-auto"></div>
+        <div className="h-3 rounded bg-[var(--color-text)]/30 w-3/4 mx-auto"></div>
+      </div>
     </div>
+
+    <div className={previewStyles.themeName}>
+      {themeName}
+      {isSelected && <span className={previewStyles.badge}>Selected</span>}
+    </div>
+  </div>
 );
 
 const DesignTab = () => {
@@ -108,7 +116,7 @@ const DesignTab = () => {
 
             <div className={styles.sectionMain}>
                 <div className={styles.SecHeadAndBtn}>
-                    <h4>Page Layout Type</h4>
+                    <h4>Choose Your Layout</h4>
                 </div>
                 <LockedOverlay enabled={limits.layoutType} mode="overlay">
                     <ToggleSwitch

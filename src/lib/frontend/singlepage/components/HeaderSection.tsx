@@ -10,14 +10,14 @@ export default function HeaderSection({ profile }: { profile: ProfileTabData }) 
     .join('');
 
   return (
-    <section className={styles.profileSection}>
+    <section className={`${styles.profileSection}`}>
       {profile.bannerImage && (
         <div className={styles.bannerWrapper}>
           <img src={profile.bannerImage} alt="Banner" className={styles.bannerImage} />
         </div>
       )}
 
-      <div className={styles.profileInfo}>
+      <div className={`${styles.profileInfo} ${profile.bannerImage ? '' : styles.noMarginTop}`}>
         {profile.avatar ? (
           <img src={profile.avatar} alt="Avatar" className={styles.avatarImage} />
         ) : (
@@ -28,7 +28,7 @@ export default function HeaderSection({ profile }: { profile: ProfileTabData }) 
         {profile.title && <p className={styles.tagline}>{profile.title}</p>}
         {profile.bio && <p className={styles.bio}>{profile.bio}</p>}
 
-        {profile.tags &&profile.tags?.length > 0 && (
+        {profile.tags && profile.tags?.length > 0 && (
           <div className={styles.tagsWrapper}>
             {profile.tags.map((tag, idx) => (
               <span key={idx} className={styles.tag}>

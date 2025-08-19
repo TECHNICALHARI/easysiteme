@@ -67,7 +67,7 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
         thankYouMessage: ""
       }
     },
-    plan: "free"
+    plan: "pro"
   });
 
   return (

@@ -78,6 +78,14 @@
   --color-muted: #1f1f1f;
 }
 
+[data-theme='dark'] .midnight {
+  --color-bg: #0d0d0d;
+  --color-text: #e0e0e0;
+  --color-brand: #bb86fc;
+  --color-brand-dark: #985eff;
+  --color-muted: #1a1a1a;
+}
+
 /* ========== SUNSET ========== */
 .sunset {
   --bg: linear-gradient(to right, #fca5a5, #fcd34d);
@@ -92,6 +100,14 @@
   --color-brand: var(--accent);
   --color-brand-dark: var(--button-hover);
   --color-muted: #ffedd5;
+}
+
+[data-theme='dark'] .sunset {
+  --color-bg: linear-gradient(to right, #7f1d1d, #78350f);
+  --color-text: #ffe5d3;
+  --color-brand: #fb923c;
+  --color-brand-dark: #ea580c;
+  --color-muted: #331a0b;
 }
 
 /* ========== EMERALD ========== */
@@ -110,6 +126,14 @@
   --color-muted: #d0f0d5;
 }
 
+[data-theme='dark'] .emerald {
+  --color-bg: #0d1f0f;
+  --color-text: #c8facc;
+  --color-brand: #66bb6a;
+  --color-brand-dark: #2e7d32;
+  --color-muted: #193324;
+}
+
 /* ========== OCEAN ========== */
 .ocean {
   --bg: #e3f2fd;
@@ -124,6 +148,14 @@
   --color-brand: var(--accent);
   --color-brand-dark: var(--button-hover);
   --color-muted: #cfe8fd;
+}
+
+[data-theme='dark'] .ocean {
+  --color-bg: #0a192f;
+  --color-text: #dbeafe;
+  --color-brand: #2196f3;
+  --color-brand-dark: #1976d2;
+  --color-muted: #10243e;
 }
 
 /* ========== NOIR ========== */
@@ -142,6 +174,14 @@
   --color-muted: #222222;
 }
 
+[data-theme='dark'] .noir {
+  --color-bg: #000000;
+  --color-text: #f5f5f5;
+  --color-brand: #555555;
+  --color-brand-dark: #777777;
+  --color-muted: #1a1a1a;
+}
+
 /* ========== ORCHID ========== */
 .orchid {
   --bg: #f3e5f5;
@@ -156,6 +196,14 @@
   --color-brand: var(--accent);
   --color-brand-dark: var(--button-hover);
   --color-muted: #f0d0ff;
+}
+
+[data-theme='dark'] .orchid {
+  --color-bg: #2a0a3d;
+  --color-text: #f3e5f5;
+  --color-brand: #ce93d8;
+  --color-brand-dark: #8e24aa;
+  --color-muted: #3a184e;
 }
 
 /* ========== LEMONADE ========== */
@@ -174,6 +222,14 @@
   --color-muted: #fef9c3;
 }
 
+[data-theme='dark'] .lemonade {
+  --color-bg: #1a1a00;
+  --color-text: #fff9c4;
+  --color-brand: #fdd835;
+  --color-brand-dark: #fbc02d;
+  --color-muted: #333300;
+}
+
 /* ========== PHOENIX ========== */
 .phoenix {
   --bg: linear-gradient(to right, #fbe9e7, #ffccbc);
@@ -190,6 +246,14 @@
   --color-muted: #ffe0d5;
 }
 
+[data-theme='dark'] .phoenix {
+  --color-bg: linear-gradient(to right, #3d0c02, #4e1c00);
+  --color-text: #ffd6c2;
+  --color-brand: #ff7043;
+  --color-brand-dark: #e64a19;
+  --color-muted: #2a0f05;
+}
+
 /* ========== CYBER ========== */
 .cyber {
   --bg: #0f0f0f;
@@ -204,6 +268,14 @@
   --color-brand: var(--accent);
   --color-brand-dark: var(--button-hover);
   --color-muted: #1a1a1a;
+}
+
+[data-theme='dark'] .cyber {
+  --color-bg: #000000;
+  --color-text: #39ff14;
+  --color-brand: #00ffff;
+  --color-brand-dark: #39ff14;
+  --color-muted: #101010;
 }
 
 /* ========== SLATE ========== */
@@ -244,6 +316,14 @@
   --color-brand: var(--accent);
   --color-brand-dark: var(--button-hover);
   --color-muted: #cfd6e2;
+}
+
+[data-theme='dark'] .myst {
+  --color-bg: #1c1f26;
+  --color-text: #dfe4ea;
+  --color-brand: #70a1ff;
+  --color-brand-dark: #1e90ff;
+  --color-muted: #2a2f3a;
 }
 
 /* ========== DAWN ========== */

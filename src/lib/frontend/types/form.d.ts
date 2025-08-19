@@ -97,6 +97,7 @@ export interface Socials {
 export interface ProfileTabData
   extends ProfileInfo,
     ContactInfo,
+    
     Resume {
   about?: string;
   tags?: string[];

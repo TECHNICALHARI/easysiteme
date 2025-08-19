@@ -1,7 +1,7 @@
 'use client';
 
 import clsx from 'clsx';
-import { FormData } from '@/lib/frontend/types/form';
+import type { FormData } from '@/lib/frontend/types/form';
 import dummyFormData from '@/lib/frontend/utils/dummyForm';
 import BioLayout from '@/lib/frontend/singlepage/BioLayout';
 import WebsiteLayout from '@/lib/frontend/singlepage/WebsiteLayout';
@@ -13,21 +13,27 @@ interface PreviewProps {
   form?: FormData;
 }
 
-export default function PreviewPage({ form = dummyFormData }: PreviewProps) {
-  const { design } = form;
-  const layoutType = design?.layoutType || 'bio';
-  const theme = design?.theme || 'brand';
+const THEME_FALLBACK = 'brand' as const;
 
-  const Layout = layoutType === 'website' ? WebsiteLayout : BioLayout;
-  const themeClass = themeStyles[theme] || themeStyles.brand;
+export default function PreviewPage({ form = dummyFormData }: PreviewProps) {
+  const layoutType = form?.design?.layoutType ?? 'bio';
+  const theme = form?.design?.theme ?? THEME_FALLBACK;
+  const ThemeClass =
+    (themeStyles as Record<string, string>)[theme] ?? themeStyles[THEME_FALLBACK];
 
   return (
-    <div className={clsx(styles.previewWrapper, themeClass)} data-theme={theme}>
-      <PageLayout form={form}>
-        <div className={styles.previewContainer}>
-          <Layout form={form} />
+    <div className={clsx(styles.previewWrapper, ThemeClass)} data-theme={theme}>
+      {layoutType === 'website' ? (
+        <PageLayout form={form}>
+          <div className={styles.previewContainer}>
+            <WebsiteLayout form={form} />
+          </div>
+        </PageLayout>
+      ) : (
+        <div className={`${styles.previewContainer} ${styles.BioPreviewContainer}`}>
+          <BioLayout form={form} />
         </div>
-      </PageLayout>
+      )}
     </div>
   );
 }
