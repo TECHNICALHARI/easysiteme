@@ -1,4 +1,6 @@
-// sections/FeaturedSection.tsx
+'use client';
+
+import { motion } from 'framer-motion';
 import styles from '@/styles/preview.module.css';
 import { FeaturedMedia } from '@/lib/frontend/types/form';
 
@@ -6,11 +8,25 @@ export default function FeaturedSection({ featured }: { featured: FeaturedMedia[
   if (!featured?.length) return null;
 
   return (
-    <section className="px-4 mt-10" id='featured'>
+    <motion.section
+      className="px-4 mt-10"
+      id="featured"
+      initial={{ opacity: 0, y: 20 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.4 }}
+      viewport={{ once: true, amount: 0.2 }}
+    >
       <h2 className={styles.sectionTitle}>Featured</h2>
       <div className="grid gap-6 sm:grid-cols-2">
-        {featured.map((item) => (
-          <div key={item.id} className={styles.featuredCard}>
+        {featured.map((item, i) => (
+          <motion.div
+            key={item.id}
+            className={styles.featuredCard}
+            initial={{ opacity: 0, scale: 0.95 }}
+            whileInView={{ opacity: 1, scale: 1 }}
+            transition={{ delay: i * 0.1, duration: 0.4 }}
+            viewport={{ once: true }}
+          >
             <iframe
               src={item.url}
               title={item.title}
@@ -32,9 +48,9 @@ export default function FeaturedSection({ featured }: { featured: FeaturedMedia[
                 </a>
               )}
             </div>
-          </div>
+          </motion.div>
         ))}
       </div>
-    </section>
+    </motion.section>
   );
 }

@@ -14,6 +14,9 @@ import TestimonialSection from './components/TestimonialSection';
 import FAQSection from './components/FAQSection';
 import PostsSection from './components/PostsSection';
 import MapSection from './components/MapSection';
+import PreviewContainer from './layout/PreviewContainer';
+import ContactSection from './components/ContactSection';
+import SubscribeSection from './components/SubscribeSection';
 
 function sortLinks(links: LinkType[] = []) {
   return [...links].sort((a, b) => Number(b.highlighted) - Number(a.highlighted));
@@ -31,27 +34,34 @@ export default function WebsiteLayout({ form }: { form: FormData }) {
   const hasFaqs = Boolean(profile?.faqs?.length);
   const hasPosts = Boolean(posts?.posts?.length);
   const hasMap = Boolean((profile?.latitude && profile?.longitude) || profile?.fullAddress);
+  const hasSubscribe = !form.subscriberSettings?.subscriberSettings?.hideSubscribeButton;
 
   const sortedLinks = hasLinks ? sortLinks(profile.links) : [];
 
   return (
-    <motion.div
-      className={`${styles.bioLayoutContainer} ${styles[themeClass]}`}
-      initial={{ opacity: 0, y: 40 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.5 }}
-    >
-      <HeaderSection profile={profile} />
+    <>
+      <PreviewContainer>
+        <motion.div
+          className={`${styles.bioLayoutContainer} ${styles[themeClass]}`}
+          initial={{ opacity: 0, y: 40 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+        >
+          <HeaderSection profile={profile} />
+        </motion.div>
+        {hasLinks && <LinkSection links={sortedLinks} />}
+        {hasSocials && <SocialSection socials={socials} />}
+        {hasFeatured && <FeaturedSection featured={profile.featured} />}
+        {hasEmbeds && <EmbedSection embeds={profile.embeds} />}
+        {hasServices && <ServiceSection services={profile.services} />}
+        {hasTestimonials && <TestimonialSection testimonials={profile.testimonials} />}
+        {hasFaqs && <FAQSection faqs={profile.faqs} />}
+        {hasPosts && <PostsSection posts={posts.posts} />}
+        {hasMap && <MapSection profile={profile} />}
 
-      {hasLinks && <LinkSection links={sortedLinks} />}
-      {hasSocials && <SocialSection socials={socials} />}
-      {hasFeatured && <FeaturedSection featured={profile.featured} />}
-      {hasEmbeds && <EmbedSection embeds={profile.embeds} />}
-      {hasServices && <ServiceSection services={profile.services} />}
-      {hasTestimonials && <TestimonialSection testimonials={profile.testimonials} />}
-      {hasFaqs && <FAQSection faqs={profile.faqs} />}
-      {hasPosts && <PostsSection posts={posts.posts} />}
-      {hasMap && <MapSection profile={profile} />}
-    </motion.div>
+      </PreviewContainer>
+      <ContactSection profile={form.profile} />
+      {hasSubscribe && <SubscribeSection form={form} />}
+    </>
   );
 }

@@ -18,6 +18,11 @@ const dummyFormData: FormData = {
               <li>💡 Love UI/UX + animations</li>
             </ul>`,
     headers: [{ id: "1", title: "Connect with Me" }],
+    showContactForm: true,
+    email: "hariom@example.com",
+    phone: "+91 9876543210",
+    website: "https://hariom.dev",
+    whatsapp: "919876543210", // for wa.me links
     links: [
       {
         id: "1",
@@ -154,7 +159,7 @@ const dummyFormData: FormData = {
     resumeUrl: "/resume.pdf",
   },
   design: {
-    theme: "orchid",
+    theme: "forest",
     emojiLink: "🚀",
     brandingOff: false,
     layoutType: "bio",

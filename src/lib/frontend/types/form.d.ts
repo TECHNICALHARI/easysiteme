@@ -40,14 +40,14 @@ export interface FAQ {
   answer: string;
 }
 
- export interface Service {
+export interface Service {
   id: string;
   title: string;
   description: string;
-  price?: string; 
-  image?: string; 
-  ctaLabel?: string; 
-  ctaLink?: string;  
+  price?: string;
+  image?: string;
+  ctaLabel?: string;
+  ctaLink?: string;
 }
 
 export interface FeaturedMedia {
@@ -63,6 +63,11 @@ export interface ContactInfo {
   fullAddress?: string;
   latitude?: string;
   longitude?: string;
+  email?: string;
+  phone?: string;
+  website?: string;
+  whatsapp?: string;
+  showContactForm?: boolean;
 }
 
 export interface Resume {
@@ -78,12 +83,12 @@ export interface Design {
   theme: string;
   emojiLink?: string;
   brandingOff?: boolean;
-  layoutType: 'bio' | 'website';
+  layoutType: "bio" | "website";
 }
 
 export interface Settings {
   nsfwWarning: boolean;
-  preferredLink: 'primary' | 'custom';
+  preferredLink: "primary" | "custom";
   customDomain: string;
   gaId?: string;
 }
@@ -94,11 +99,7 @@ export interface Socials {
   calendly?: string;
 }
 
-export interface ProfileTabData
-  extends ProfileInfo,
-    ContactInfo,
-    
-    Resume {
+export interface ProfileTabData extends ProfileInfo, ContactInfo, Resume {
   about?: string;
   tags?: string[];
   headers: Header[];
@@ -131,7 +132,7 @@ export interface SubscriberList {
   data: {
     email: string;
     subscribedOn: string;
-    status: 'Active' | 'Unsubscribed';
+    status: "Active" | "Unsubscribed";
   }[];
   total: number;
   active: number;
@@ -155,17 +156,17 @@ export interface FormData {
   socials: Socials;
   posts: PostsTabData;
   subscriberSettings: SubscriberDataTypes;
-  plan: 'free' | 'pro' | 'premium';
+  plan: "free" | "pro" | "premium";
 }
 
 export type ReorderableProfileKeys =
-  | 'links'
-  | 'headers'
-  | 'embeds'
-  | 'testimonials'
-  | 'faqs'
-  | 'services'
-  | 'featured';
+  | "links"
+  | "headers"
+  | "embeds"
+  | "testimonials"
+  | "faqs"
+  | "services"
+  | "featured";
 
 export type ProfileTypeMap = {
   links: Link[];

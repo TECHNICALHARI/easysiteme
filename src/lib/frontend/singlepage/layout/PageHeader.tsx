@@ -1,13 +1,12 @@
 'use client';
 
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import Link from 'next/link';
-import { Menu, X, Share2, Mail, Copy, Check } from 'lucide-react';
+import { Menu, X, Share2, Mail } from 'lucide-react';
 import styles from '@/styles/preview.module.css';
 import ThemeTogglePreview from './ThemeTogglePreview';
 import type { FormData } from '@/lib/frontend/types/form';
 import ShareModal from '../components/ShareModal';
-
 
 function useProfileUrl(username?: string, customDomain?: string) {
   const origin =
@@ -35,10 +34,18 @@ const PageHeader = ({ showNav, sections, form }: HeaderProps) => {
   const [openShare, setOpenShare] = useState(false);
 
   const url = useProfileUrl(form.profile?.username, form.settings?.customDomain);
+  const canSubscribe = !form.subscriberSettings?.subscriberSettings?.hideSubscribeButton;
+
   useEffect(() => {
     const onScroll = () => setIsScrolled(window.scrollY > 10);
     window.addEventListener('scroll', onScroll);
     return () => window.removeEventListener('scroll', onScroll);
+  }, []);
+
+  const scrollToSubscribe = useCallback(() => {
+    const el = document.getElementById('subscribe');
+    if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    setMenuOpen(false);
   }, []);
 
   if (!showNav) return null;
@@ -65,6 +72,15 @@ const PageHeader = ({ showNav, sections, form }: HeaderProps) => {
                 {item.label}
               </a>
             ))}
+
+            {canSubscribe && (
+              <button className="btn-primary ml-2" onClick={scrollToSubscribe}>
+                <span className="inline-flex items-center gap-2">
+                  <Mail size={16} />
+                   Subscribe Now
+                </span>
+              </button>
+            )}
 
             <button className="btn-white ml-2" onClick={() => setOpenShare(true)}>
               <span className="inline-flex items-center gap-2">
@@ -98,6 +114,14 @@ const PageHeader = ({ showNav, sections, form }: HeaderProps) => {
               ))}
 
               <div className="flex flex-col gap-2 pt-2">
+                {canSubscribe && (
+                  <button className="btn-primary" onClick={scrollToSubscribe}>
+                    <span className="inline-flex items-center gap-2">
+                      <Mail size={16} />
+                       Subscribe Now
+                    </span>
+                  </button>
+                )}
                 <button className="btn-white" onClick={() => setOpenShare(true)}>
                   <span className="inline-flex items-center gap-2">
                     <Share2 size={16} />

@@ -20,7 +20,9 @@ import MapSection from './components/MapSection';
 import ThemeTogglePreview from './layout/ThemeTogglePreview';
 import PageFooter from './layout/PageFooter';
 import ShareModal from './components/ShareModal';
-import SubscribeBar from './components/SubscribeBar';
+import ContactSection from './components/ContactSection';
+import SubscribeSection from './components/SubscribeSection';
+import PreviewContainer from './layout/PreviewContainer';
 
 const cn = (...c: (string | false | null | undefined)[]) => c.filter(Boolean).join(' ');
 
@@ -72,11 +74,6 @@ function StickyActionBar({ form }: { form: FormData }) {
     }
   }, []);
 
-  const onSubscribe = () => {
-    const ev = new CustomEvent("onepage:subscribe:click", { detail: { username: form.profile?.username } });
-    window.dispatchEvent(ev);
-    alert(form.subscriberSettings?.subscriberSettings?.thankYouMessage || "Thanks for subscribing!");
-  };
 
   const scrollToSubscribe = useCallback(() => {
     const el = document.getElementById('subscribe');
@@ -90,7 +87,7 @@ function StickyActionBar({ form }: { form: FormData }) {
         initial={{ y: 40, opacity: 0 }}
         animate={{ y: hideBar ? 80 : 0, opacity: hideBar ? 0 : 1 }}
         transition={{ duration: 0.35, ease: "easeInOut" }}
-        className="fixed left-1/2 -translate-x-1/2 bottom-4 z-[90] w-[min(680px,92%)]"
+        className="fixed left-1/2 -translate-x-1/2 bottom-4 z-[90]"
       >
         <div className="flex items-center justify-between gap-2 rounded-2xl border border-[var(--color-muted)] bg-[var(--color-bg)] px-3 py-2 shadow-lg">
           <div className="flex items-center justify-between gap-2 w-full">
@@ -108,7 +105,7 @@ function StickyActionBar({ form }: { form: FormData }) {
             {canSubscribe && (
               <button className="btn-secondary flex items-center gap-2" onClick={scrollToSubscribe}>
                 <Mail size={16} />
-                <span>{subscribeLabel}</span>
+                <span>Subscribe Now</span>
               </button>
             )}
             <button className="btn-secondary flex items-center gap-2" onClick={() => setOpenShare(true)}>
@@ -137,25 +134,28 @@ export default function BioLayout({ form }: { form: FormData }) {
   const hasSubscribe = !form.subscriberSettings?.subscriberSettings?.hideSubscribeButton;
   return (
     <>
-      <motion.div initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.35 }}>
-        <HeaderSection profile={form.profile} />
-      </motion.div>
+      <PreviewContainer>
+        <motion.div initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.35 }}>
+          <HeaderSection profile={form.profile} />
+        </motion.div>
 
-      <SocialSection socials={form.socials} />
+        <SocialSection socials={form.socials} />
 
-      {hasLinks && <LinkSection links={linksSorted} />}
+        {hasLinks && <LinkSection links={linksSorted} />}
 
-      {hasFeatured && <FeaturedSection featured={form.profile.featured} />}
-      {hasEmbeds && <EmbedSection embeds={form.profile.embeds} />}
-      {hasServices && <ServiceSection services={form.profile.services} />}
+        {hasFeatured && <FeaturedSection featured={form.profile.featured} />}
+        {hasEmbeds && <EmbedSection embeds={form.profile.embeds} />}
+        {hasServices && <ServiceSection services={form.profile.services} />}
 
-      {hasTestimonials && <TestimonialSection testimonials={form.profile.testimonials} />}
-      {hasFaqs && <FAQSection faqs={form.profile.faqs} />}
+        {hasTestimonials && <TestimonialSection testimonials={form.profile.testimonials} />}
+        {hasFaqs && <FAQSection faqs={form.profile.faqs} />}
 
-      {hasPosts && <PostsSection posts={form.posts.posts} />}
+        {hasPosts && <PostsSection posts={form.posts.posts} />}
 
-      {hasMap && <MapSection profile={form.profile} />}
-      {hasSubscribe && <SubscribeBar form={form} />}
+        {hasMap && <MapSection profile={form.profile} />}
+      </PreviewContainer>
+      <ContactSection profile={form.profile} />
+      {hasSubscribe && <SubscribeSection form={form} />}
       <StickyActionBar form={form} />
       <PageFooter form={form} />
     </>

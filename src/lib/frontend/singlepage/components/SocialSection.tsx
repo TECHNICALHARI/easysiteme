@@ -1,14 +1,8 @@
 'use client';
 
+import { motion } from 'framer-motion';
 import styles from '@/styles/preview.module.css';
-import {
-  Instagram,
-  Youtube,
-  Calendar,
-  Twitter,
-  Linkedin,
-  Globe,
-} from 'lucide-react';
+import { Instagram, Youtube, Calendar, Twitter, Linkedin, Globe } from 'lucide-react';
 import { Socials } from '@/lib/frontend/types/form';
 
 interface Props {
@@ -28,18 +22,28 @@ export default function SocialSection({ socials }: Props) {
   if (socialData.length === 0) return null;
 
   return (
-    <div className={styles.socialIcons}>
-      {socialData.map((s) => (
-        <a
+    <motion.div
+      className={styles.socialIcons}
+      initial={{ opacity: 0, scale: 0.9 }}
+      whileInView={{ opacity: 1, scale: 1 }}
+      transition={{ duration: 0.4 }}
+      viewport={{ once: true, amount: 0.3 }}
+    >
+      {socialData.map((s, i) => (
+        <motion.a
           key={s.id}
           href={s.url}
           target="_blank"
           rel="noopener noreferrer"
           className={styles.socialIcon}
+          initial={{ opacity: 0, y: 10 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          transition={{ delay: i * 0.05, duration: 0.3 }}
+          viewport={{ once: true }}
         >
           {s.icon}
-        </a>
+        </motion.a>
       ))}
-    </div>
+    </motion.div>
   );
 }

@@ -1091,96 +1091,287 @@
 
 
 /* modal end */
-
-/* Subscribe bar wrapper */
-.subscribeBarWrapper {
+/* contact start */
+.contactSection {
   position: relative;
+  padding: 4rem 1rem;
+  margin-top: 3rem;
+  overflow: hidden;
+  background: linear-gradient(135deg, rgba(79, 70, 229, 0.08), rgba(124, 58, 237, 0.06));
 }
 
-/* Premium card look */
-.subscribeCard {
-  background: linear-gradient(135deg, var(--color-brand) 0%, var(--color-brand-dark) 100%);
-  padding: 2px; /* border effect */
-  border-radius: 1.5rem;
-  box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+.contactInner {
+  max-width: 1120px;
+  margin: 0 auto;
+  position: relative;
+  z-index: 1;
 }
 
-.subscribeCard > div {
-  background: var(--color-bg);
-  border-radius: 1.4rem;
-  padding: 2rem;
+.contactCard {
+  background: rgba(255, 255, 255, 0.95);
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  border-radius: 1.25rem;
+  padding: 1.5rem;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.06);
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
 }
 
-/* Title + desc */
-.subscribeTitle {
-  font-size: 1.5rem;
+[data-theme='dark'] .contactCard {
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.35);
+}
+
+.contactCard:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 14px 36px rgba(0, 0, 0, 0.10);
+}
+
+.contactTitle {
+  font-size: 1.25rem;
   font-weight: 700;
   color: var(--color-text);
-  margin-bottom: 0.3rem;
+  margin-bottom: 1rem;
 }
-.subscribeDesc {
+
+.contactList {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.contactItem {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
   font-size: 0.95rem;
+  color: var(--color-text);
+  padding: 0.5rem 0.25rem;
+  border-radius: 0.5rem;
+  transition: background 0.25s ease;
+}
+
+.contactItem:hover {
+  background: rgba(0, 0, 0, 0.03);
+}
+
+[data-theme='dark'] .contactItem:hover {
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.contactIcon {
+  color: var(--color-brand);
+}
+
+.contactLink {
+  text-decoration: none;
+  color: var(--color-text);
+}
+
+.contactLink:hover {
+  color: var(--color-brand);
+  text-decoration: underline;
+}
+
+.contactForm {
+  display: grid;
+  gap: 1rem;
+}
+
+.contactInput {
+  width: 100%;
+  padding: 0.85rem 1rem;
+  border-radius: 0.75rem;
+  border: 1px solid var(--color-muted);
+  background: var(--color-bg);
+  color: var(--color-text);
+  font-size: 0.95rem;
+  transition: border 0.2s ease, box-shadow 0.2s ease;
+}
+
+.contactInput::placeholder {
   color: var(--color-text-muted);
 }
 
-/* Input */
-.subscribeInput {
+.contactInput:focus {
+  outline: none;
+  border-color: var(--color-brand);
+  box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.18);
+}
+
+[data-theme='dark'] .contactInput {
+  background: #111827;
+  border-color: #1f2937;
+}
+
+.contactTextarea {
+  min-height: 8rem;
+  resize: vertical;
+}
+
+.contactSubmit {
+  display: inline-block;
+  padding: 0.9rem 1.2rem;
+  border: none;
+  border-radius: 0.9rem;
+  background: linear-gradient(135deg, var(--color-brand), var(--color-brand-dark));
+  color: #fff;
+  font-weight: 700;
+  font-size: 0.95rem;
+  letter-spacing: 0.01em;
+  box-shadow: 0 10px 24px rgba(79, 70, 229, 0.25);
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, filter 0.2s ease;
+}
+
+.contactSubmit:hover {
+  transform: translateY(-1px);
+  filter: brightness(1.05);
+  box-shadow: 0 14px 32px rgba(79, 70, 229, 0.28);
+}
+
+.contactThanks {
+  color: var(--color-brand);
+  font-weight: 600;
+  margin-top: 0.75rem;
+}
+
+.contactSectionCard {
+  position: relative;
+  padding: 3rem 1.5rem;
+  margin: 3rem auto;
+  /* max-width: 1200px; */
+  background: linear-gradient(135deg, rgba(79, 70, 229, 0.06), rgba(124, 58, 237, 0.04));
+  border-radius: 1.5rem;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.06);
+}
+
+[data-theme='dark'] .contactSectionCard {
+  background: rgba(255, 255, 255, 0.04);
+  box-shadow: 0 14px 36px rgba(0, 0, 0, 0.2);
+}
+
+
+/* subscribe start */
+/* ================= SUBSCRIBE HERO (Dark Premium) ================= */
+.subscribeHeroDark {
+  position: relative;
+  width: 100%;
+  padding: 5rem 1.5rem;
+  margin: 4rem 0 0;
+  background: linear-gradient(135deg,
+      var(--color-bg),
+      var(--color-brand-dark, #312e81));
+  overflow: hidden;
+}
+
+[data-theme='dark'] .subscribeHeroDark {
+  background: linear-gradient(135deg,
+      var(--color-bg, #111827),
+      var(--color-brand, #4f46e5));
+}
+
+.subscribeHeroInner {
+  max-width: 720px;
+  margin: 0 auto;
+  text-align: center;
+  position: relative;
+  z-index: 2;
+}
+
+.subscribeHeroTitle {
+  font-size: 2.3rem;
+  font-weight: 900;
+  color: #fff;
+  margin-bottom: 0.75rem;
+  letter-spacing: -0.02em;
+}
+
+.subscribeHeroSubtitle {
+  font-size: 1.05rem;
+  color: rgba(255, 255, 255, 0.85);
+  margin-bottom: 2rem;
+}
+
+.subscribeHeroForm {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+@media (min-width: 640px) {
+  .subscribeHeroForm {
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+  }
+}
+
+.subscribeHeroInput {
   flex: 1;
-  border: 1px solid var(--color-muted);
+  padding: 0.9rem 1rem;
   border-radius: 0.75rem;
-  padding: 0.75rem 1rem;
-  font-size: 0.9rem;
-  background: var(--color-bg);
-  color: var(--color-text);
-  transition: border 0.2s, box-shadow 0.2s;
-}
-.subscribeInput:focus {
-  outline: none;
-  border-color: var(--color-brand);
-  box-shadow: 0 0 0 2px var(--color-brand-light);
+  border: none;
+  font-size: 1rem;
+  color: #111;
+  background: #fff;
+  min-width: 240px;
 }
 
-/* Button */
-.subscribeButton {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.5rem;
-  background: var(--color-brand);
+.subscribeHeroBtn {
+  padding: 0.9rem 1.5rem;
+  border: none;
+  border-radius: 0.75rem;
+  background: linear-gradient(135deg, #4f46e5, #6366f1);
   color: #fff;
-  padding: 0.75rem 1.25rem;
-  border-radius: 0.75rem;
-  font-weight: 600;
-  font-size: 0.9rem;
-  transition: background 0.25s ease;
-}
-.subscribeButton:hover {
-  background: var(--color-brand-dark);
+  font-weight: 700;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
 }
 
-.inputField {
-  border: 1px solid var(--color-muted);
-  border-radius: 0.75rem;
-  padding: 0.7rem 1rem;
-  font-size: 0.9rem;
-  background: var(--color-bg);
-  color: var(--color-text);
-  transition: border 0.2s, box-shadow 0.2s;
-}
-.inputField:focus {
-  outline: none;
-  border-color: var(--color-brand);
-  box-shadow: 0 0 0 2px var(--color-brand-light);
+.subscribeHeroBtn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(99, 102, 241, 0.4);
 }
 
-.submitButton {
-  background: var(--color-brand);
+.unsubscribeHeroBtn {
+  padding: 0.9rem 1.5rem;
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  border-radius: 0.75rem;
+  background: transparent;
   color: #fff;
-  padding: 0.8rem 1.5rem;
-  border-radius: 0.75rem;
   font-weight: 600;
-  font-size: 0.9rem;
-  transition: background 0.25s ease;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: all 0.25s ease;
 }
-.submitButton:hover {
-  background: var(--color-brand-dark);
+
+.unsubscribeHeroBtn:hover {
+  background: rgba(255, 255, 255, 0.1);
 }
+
+.subscribeGlow {
+  position: absolute;
+  top: -20%;
+  left: -10%;
+  width: 150%;
+  height: 200%;
+  background: radial-gradient(circle at center, rgba(79, 70, 229, 0.25), transparent 70%);
+  animation: pulseGlow 6s infinite alternate ease-in-out;
+  z-index: 1;
+}
+
+@keyframes pulseGlow {
+  from {
+    transform: scale(1);
+    opacity: 0.6;
+  }
+
+  to {
+    transform: scale(1.2);
+    opacity: 0.85;
+  }
+}
+
+/* subscribe end */

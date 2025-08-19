@@ -11,27 +11,41 @@ interface FAQ {
   answer: string;
 }
 
+const fadeInUp = {
+  hidden: { opacity: 0, y: 20 },
+  visible: { opacity: 1, y: 0 },
+};
+
 export default function FAQSection({ faqs }: { faqs: FAQ[] }) {
   const [openIndex, setOpenIndex] = useState<number | null>(null);
 
   return (
-    <section className="w-full max-w-3xl mx-auto px-4 mt-10" id='faq'>
+    <motion.section
+      id="faq"
+      className="w-full max-w-3xl mx-auto px-4 mt-10"
+      variants={fadeInUp}
+      initial="hidden"
+      whileInView="visible"
+      transition={{ duration: 0.5 }}
+      viewport={{ once: true }}
+    >
       <h2 className={styles.sectionTitle}>FAQs</h2>
       <div className={styles.faqWrapper}>
         {faqs.map((faq, idx) => {
           const isOpen = openIndex === idx;
-
           return (
-            <div key={faq.id} className={styles.faqItem}>
-              <button
-                className={styles.faqQuestion}
-                onClick={() => setOpenIndex(isOpen ? null : idx)}
-              >
+            <motion.div
+              key={faq.id}
+              className={styles.faqItem}
+              variants={fadeInUp}
+              initial="hidden"
+              whileInView="visible"
+              transition={{ duration: 0.4, delay: idx * 0.05 }}
+              viewport={{ once: true }}
+            >
+              <button className={styles.faqQuestion} onClick={() => setOpenIndex(isOpen ? null : idx)}>
                 {faq.question}
-                <ChevronDown
-                  className={`${styles.faqChevron} ${isOpen ? styles.rotate : ''}`}
-                  size={18}
-                />
+                <ChevronDown className={`${styles.faqChevron} ${isOpen ? styles.rotate : ''}`} size={18} />
               </button>
 
               <AnimatePresence initial={false}>
@@ -49,10 +63,10 @@ export default function FAQSection({ faqs }: { faqs: FAQ[] }) {
                   </motion.div>
                 )}
               </AnimatePresence>
-            </div>
+            </motion.div>
           );
         })}
       </div>
-    </section>
+    </motion.section>
   );
 }
