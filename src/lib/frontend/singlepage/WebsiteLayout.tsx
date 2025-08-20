@@ -58,7 +58,6 @@ export default function WebsiteLayout({ form }: { form: FormData }) {
         {hasFaqs && <FAQSection faqs={profile.faqs} />}
         {hasPosts && <PostsSection posts={posts.posts} />}
         {hasMap && <MapSection profile={profile} />}
-
       </PreviewContainer>
       <ContactSection profile={form.profile} />
       {hasSubscribe && <SubscribeSection form={form} />}

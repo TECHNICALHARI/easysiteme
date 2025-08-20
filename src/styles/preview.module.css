@@ -1178,30 +1178,9 @@
   gap: 1rem;
 }
 
-.contactInput {
-  width: 100%;
-  padding: 0.85rem 1rem;
-  border-radius: 0.75rem;
-  border: 1px solid var(--color-muted);
-  background: var(--color-bg);
-  color: var(--color-text);
-  font-size: 0.95rem;
-  transition: border 0.2s ease, box-shadow 0.2s ease;
-}
 
 .contactInput::placeholder {
   color: var(--color-text-muted);
-}
-
-.contactInput:focus {
-  outline: none;
-  border-color: var(--color-brand);
-  box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.18);
-}
-
-[data-theme='dark'] .contactInput {
-  background: #111827;
-  border-color: #1f2937;
 }
 
 .contactTextarea {
@@ -1240,9 +1219,8 @@
   position: relative;
   padding: 3rem 1.5rem;
   margin: 3rem auto;
-  /* max-width: 1200px; */
+  margin-bottom: 0;
   background: linear-gradient(135deg, rgba(79, 70, 229, 0.06), rgba(124, 58, 237, 0.04));
-  border-radius: 1.5rem;
   box-shadow: 0 12px 32px rgba(0, 0, 0, 0.06);
 }
 
@@ -1307,7 +1285,8 @@
   }
 }
 
-.subscribeHeroInput {
+.subscribeHeroInput,
+.contactInput {
   flex: 1;
   padding: 0.9rem 1rem;
   border-radius: 0.75rem;
@@ -1319,7 +1298,8 @@
   transition: border-color 0.25s ease, box-shadow 0.25s ease;
 }
 
-.subscribeHeroInput:focus {
+.subscribeHeroInput:focus,
+.contactInput:focus {
   outline: none;
   border-color: var(--color-brand);
   box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.25);
