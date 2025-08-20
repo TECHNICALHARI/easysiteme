@@ -1,8 +1,8 @@
 'use client';
 
 import { useMemo, useState, useCallback, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { Share2, Copy, Check, CalendarClock, Mail, Globe, Link as LinkIcon, X } from 'lucide-react';
+import { motion } from 'framer-motion';
+import { Share2, Mail, Globe, Link as LinkIcon, CalendarClock } from 'lucide-react';
 
 import type { FormData, Link as LinkType } from '@/lib/frontend/types/form';
 import styles from '@/styles/preview.module.css';
@@ -27,7 +27,8 @@ import PreviewContainer from './layout/PreviewContainer';
 const cn = (...c: (string | false | null | undefined)[]) => c.filter(Boolean).join(' ');
 
 function useProfileUrl(username?: string, customDomain?: string) {
-  const origin = typeof window !== 'undefined' ? window.location.origin : 'https://onepage.app';
+  const origin =
+    typeof window !== 'undefined' ? window.location.origin : 'https://onepage.app';
   if (customDomain) return `https://${customDomain}`;
   if (username) return `${origin}/${username}`;
   return origin;
@@ -39,12 +40,22 @@ function sortLinksForBio(links: LinkType[] = []) {
 
 function pickPrimaryCTA(form: FormData) {
   if (form.socials?.calendly) {
-    return { label: 'Book a Call', href: form.socials.calendly, icon: <CalendarClock size={16} /> };
+    return {
+      label: 'Book a Call',
+      href: form.socials.calendly,
+      icon: <CalendarClock size={16} />,
+    };
   }
   const primary = (form.profile?.links || []).find((l) => l.highlighted);
-  if (primary) return { label: primary.title, href: primary.url, icon: <LinkIcon size={16} /> };
+  if (primary)
+    return { label: primary.title, href: primary.url, icon: <LinkIcon size={16} /> };
   const site = (form.profile?.links || []).find((l) => /http(s)?:\/\//.test(l.url));
-  if (site) return { label: site.title || 'Visit Website', href: site.url, icon: <Globe size={16} /> };
+  if (site)
+    return {
+      label: site.title || 'Visit Website',
+      href: site.url,
+      icon: <Globe size={16} />,
+    };
   return null;
 }
 
@@ -52,17 +63,18 @@ function StickyActionBar({ form }: { form: FormData }) {
   const url = useProfileUrl(form.profile?.username, form.settings?.customDomain);
   const cta = useMemo(() => pickPrimaryCTA(form), [form]);
   const [openShare, setOpenShare] = useState(false);
-  const [copied, setCopied] = useState(false);
   const [hideBar, setHideBar] = useState(false);
 
-  const canSubscribe = !form.subscriberSettings?.subscriberSettings?.hideSubscribeButton;
-  const subscribeLabel = form.subscriberSettings?.subscriberSettings?.subject || 'Subscribe';
+  const canSubscribe =
+    !(form.subscriberSettings?.subscriberSettings?.hideSubscribeButton ?? false);
+  const subscribeLabel =
+    form.subscriberSettings?.subscriberSettings?.subject || 'Subscribe';
 
   useEffect(() => {
     const footer = document.querySelector('footer');
     if (!footer) return;
 
-    if ("IntersectionObserver" in window) {
+    if ('IntersectionObserver' in window) {
       const observer = new IntersectionObserver(
         ([entry]) => setHideBar(entry.isIntersecting),
         { threshold: 0.1 }
@@ -74,11 +86,11 @@ function StickyActionBar({ form }: { form: FormData }) {
     }
   }, []);
 
-
   const scrollToSubscribe = useCallback(() => {
     const el = document.getElementById('subscribe');
     if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
   }, []);
+
   if (!cta && !canSubscribe) return null;
 
   return (
@@ -86,7 +98,7 @@ function StickyActionBar({ form }: { form: FormData }) {
       <motion.div
         initial={{ y: 40, opacity: 0 }}
         animate={{ y: hideBar ? 80 : 0, opacity: hideBar ? 0 : 1 }}
-        transition={{ duration: 0.35, ease: "easeInOut" }}
+        transition={{ duration: 0.35, ease: 'easeInOut' }}
         className="fixed left-1/2 -translate-x-1/2 bottom-4 z-[90]"
       >
         <div className="flex items-center justify-between gap-2 rounded-2xl border border-[var(--color-muted)] bg-[var(--color-bg)] px-3 py-2 shadow-lg">
@@ -103,12 +115,18 @@ function StickyActionBar({ form }: { form: FormData }) {
               </a>
             )}
             {canSubscribe && (
-              <button className="btn-secondary flex items-center gap-2" onClick={scrollToSubscribe}>
+              <button
+                className="btn-secondary flex items-center gap-2"
+                onClick={scrollToSubscribe}
+              >
                 <Mail size={16} />
-                <span>Subscribe Now</span>
+                <span>{subscribeLabel}</span>
               </button>
             )}
-            <button className="btn-secondary flex items-center gap-2" onClick={() => setOpenShare(true)}>
+            <button
+              className="btn-secondary flex items-center gap-2"
+              onClick={() => setOpenShare(true)}
+            >
               <Share2 size={16} /> Share
             </button>
             <ThemeTogglePreview />
@@ -121,42 +139,55 @@ function StickyActionBar({ form }: { form: FormData }) {
 }
 
 export default function BioLayout({ form }: { form: FormData }) {
-  const linksSorted = useMemo(() => sortLinksForBio(form.profile?.links), [form.profile?.links]);
+  const linksSorted = useMemo(
+    () => sortLinksForBio(form.profile?.links ?? []),
+    [form.profile?.links]
+  );
 
-  const hasLinks = Boolean(linksSorted?.length);
-  const hasFeatured = Boolean(form.profile?.featured?.length);
-  const hasEmbeds = Boolean(form.profile?.embeds?.length);
-  const hasServices = Boolean(form.profile?.services?.length);
-  const hasTestimonials = Boolean(form.profile?.testimonials?.length);
-  const hasFaqs = Boolean(form.profile?.faqs?.length);
-  const hasPosts = Boolean(form.posts?.posts?.length);
-  const hasMap = Boolean((form.profile?.latitude && form.profile?.longitude) || form.profile?.fullAddress);
-  const hasSubscribe = !form.subscriberSettings?.subscriberSettings?.hideSubscribeButton;
+  const hasLinks = (linksSorted?.length ?? 0) > 0;
+  const hasFeatured = (form.profile?.featured?.length ?? 0) > 0;
+  const hasEmbeds = (form.profile?.embeds?.length ?? 0) > 0;
+  const hasServices = (form.profile?.services?.length ?? 0) > 0;
+  const hasTestimonials = (form.profile?.testimonials?.length ?? 0) > 0;
+  const hasFaqs = (form.profile?.faqs?.length ?? 0) > 0;
+  const hasPosts = (form.posts?.posts?.length ?? 0) > 0;
+
+  const hasMap =
+    (typeof form.profile?.latitude === 'number' &&
+      typeof form.profile?.longitude === 'number') ||
+    Boolean(form.profile?.fullAddress);
+
+  const hasSubscribe =
+    !(form.subscriberSettings?.subscriberSettings?.hideSubscribeButton ?? false);
+
   return (
     <>
       <PreviewContainer>
-        <motion.div initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.35 }}>
+        <motion.div
+          initial={{ opacity: 0, y: 6 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.35 }}
+        >
           <HeaderSection profile={form.profile} />
         </motion.div>
 
         <SocialSection socials={form.socials} />
 
         {hasLinks && <LinkSection links={linksSorted} />}
-
-        {hasFeatured && <FeaturedSection featured={form.profile.featured} />}
-        {hasEmbeds && <EmbedSection embeds={form.profile.embeds} />}
-        {hasServices && <ServiceSection services={form.profile.services} />}
-
-        {hasTestimonials && <TestimonialSection testimonials={form.profile.testimonials} />}
-        {hasFaqs && <FAQSection faqs={form.profile.faqs} />}
-
-        {hasPosts && <PostsSection posts={form.posts.posts} />}
-
-        {hasMap && <MapSection profile={form.profile} />}
+        {hasFeatured && <FeaturedSection featured={form.profile!.featured!} />}
+        {hasEmbeds && <EmbedSection embeds={form.profile!.embeds!} />}
+        {hasServices && <ServiceSection services={form.profile!.services!} />}
+        {hasTestimonials && (
+          <TestimonialSection testimonials={form.profile!.testimonials!} />
+        )}
+        {hasFaqs && <FAQSection faqs={form.profile!.faqs!} />}
+        {hasPosts && <PostsSection posts={form.posts!.posts!} />}
+        {hasMap && <MapSection profile={form.profile!} />}
       </PreviewContainer>
+
       <ContactSection profile={form.profile} />
       {hasSubscribe && <SubscribeSection form={form} />}
-      <StickyActionBar form={form} />
+      {!form?.previewMode && <StickyActionBar form={form} />}
       <PageFooter form={form} />
     </>
   );

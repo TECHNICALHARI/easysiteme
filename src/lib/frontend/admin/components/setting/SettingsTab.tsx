@@ -106,7 +106,7 @@ export default function SettingsTab() {
                 <div className={styles.SecHeadAndBtn}>
                     <h4 className={styles.sectionLabel}>Preferred Link Format</h4>
                 </div>
-                <div className="flex flex-col sm:flex-row gap-4">
+                <div className="flex flex-col lg:flex-row gap-4">
                     <label className={styles.checkboxLabel}>
                         <input
                             type="radio"

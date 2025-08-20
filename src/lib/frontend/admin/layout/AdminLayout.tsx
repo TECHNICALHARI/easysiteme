@@ -43,7 +43,7 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
     settings: {
       nsfwWarning: false,
       preferredLink: 'primary',
-      customDomain: '',
+      customDomain: 'hariom.com',
       gaId: '',
     },
     socials: {

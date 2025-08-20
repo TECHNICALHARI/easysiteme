@@ -1,5 +1,7 @@
 'use client';
 
+import { useState } from 'react';
+import { Eye, X } from 'lucide-react';
 import styles from '@/styles/admin.module.css';
 import { useAutoSave } from '@/lib/frontend/hooks/useAutoSave';
 import MobilePreview from '@/lib/frontend/admin/components/MobilePreview';
@@ -10,20 +12,51 @@ export default function Dashboard() {
   const { form, setForm } = useAdminForm();
   useAutoSave(form);
 
+  const [showPreview, setShowPreview] = useState(false);
+
   return (
     <div className={styles.dashboardWrapper}>
       <div className={styles.dashboardLayout}>
         <div className={styles.mobilePreview}>
-          <div className={styles.phoneFrame}>
-            <MobilePreview form={form} />
-          </div>
+          <MobilePreview form={form} />
         </div>
+
         <div className={styles.pageContainer}>
           <div className={styles.dashboard_mainRapper}>
             <AllTabs form={form} setForm={setForm} />
           </div>
         </div>
       </div>
+
+      <button
+        type="button"
+        aria-label="Open Preview"
+        title='Open Preview'
+        className={styles.previewFab}
+        onClick={() => setShowPreview(true)}
+      >
+        Open Preview
+        <Eye size={18} />
+      </button>
+
+      {showPreview && (
+        <div className={styles.previewModal} role="dialog" aria-modal="true">
+          <div className={styles.previewModalContent}>
+            <button
+              type="button"
+              aria-label="Close Preview"
+              className={styles.previewClose}
+              onClick={() => setShowPreview(false)}
+            >
+              <X size={18} />
+            </button>
+
+            <div className={styles.previewModalBody}>
+              <MobilePreview form={form} />
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

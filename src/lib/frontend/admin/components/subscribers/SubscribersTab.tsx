@@ -53,7 +53,7 @@ const SubscribersTab = () => {
                 <p>View and update your subscriber list, track their status, and send communications.</p>
             </div>
             <div className={styles.sectionMain}>
-                <div className={styles.SecHeadAndBtn}>
+                <div className={`${styles.SecHeadAndBtn} ${styles.subscribeSecHeadBtn}`}>
                     <h4 className={styles.sectionLabel}>Your Subscribers <span className="badge-pro">Pro</span></h4>
                     <div className='flex gap-4'>
                         <button
@@ -77,7 +77,7 @@ const SubscribersTab = () => {
                     enabled={isEnableSubscribe}
                     mode="overlay"
                 >
-                    <div className='grid md:grid-cols-3 md:gap-x-6 gap-y-6'>
+                    <div className='grid grid-cols-3 md:grid-cols-3 gap-4'>
                         <div className={`${styles.sectionMain} ${styles.subscribeCard}`}>
                             <h4>Total</h4>
                             <p>30</p>

@@ -97,7 +97,7 @@ const StatsTab = () => {
       </div>
 
       <LockedOverlay enabled={true}>
-        <div className="grid md:grid-cols-2 gap-6 mb-6">
+        <div className="grid lg:grid-cols-2 gap-6 mb-6">
           <div className={styles.sectionMain}>
             <h4 className="font-semibold mb-3">Link Click Analytics</h4>
             <CustomBarChart data={linkClicks} />

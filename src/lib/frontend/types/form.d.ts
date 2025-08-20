@@ -150,6 +150,7 @@ export interface SubscriberDataTypes {
 
 export interface FormData {
   profile: ProfileTabData;
+  previewMode?: boolean;
   design: Design;
   seo: SEO;
   settings: Settings;
