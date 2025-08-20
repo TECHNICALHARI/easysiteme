@@ -975,16 +975,9 @@
 }
 
 /* post end */
-/* ==== single page end ==== */
-
-
 
 /* modal starts */
-/* ========== BioLayout Premium Add-ons ========== */
-/* These are tiny, self-contained rules used by the premium BioLayout.
-   Tailwind handles layout (grid/flex/spacing), so this is intentionally small. */
 
-/* --- Share / QR Modal --- */
 .modalOverlay {
   position: fixed;
   inset: 0;
@@ -1018,7 +1011,6 @@
   border: 1px solid rgba(0, 0, 0, 0.06);
 }
 
-/* Smooth scroll inside modal */
 .customModal::-webkit-scrollbar {
   width: 8px;
   height: 8px;
@@ -1062,7 +1054,6 @@
   transform: scale(0.95);
 }
 
-/* --- Keyframes --- */
 @keyframes fadeIn {
   from {
     opacity: 0;
@@ -1231,7 +1222,6 @@
 
 
 /* subscribe start */
-/* ================= SUBSCRIBE HERO (Dark Premium) ================= */
 .subscribeHeroDark {
   position: relative;
   width: 100%;
@@ -1303,7 +1293,6 @@
   outline: none;
   border-color: var(--color-brand);
   box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.25);
-  /* theme brand glow */
 }
 
 .subscribeHeroBtn {
@@ -1341,3 +1330,496 @@
 }
 
 /* subscribe end */
+
+
+/* media query start */
+
+@media (min-width: 1440px) {
+  .headerContainer {
+    padding: 1rem 1.75rem;
+  }
+
+  .previewContainer {
+    max-width: 1320px;
+  }
+
+  .sectionTitle {
+    font-size: 2.5rem;
+  }
+
+  .featuredIframe,
+  .embedIframe {
+    height: 260px;
+  }
+}
+
+@media (max-width: 1280px) {
+  .headerContainer {
+    padding: 0.85rem 1.25rem;
+  }
+
+  .sectionTitle {
+    font-size: 2.1rem;
+  }
+
+  .featuredIframe,
+  .embedIframe {
+    height: 240px;
+  }
+
+  .serviceCard {
+    padding: 1.25rem;
+  }
+}
+
+@media (max-width: 1024px) {
+  .logo {
+    font-size: 1.5rem;
+  }
+
+  .sectionTitle {
+    font-size: 2rem;
+  }
+
+  .featuredIframe,
+  .embedIframe {
+    height: 220px;
+  }
+
+  .postThumbnail {
+    height: 190px;
+  }
+
+  .profileInfo {
+    max-width: 640px;
+  }
+
+  .socialIcons {
+    gap: 0.75rem;
+  }
+
+  .previewButtons {
+    gap: 0.4rem;
+  }
+
+  .previewButton {
+    font-size: 0.82rem;
+    padding: 0.4rem 1rem;
+  }
+
+  .contactSection {
+    padding: 3.5rem 1rem;
+  }
+}
+
+@media (max-width: 900px) {
+  .headerContainer {
+    padding: 0.8rem 1rem;
+  }
+
+  .sectionTitle {
+    font-size: 1.9rem;
+  }
+
+  .featuredContent {
+    padding: 1rem 1rem 1.25rem;
+  }
+
+  .featuredTitle {
+    font-size: 1.05rem;
+  }
+
+  .featuredDescription {
+    font-size: 0.9rem;
+  }
+
+  .embedTitle {
+    font-size: 0.95rem;
+  }
+
+  .contactTitle {
+    font-size: 1.2rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .header {
+    top: env(safe-area-inset-top, 0);
+  }
+
+  .logo {
+    font-size: 1.35rem;
+  }
+
+  .desktopNav {
+    display: none;
+  }
+
+  .menuToggle {
+    display: inline-flex;
+  }
+
+  .profileSection {
+    padding: 0 0.25rem;
+  }
+
+  .bannerWrapper {
+    max-height: 220px;
+  }
+
+  .profileInfo {
+    padding: 1.25rem 1rem;
+    max-width: 560px;
+  }
+
+  .avatarImage,
+  .avatarFallback {
+    width: 82px;
+    height: 82px;
+    font-size: 1.55rem;
+  }
+
+  .avatarName {
+    font-size: 1.45rem;
+  }
+
+  .tagline {
+    font-size: 0.98rem;
+  }
+
+  .about {
+    font-size: 0.94rem;
+  }
+
+  .profileSubheader {
+    font-size: 1.15rem;
+  }
+
+  .linkSection {
+    gap: 0.75rem;
+    margin: 1.5rem auto;
+  }
+
+  .linkButton {
+    min-width: 124px;
+    font-size: 0.95rem;
+    padding: 0.55rem 0.9rem;
+  }
+
+  .socialIcon {
+    width: 44px;
+    height: 44px;
+  }
+
+  .sectionTitle {
+    font-size: 1.8rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .sectionTitle::after {
+    width: 56px;
+  }
+
+  .featuredIframe,
+  .embedIframe {
+    height: 200px;
+  }
+
+  .serviceCard {
+    padding: 1.1rem;
+  }
+
+  .serviceTitle {
+    font-size: 1.1rem;
+  }
+
+  .serviceDescription {
+    font-size: 0.92rem;
+  }
+
+  .testimonialCard {
+    min-width: 260px;
+    max-width: 300px;
+    padding: 1.25rem;
+  }
+
+  .testimonialMessage {
+    font-size: 0.92rem;
+  }
+
+  .testimonialName {
+    font-size: 0.85rem;
+  }
+
+  .faqQuestion {
+    font-size: 0.98rem;
+    padding: 0.9rem 1rem;
+  }
+
+  .faqContent {
+    font-size: 0.92rem;
+    padding: 0.65rem 1rem 1.1rem;
+  }
+
+  .postThumbnail {
+    height: 180px;
+  }
+
+  .postContent {
+    padding: 1rem;
+  }
+
+  .postTitle {
+    font-size: 1.02rem;
+  }
+
+  .postExcerpt {
+    font-size: 0.92rem;
+  }
+
+  .learnMoreBtn {
+    font-size: 0.88rem;
+  }
+
+  .contactSection {
+    padding: 3rem 1rem;
+  }
+
+  .contactCard {
+    padding: 1.25rem;
+  }
+
+  .contactItem {
+    font-size: 0.92rem;
+  }
+
+  .contactSubmit {
+    padding: 0.85rem 1.1rem;
+    font-size: 0.94rem;
+  }
+
+  .subscribeHeroDark {
+    padding: 4rem 1.25rem;
+  }
+
+  .subscribeHeroTitle {
+    font-size: 2rem;
+  }
+
+  .subscribeHeroSubtitle {
+    font-size: 1rem;
+  }
+
+  .subscribeHeroInput {
+    min-width: 220px;
+  }
+
+  .subscribeHeroBtn,
+  .unsubscribeHeroBtn {
+    font-size: 0.95rem;
+  }
+}
+
+@media (max-width: 640px) {
+  .previewContainer {
+    width: 94%;
+  }
+
+  .BioPreviewContainer {
+    padding: 0 0.75rem;
+  }
+
+  .sectionTitle {
+    font-size: 1.65rem;
+  }
+
+  .featuredIframe,
+  .embedIframe {
+    height: 180px;
+  }
+
+  .postSlide {
+    min-width: 88%;
+  }
+
+  .socialIcons {
+    margin: 2rem auto;
+  }
+
+  .footer {
+    padding: 0.85rem 1rem;
+  }
+
+  .footerContent {
+    font-size: 0.82rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .logo {
+    font-size: 1.25rem;
+  }
+
+  .headerContainer {
+    padding: 0.75rem 0.85rem;
+  }
+
+  .profileInfo {
+    padding: 1rem 0.85rem;
+  }
+
+  .avatarImage,
+  .avatarFallback {
+    width: 74px;
+    height: 74px;
+    font-size: 1.35rem;
+  }
+
+  .avatarName {
+    font-size: 1.35rem;
+  }
+
+  .tag {
+    font-size: 0.82rem;
+    padding: 0.25rem 0.6rem;
+  }
+
+  .sectionTitle {
+    font-size: 1.5rem;
+  }
+
+  .featuredIframe,
+  .embedIframe {
+    height: 170px;
+  }
+
+  .testimonialCard {
+    min-width: 240px;
+  }
+
+  .faqQuestion {
+    font-size: 0.95rem;
+  }
+
+  .faqContent {
+    font-size: 0.9rem;
+  }
+
+  .postThumbnail {
+    height: 165px;
+  }
+
+  .postContent {
+    padding: 0.9rem;
+  }
+
+  .postTitle {
+    font-size: 1rem;
+  }
+
+  .subscribeHeroTitle {
+    font-size: 1.7rem;
+  }
+
+  .subscribeHeroSubtitle {
+    font-size: 0.95rem;
+  }
+
+  .subscribeHeroBtn,
+  .unsubscribeHeroBtn {
+    padding: 0.8rem 1.1rem;
+    font-size: 0.93rem;
+  }
+}
+
+@media (max-width: 380px) {
+  .sectionTitle {
+    font-size: 1.4rem;
+  }
+
+  .featuredIframe,
+  .embedIframe {
+    height: 160px;
+  }
+
+  .linkButton {
+    min-width: 112px;
+    font-size: 0.9rem;
+    padding: 0.5rem 0.8rem;
+  }
+
+  .testimonialCard {
+    min-width: 220px;
+  }
+
+  .postThumbnail {
+    height: 150px;
+  }
+}
+
+@media (max-height: 540px) and (orientation: landscape) {
+  .bannerWrapper {
+    max-height: 180px;
+  }
+
+  .featuredIframe,
+  .embedIframe {
+    height: 160px;
+  }
+
+  .postThumbnail {
+    height: 150px;
+  }
+
+  .subscribeHeroDark {
+    padding: 3rem 1rem;
+  }
+
+  .subscribeHeroTitle {
+    font-size: 1.6rem;
+  }
+}
+
+@supports (padding: max(0px)) {
+  .headerContainer {
+    padding-left: max(1rem, env(safe-area-inset-left));
+    padding-right: max(1rem, env(safe-area-inset-right));
+  }
+
+  .previewContainer {
+    padding-left: max(1.25rem, env(safe-area-inset-left));
+    padding-right: max(1.25rem, env(safe-area-inset-right));
+  }
+
+  .footer {
+    padding-left: max(1rem, env(safe-area-inset-left));
+    padding-right: max(1rem, env(safe-area-inset-right));
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+
+  .themeCardWrapper,
+  .featuredCard,
+  .embedCard,
+  .serviceCard,
+  .testimonialCard,
+  .linkButton,
+  .ctaButton {
+    transition: none !important;
+  }
+
+  .themeCardWrapper:hover,
+  .featuredCard:hover,
+  .embedCard:hover,
+  .serviceCard:hover {
+    transform: none !important;
+    box-shadow: none !important;
+  }
+
+  .postSliderWrapper {
+    scroll-behavior: auto;
+  }
+}
+
+/* media query end */
