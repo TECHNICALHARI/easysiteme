@@ -71,8 +71,6 @@ export default function SubscribeSection({ form }: { form: FormData }) {
           </button>
         </motion.div>
       </motion.div>
-
-      <div className={styles.subscribeGlow} />
     </section>
   );
 }
