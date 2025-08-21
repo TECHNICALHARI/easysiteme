@@ -31,7 +31,7 @@ export default function Dashboard() {
       <button
         type="button"
         aria-label="Open Preview"
-        title='Open Preview'
+        title="Open Preview"
         className={styles.previewFab}
         onClick={() => setShowPreview(true)}
       >

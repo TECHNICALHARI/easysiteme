@@ -1,28 +1,49 @@
 'use client';
 
-import React, { FC } from 'react';
-import clsx from 'clsx';
+import { useEffect, useMemo, useRef } from 'react';
 import styles from '@/styles/admin.module.css';
-import themeStyles from '@/styles/theme.module.css';
-
 import type { FormData } from '../../types/form';
-import WebsiteLayout from '../../singlepage/WebsiteLayout';
-import BioLayout from '../../singlepage/BioLayout';
-import PageLayout from '../../singlepage/layout/PageLayout';
 
-interface Props {
-  form: FormData;
-}
+type Props = { form: FormData };
 
-const THEME_FALLBACK = 'brand' as const;
+export default function MobilePreview({ form }: Props) {
+  const iframeRef = useRef<HTMLIFrameElement>(null);
 
-const MobilePreview: FC<Props> = ({ form }) => {
-  const layoutType = form?.design?.layoutType ?? 'bio';
-  const theme = form?.design?.theme ?? THEME_FALLBACK;
+  const previewUrl = useMemo(() => {
+    if (typeof window === 'undefined') return '/admin/preview';
+    return new URL('/admin/preview', window.location.origin).toString();
+  }, []);
 
-  const ThemeClass =
-    (themeStyles as Record<string, string>)[theme] ??
-    themeStyles[THEME_FALLBACK];
+  useEffect(() => {
+    const iframe = iframeRef.current;
+    if (!iframe) return;
+
+    const send = () => {
+      iframe.contentWindow?.postMessage(
+        { type: 'onepage:preview:update', payload: form },
+        '*',
+      );
+    };
+
+    const onReady = (ev: MessageEvent) => {
+      if (ev.source === iframe.contentWindow && ev.data?.type === 'onepage:preview:ready') {
+        send();
+      }
+    };
+
+    const onLoad = () => send();
+
+    window.addEventListener('message', onReady);
+    iframe.addEventListener('load', onLoad);
+
+    // send at least once in case ready arrives before listener
+    send();
+
+    return () => {
+      window.removeEventListener('message', onReady);
+      iframe.removeEventListener('load', onLoad);
+    };
+  }, [form]);
 
   return (
     <div className={styles.deviceFrame}>
@@ -31,30 +52,21 @@ const MobilePreview: FC<Props> = ({ form }) => {
           <span className={styles.cameraDot} />
           <span className={styles.speakerGrill} />
         </div>
-
         <div className={styles.btnLeftTop} />
         <div className={styles.btnLeftMid} />
         <div className={styles.btnRight} />
-
         <div className={styles.screen}>
-          <div
-            className={clsx(styles.screenContent, ThemeClass)}
-            data-theme={theme}
-          >
-            {layoutType === 'website' ? (
-              <PageLayout form={form}>
-                <WebsiteLayout form={{ ...form, previewMode: true }} />
-              </PageLayout>
-            ) : (
-              <BioLayout form={{ ...form, previewMode: true }} />
-            )}
-          </div>
+          <iframe
+            ref={iframeRef}
+            src={previewUrl}
+            title="Mobile Preview"
+            className={styles.screenContentIframe}
+            style={{ border: 0 }}
+          />
           <div className={styles.homeIndicator} />
         </div>
       </div>
       <div className={styles.deviceShadow} />
     </div>
   );
-};
-
-export default MobilePreview;
+}

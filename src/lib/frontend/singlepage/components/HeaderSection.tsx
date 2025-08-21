@@ -5,10 +5,12 @@ import styles from '@/styles/preview.module.css';
 import { ProfileTabData } from '@/lib/frontend/types/form';
 
 export default function HeaderSection({ profile }: { profile: ProfileTabData }) {
-  const initials = profile.fullName
-    .split(' ')
-    .map((n) => n[0])
-    .join('');
+  const initials = (profile.fullName || '')
+    .trim()
+    .split(/\s+/)
+    .filter(Boolean)
+    .map(n => n[0]?.toUpperCase() ?? '')
+    .join('') || '•';
 
   const fadeInUp = {
     hidden: { opacity: 0, y: 20 },
@@ -19,14 +21,17 @@ export default function HeaderSection({ profile }: { profile: ProfileTabData }) 
     <section className={styles.profileSection}>
       {profile.bannerImage && (
         <motion.div
-          variants={fadeInUp}
-          initial="hidden"
-          whileInView="visible"
-          transition={{ duration: 0.6, ease: 'easeOut' }}
-          viewport={{ once: true }}
+          key={profile.bannerImage}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.35, ease: 'easeOut' }}
           className={styles.bannerWrapper}
         >
-          <img src={profile.bannerImage} alt="Banner" className={styles.bannerImage} />
+          <img
+            src={profile.bannerImage}
+            alt="Banner"
+            className={styles.bannerImage}
+          />
         </motion.div>
       )}
 
@@ -40,22 +45,20 @@ export default function HeaderSection({ profile }: { profile: ProfileTabData }) 
       >
         {profile.avatar ? (
           <motion.img
-            variants={fadeInUp}
-            initial="hidden"
-            whileInView="visible"
-            transition={{ duration: 0.5, delay: 0.15 }}
-            viewport={{ once: true }}
+            key={profile.avatar}
+            initial={{ opacity: 0, scale: 0.98 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.25, ease: 'easeOut' }}
             src={profile.avatar}
             alt="Avatar"
             className={styles.avatarImage}
           />
         ) : (
           <motion.div
-            variants={fadeInUp}
-            initial="hidden"
-            whileInView="visible"
-            transition={{ duration: 0.5, delay: 0.15 }}
-            viewport={{ once: true }}
+            key="avatar-fallback"
+            initial={{ opacity: 0, scale: 0.98 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.25, ease: 'easeOut' }}
             className={styles.avatarFallback}
           >
             {initials}
@@ -99,7 +102,7 @@ export default function HeaderSection({ profile }: { profile: ProfileTabData }) 
           </motion.p>
         )}
 
-        {profile.tags && profile.tags?.length > 0 && (
+        {profile.tags && profile.tags.length > 0 && (
           <motion.div
             variants={fadeInUp}
             initial="hidden"
@@ -109,7 +112,7 @@ export default function HeaderSection({ profile }: { profile: ProfileTabData }) 
             className={styles.tagsWrapper}
           >
             {profile.tags.map((tag, idx) => (
-              <span key={idx} className={styles.tag}>
+              <span key={`${tag}-${idx}`} className={styles.tag}>
                 #{tag}
               </span>
             ))}
@@ -125,7 +128,7 @@ export default function HeaderSection({ profile }: { profile: ProfileTabData }) 
             viewport={{ once: true }}
             className={styles.headersWrapper}
           >
-            {profile.headers.map((h) => (
+            {profile.headers.map(h => (
               <h2 key={h.id} className={styles.profileSubheader}>
                 {h.title}
               </h2>

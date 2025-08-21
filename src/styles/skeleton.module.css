@@ -1,0 +1,201 @@
+@keyframes skelShimmer {
+    0% {
+        background-position: -200% 0;
+    }
+
+    100% {
+        background-position: 200% 0;
+    }
+}
+
+.skelPulse {
+    background: linear-gradient(90deg,
+            rgba(148, 163, 184, 0.15) 0%,
+            rgba(148, 163, 184, 0.25) 20%,
+            rgba(148, 163, 184, 0.15) 40%);
+    background-size: 200% 100%;
+    animation: skelShimmer 1.2s ease-in-out infinite;
+    border-radius: 0.5rem;
+}
+
+[data-theme='dark'] .skelPulse {
+    background: linear-gradient(90deg,
+            rgba(148, 163, 184, 0.08) 0%,
+            rgba(148, 163, 184, 0.16) 20%,
+            rgba(148, 163, 184, 0.08) 40%);
+}
+
+/* Layout */
+.skelPage {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+.skelHeader {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: .75rem;
+    padding: 1rem 1.25rem;
+    border-bottom: 1px solid var(--color-muted);
+}
+
+.skelLogo {
+    width: 120px;
+    height: 24px;
+    border-radius: .375rem;
+}
+
+.skelNav {
+    display: flex;
+    gap: .5rem;
+}
+
+.skelPill {
+    width: 72px;
+    height: 28px;
+    border-radius: 9999px;
+}
+
+.skelMain {
+    width: 90%;
+    max-width: 1280px;
+    margin: 0 auto;
+    padding: 1.25rem;
+}
+
+.skelBanner {
+    height: 160px;
+    border-radius: 1rem;
+    margin-bottom: 1rem;
+}
+
+.skelProfileCard {
+    background: var(--color-bg);
+    border: 1px solid var(--color-muted);
+    border-radius: 1rem;
+    padding: 1rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: .75rem;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, .06);
+}
+
+.skelAvatar {
+    width: 92px;
+    height: 92px;
+    border-radius: 9999px;
+}
+
+.skelLines {
+    width: 100%;
+    max-width: 560px;
+    display: flex;
+    flex-direction: column;
+    gap: .4rem;
+    align-items: center;
+}
+
+.skelLineLg {
+    width: 60%;
+    height: 16px;
+    border-radius: .5rem;
+}
+
+.skelLineMd {
+    width: 45%;
+    height: 12px;
+    border-radius: .5rem;
+}
+
+.skelLineSm {
+    width: 30%;
+    height: 10px;
+    border-radius: .5rem;
+}
+
+.skelTags {
+    display: flex;
+    gap: .5rem;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+
+.skelTag {
+    width: 72px;
+    height: 26px;
+    border-radius: 9999px;
+}
+
+.skelButtons {
+    display: flex;
+    gap: .5rem;
+}
+
+.skelBtn {
+    width: 120px;
+    height: 36px;
+    border-radius: 9999px;
+}
+
+.skelGrid {
+    margin-top: 1.25rem;
+    display: grid;
+    grid-template-columns: repeat(1, minmax(0, 1fr));
+    gap: 1rem;
+}
+
+@media (min-width:640px) {
+    .skelGrid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+@media (min-width:1024px) {
+    .skelGrid {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+}
+
+.skelCard {
+    border: 1px solid var(--color-muted);
+    border-radius: 1rem;
+    overflow: hidden;
+    background: var(--color-bg);
+}
+
+.skelMedia {
+    height: 140px;
+}
+
+.skelCardBody {
+    padding: 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: .5rem;
+}
+
+.skelFooter {
+    padding: 1rem 1.25rem;
+    display: flex;
+    justify-content: center;
+}
+
+.skelPage *:not(.skelNav):not(.skelPage):not(.skelHeader):not(.skelMain):not(.skelFooter) {
+    /* apply shimmer to blocks */
+}
+
+.skelLogo,
+.skelPill,
+.skelBanner,
+.skelAvatar,
+.skelLineLg,
+.skelLineMd,
+.skelLineSm,
+.skelTag,
+.skelBtn,
+.skelMedia {
+    composes: skelPulse;
+}
