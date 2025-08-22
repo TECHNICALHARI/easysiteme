@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useRef } from 'react';
 import styles from '@/styles/admin.module.css';
-import type { FormData } from '../../types/form';
+import type { FormData } from '@/lib/frontend/types/form';
 
 type Props = { form: FormData };
 
@@ -36,8 +36,7 @@ export default function MobilePreview({ form }: Props) {
     window.addEventListener('message', onReady);
     iframe.addEventListener('load', onLoad);
 
-    // send at least once in case ready arrives before listener
-    send();
+    send(); // first fire
 
     return () => {
       window.removeEventListener('message', onReady);

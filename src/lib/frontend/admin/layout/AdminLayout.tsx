@@ -1,13 +1,15 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
-import type { ReactNode } from 'react';
 import { usePathname } from 'next/navigation';
-import { AdminFormContext } from '@/lib/frontend/admin/context/AdminFormContext';
-import type { FormData } from '@/lib/frontend/types/form';
 import AdminHeader from '@/lib/frontend/admin/layout/Header';
 import Container from '@/lib/frontend/admin/layout/Container';
-import '@/styles/globals.css';
+import { AdminFormContext } from '@/lib/frontend/admin/context/AdminFormContext';
+import type { FormData } from '@/lib/frontend/types/form';
+import { usePreviewBus } from '@/lib/frontend/hooks/usePreviewBus';
+import { loadDraft, useLocalDraft } from '@/lib/frontend/hooks/useLocalDraft';
+import PreviewFab from './PreviewFab';
+import { PlanType } from '@/config/PLAN_FEATURES';
 
 const EMPTY_FORM: FormData = {
   profile: {
@@ -29,6 +31,11 @@ const EMPTY_FORM: FormData = {
     fullAddress: '',
     latitude: '',
     longitude: '',
+    email: '',
+    phone: '',
+    website: '',
+    whatsapp: '',
+    showContactForm: false,
     resumeUrl: '',
   },
   design: { theme: 'brand', emojiLink: '', brandingOff: false, layoutType: 'bio' },
@@ -40,7 +47,6 @@ const EMPTY_FORM: FormData = {
     SubscriberList: { data: [], total: 0, active: 0, unsubscribed: 0 },
     subscriberSettings: { hideSubscribeButton: false, subject: '', thankYouMessage: '' },
   },
-  plan: 'free',
 };
 
 function mergeForm(base: FormData, incoming: Partial<FormData>): FormData {
@@ -68,28 +74,30 @@ function mergeForm(base: FormData, incoming: Partial<FormData>): FormData {
   };
 }
 
-export default function AdminLayout({ children }: { children: ReactNode }) {
+export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname() || '';
   const path = pathname.replace(/\/+$/, '');
-  const isPreviewRoute = useMemo(
-    () => /(?:^|\/)admin\/preview(?:\/|$)/.test(path),
-    [path],
-  );
+  const isPreviewRoute = useMemo(() => /(?:^|\/)admin\/preview(?:\/|$)/.test(path), [path]);
 
   const [form, setForm] = useState<FormData>(EMPTY_FORM);
-  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [plan, setPlan] = useState<PlanType>('pro');
+  const [isLoading, setIsLoading] = useState<boolean>(true);
   const [bootstrapped, setBootstrapped] = useState<boolean>(false);
 
   useEffect(() => {
-    let embedded = false;
-    if (typeof window !== 'undefined') {
-      embedded = !!(window.parent && window.parent !== window);
-    }
+    try {
+      const draft = loadDraft();
+      if (draft && typeof draft === 'object') {
+        setForm(prev => mergeForm(prev, draft));
+      }
+    } catch { }
+  }, []);
 
-    // If this is the /admin/preview route *and* it is embedded (iframe),
-    // do not fetch here. The parent admin page owns the fetch,
-    // and the preview gets data via postMessage.
+  useEffect(() => {
+    let embedded = false;
+    if (typeof window !== 'undefined') embedded = !!(window.parent && window.parent !== window);
     if (isPreviewRoute && embedded) {
+      setIsLoading(false);
       setBootstrapped(true);
       return;
     }
@@ -106,13 +114,17 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
         });
         if (res.ok) {
           const json = await res.json();
-          const payload = (json?.data ?? json) as Partial<FormData>;
+          const payload = json?.data ?? json;
+
           if (payload && typeof payload === 'object') {
-            setForm(prev => mergeForm(prev, payload));
+            if (payload.plan) {
+              setPlan(payload.plan as PlanType); 
+            }
+            const { plan: _ignore, ...rest } = payload;
+            setForm(prev => mergeForm(prev, rest));
           }
         }
       } catch {
-        // swallow; we still bootstrap so UI can move on
       } finally {
         setIsLoading(false);
         setBootstrapped(true);
@@ -122,15 +134,18 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
     return () => ac.abort();
   }, [isPreviewRoute]);
 
+  useLocalDraft(form, true);
+  usePreviewBus(form, plan);
+
   return (
-    <AdminFormContext.Provider value={{ form, setForm, isLoading, bootstrapped }}>
-      {/* For preview route we render without chrome, but provider always wraps children */}
+    <AdminFormContext.Provider value={{ form, setForm, plan, isLoading, bootstrapped }}>
       {isPreviewRoute ? (
         <>{children}</>
       ) : (
         <>
           <AdminHeader />
           <Container>{children}</Container>
+          <PreviewFab />
         </>
       )}
     </AdminFormContext.Provider>

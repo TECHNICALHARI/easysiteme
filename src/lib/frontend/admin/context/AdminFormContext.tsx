@@ -1,18 +1,18 @@
-'use client';
 import { createContext, useContext } from 'react';
 import type { FormData } from '@/lib/frontend/types/form';
+import { PlanType } from '@/config/PLAN_FEATURES';
 
-type Ctx = {
+export const AdminFormContext = createContext<{
   form: FormData;
   setForm: React.Dispatch<React.SetStateAction<FormData>>;
+  plan: PlanType;
   isLoading: boolean;
   bootstrapped: boolean;
-};
-
-export const AdminFormContext = createContext<Ctx>({
+}>({
   form: {} as FormData,
-  setForm: () => { },
-  isLoading: false,
+  setForm: () => {},
+  plan: 'free',
+  isLoading: true,
   bootstrapped: false,
 });
 

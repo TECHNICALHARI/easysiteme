@@ -83,12 +83,12 @@ export interface Design {
   theme: string;
   emojiLink?: string;
   brandingOff?: boolean;
-  layoutType: "bio" | "website";
+  layoutType: 'bio' | 'website';
 }
 
 export interface Settings {
   nsfwWarning: boolean;
-  preferredLink: "primary" | "custom";
+  preferredLink: 'primary' | 'custom';
   customDomain: string;
   gaId?: string;
 }
@@ -132,7 +132,7 @@ export interface SubscriberList {
   data: {
     email: string;
     subscribedOn: string;
-    status: "Active" | "Unsubscribed";
+    status: 'Active' | 'Unsubscribed';
   }[];
   total: number;
   active: number;
@@ -157,17 +157,17 @@ export interface FormData {
   socials: Socials;
   posts: PostsTabData;
   subscriberSettings: SubscriberDataTypes;
-  plan: "free" | "pro" | "premium";
+  // plan: 'free' | 'pro' | 'premium';
 }
 
 export type ReorderableProfileKeys =
-  | "links"
-  | "headers"
-  | "embeds"
-  | "testimonials"
-  | "faqs"
-  | "services"
-  | "featured";
+  | 'links'
+  | 'headers'
+  | 'embeds'
+  | 'testimonials'
+  | 'faqs'
+  | 'services'
+  | 'featured';
 
 export type ProfileTypeMap = {
   links: Link[];

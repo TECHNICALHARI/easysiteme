@@ -3,7 +3,7 @@
 import { FC, useEffect, useState } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import styles from '@/styles/admin.module.css';
-import { FormData } from '../../types/form';
+import { FormData } from '@/lib/frontend/types/form';
 import ProfileTab from './profile/ProfileTab';
 import PostTab from './posts/PostTab';
 import DesignTab from './design/DesignTab';
@@ -22,13 +22,11 @@ const AllTabs: FC<Props> = ({ form, setForm }) => {
   const router = useRouter();
   const searchParams = useSearchParams();
 
-  const tabFromQuery = searchParams.get('tab');
+  const tabFromQuery = searchParams.get('tab') || undefined;
   const [activeTab, setActiveTab] = useState(tabFromQuery || 'Profile');
 
   useEffect(() => {
-    if (tabFromQuery && tabFromQuery !== activeTab) {
-      setActiveTab(tabFromQuery);
-    }
+    if (tabFromQuery && tabFromQuery !== activeTab) setActiveTab(tabFromQuery);
   }, [tabFromQuery]);
 
   const handleTabClick = (tab: string) => {

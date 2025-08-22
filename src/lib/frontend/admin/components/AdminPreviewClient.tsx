@@ -11,6 +11,9 @@ import themeStyles from '@/styles/theme.module.css';
 import previewStyles from '@/styles/preview.module.css';
 import PreviewSkeleton from '@/lib/frontend/singlepage/components/PreviewSkeleton';
 
+const CACHE_KEY = 'onepage:preview:last';
+const BUS_NAME = 'onepage:preview';
+
 const hasAnyData = (f?: FormData | null) =>
   !!f &&
   !!(
@@ -22,35 +25,66 @@ const hasAnyData = (f?: FormData | null) =>
   );
 
 export default function AdminPreviewClient() {
-  const { form, setForm, isLoading } = useAdminForm();
-
+  const { form, isLoading } = useAdminForm();
   const [incoming, setIncoming] = useState<FormData | null>(null);
 
-  const theme = useMemo(() => (incoming ?? form)?.design?.theme ?? 'brand', [incoming, form]);
-  const layoutType = useMemo(
-    () => (incoming ?? form)?.design?.layoutType ?? 'bio',
-    [incoming, form],
-  );
-  const ThemeClass = (themeStyles as Record<string, string>)[theme] ?? themeStyles['brand'];
   useEffect(() => {
-    const onMessage = (ev: MessageEvent) => {
+    const onWin = (ev: MessageEvent) => {
       const msg = ev.data;
       if (msg?.type === 'onepage:preview:update' && msg.payload) {
         setIncoming({ ...(msg.payload as FormData), previewMode: true });
       }
+      if (msg?.type === 'onepage:preview:ping') {
+        window.postMessage({ type: 'onepage:preview:ready' }, '*');
+      }
     };
-    window.addEventListener('message', onMessage);
-    if (window.parent && window.parent !== window) {
-      window.parent.postMessage({ type: 'onepage:preview:ready' }, '*');
+    window.addEventListener('message', onWin);
+
+    let ch: BroadcastChannel | null = null;
+    try {
+      ch = new BroadcastChannel(BUS_NAME);
+      const onBus = (e: MessageEvent) => {
+        if (e.data?.type === 'onepage:preview:update' && e.data.payload) {
+          setIncoming({ ...(e.data.payload as FormData), previewMode: true });
+        }
+      };
+      ch.addEventListener('message', onBus);
+
+      // cold-start fallback
+      try {
+        const cached = localStorage.getItem(CACHE_KEY);
+        if (cached) {
+          const parsed = JSON.parse(cached) as FormData;
+          if (hasAnyData(parsed)) setIncoming({ ...parsed, previewMode: true });
+        }
+      } catch {}
+
+      // announce ready
+      try { window.parent?.postMessage({ type: 'onepage:preview:ready' }, '*'); } catch {}
+      try { window.opener?.postMessage({ type: 'onepage:preview:ready' }, '*'); } catch {}
+
+      return () => {
+        window.removeEventListener('message', onWin);
+        ch?.removeEventListener('message', onBus);
+        ch?.close();
+      };
+    } catch {
+      return () => {
+        window.removeEventListener('message', onWin);
+      };
     }
-    return () => window.removeEventListener('message', onMessage);
   }, []);
+
+  const theme = useMemo(() => (incoming ?? form)?.design?.theme ?? 'brand', [incoming, form]);
+  const layoutType = useMemo(() => (incoming ?? form)?.design?.layoutType ?? 'bio', [incoming, form]);
+  const ThemeClass = (themeStyles as Record<string, string>)[theme] ?? themeStyles['brand'];
 
   const data: FormData | null = (() => {
     if (hasAnyData(incoming)) return incoming as FormData;
     if (hasAnyData(form)) return { ...form, previewMode: true } as FormData;
     return null;
   })();
+
   if (isLoading) {
     return (
       <div className={clsx(previewStyles.previewWrapper, ThemeClass)} data-theme={theme}>

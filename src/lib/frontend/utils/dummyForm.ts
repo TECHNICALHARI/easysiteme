@@ -162,7 +162,7 @@ const dummyFormData: FormData = {
     theme: "forest",
     emojiLink: "🚀",
     brandingOff: false,
-    layoutType: "bio",
+    layoutType: "website",
   },
   seo: {
     metaTitle: "Hariom Panday | Full Stack Dev",

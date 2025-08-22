@@ -3,7 +3,6 @@ export type PlanType = "free" | "pro" | "premium";
 export interface PlanFeatureConfig {
   links: number;
   about: boolean;
-  //   profileImage: boolean;
   bannerImage: boolean;
   contact: boolean;
   embeds: number;
@@ -49,7 +48,7 @@ export const PLAN_FEATURES: Record<PlanType, PlanFeatureConfig> = {
     links: 5,
     about: true,
     bannerImage: true,
-    contact: false,
+    contact: true,
     embeds: 1,
     services: 3,
     faqs: 3,

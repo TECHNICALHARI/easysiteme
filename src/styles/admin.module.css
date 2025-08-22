@@ -738,6 +738,74 @@
     border: 0;
 }
 
+/* global floating preview button styles*/
+.previewFabGlobal {
+    position: fixed;
+    right: 16px;
+    bottom: 16px;
+    z-index: 110;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    height: 44px;
+    padding: 0 14px;
+    border-radius: 9999px;
+    background: var(--color-brand);
+    color: #fff;
+    font-weight: 600;
+    letter-spacing: 0.2px;
+    box-shadow: 0 10px 24px rgba(0, 0, 0, .16);
+    cursor: pointer;
+    transition: transform .12s ease, filter .2s ease, box-shadow .2s ease;
+    border: none;
+}
+
+.previewFabGlobal:hover {
+    filter: brightness(1.05);
+    transform: translateY(-1px);
+    box-shadow: 0 14px 28px rgba(0, 0, 0, .2);
+}
+
+.previewFabGlobal:active {
+    transform: translateY(0) scale(.98);
+}
+
+.previewFabLabel {
+    font-size: 0.95rem;
+}
+
+.previewFabShortcut {
+    font-size: 0.72rem;
+    line-height: 1;
+    padding: 3px 6px;
+    border-radius: 6px;
+    background: rgba(255, 255, 255, 0.2);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    color: #fff;
+}
+
+:root[data-theme='dark'] .previewFabGlobal {
+    background: var(--color-brand);
+    color: #fff;
+    box-shadow: 0 10px 24px rgba(0, 0, 0, .35);
+    border: none;
+}
+
+:root[data-theme='dark'] .previewFabShortcut {
+    background: rgba(255, 255, 255, 0.2);
+    border-color: rgba(255, 255, 255, 0.3);
+    color: #fff;
+}
+
+@media (max-width: 380px) {
+    .previewFabShortcut {
+        display: none;
+    }
+}
+
+
+/* global floating preview button styles */
 @media (max-width: 1024px) {
     .mobilePreview {
         display: none;
