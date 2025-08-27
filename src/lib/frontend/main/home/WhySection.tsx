@@ -1,49 +1,64 @@
 'use client';
 
 import { motion } from 'framer-motion';
+import { Sparkles, Rocket, ShieldCheck, LayoutTemplate, PenLine, Link as LinkIcon } from 'lucide-react';
 import styles from '@/styles/main.module.css';
-import { Sparkles, Rocket, ShieldCheck } from 'lucide-react';
 
 const features = [
   {
-    title: 'Fully Customizable',
-    desc: 'Add sections like About, Gallery, Testimonials, Contact & more using our no-code editor.',
-    icon: <Sparkles size={28} className={styles.featureIcon} />,
+    title: 'No-code page builder',
+    desc: 'Drag-drop sections like About, Gallery, Testimonials, FAQs, Contact and more.',
+    icon: <Sparkles size={26} className={styles.featureIcon} />,
   },
   {
-    title: 'Share & Convert',
-    desc: 'Optimized for social and mobile. Built for creators, freelancers, and teams to engage better.',
-    icon: <Rocket size={28} className={styles.featureIcon} />,
+    title: 'Blog built-in',
+    desc: 'Write posts with titles, covers and SEO fields. Publish instantly.',
+    icon: <PenLine size={26} className={styles.featureIcon} />,
   },
   {
-    title: 'Secure & Scalable',
-    desc: 'Hosted on Vercel with secure Magic Link login. Fast, private, and built to scale with you.',
-    icon: <ShieldCheck size={28} className={styles.featureIcon} />,
+    title: 'Bio link that converts',
+    desc: 'Clean, fast link-in-bio layout with prominent CTAs to grow clicks.',
+    icon: <LinkIcon size={26} className={styles.featureIcon} />,
+  },
+  {
+    title: 'Premium themes',
+    desc: 'Pick a polished theme. Switch between Bio or Website layouts anytime.',
+    icon: <LayoutTemplate size={26} className={styles.featureIcon} />,
+  },
+  {
+    title: 'Fast & secure',
+    desc: 'Global edge hosting and passwordless login for peace of mind.',
+    icon: <ShieldCheck size={26} className={styles.featureIcon} />,
+  },
+  {
+    title: 'Made to convert',
+    desc: 'Speed, SEO basics and UX best-practices to turn visits into action.',
+    icon: <Rocket size={26} className={styles.featureIcon} />,
   },
 ];
 
 export default function WhySection() {
   return (
-    <section id="why" className="section">
-      <div className="container text-center">
-        <h2 className="section-title">Why OnePage?</h2>
-        <p className="section-subtitle max-w-2xl mx-auto">
-          Unlike generic link tools, OnePage helps you build trust and convert visitors with rich content and features under your personal subdomain.
-        </p>
+    <section id="why" className="section" aria-labelledby="why-title">
+      <div className="container">
+        <div className={styles.blockHead}>
+          <h2 id="why-title" className="section-title">Why myeasypage?</h2>
+          <p className="section-subtitle">Launch a premium website, blog or bio link on your own subdomain — in minutes.</p>
+        </div>
 
         <div className={styles.featureGrid}>
-          {features.map((item, i) => (
+          {features.map((f, i) => (
             <motion.div
-              key={i}
+              key={f.title}
               className={styles.featureCard}
-              initial={{ opacity: 0, y: 20 }}
+              initial={{ opacity: 0, y: 14 }}
               whileInView={{ opacity: 1, y: 0 }}
-              transition={{ delay: i * 0.2 }}
+              transition={{ delay: i * 0.06, duration: 0.45 }}
               viewport={{ once: true }}
             >
-              <div className={styles.featureIconWrapper}>{item.icon}</div>
-              <h4 className={styles.featureTitle}>{item.title}</h4>
-              <p className={styles.featureText}>{item.desc}</p>
+              <div className={styles.featureIconWrapper}>{f.icon}</div>
+              <h4 className={styles.featureTitle}>{f.title}</h4>
+              <p className={styles.featureText}>{f.desc}</p>
             </motion.div>
           ))}
         </div>

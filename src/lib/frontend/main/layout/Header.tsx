@@ -1,14 +1,14 @@
 'use client';
 
 import Link from 'next/link';
-import { useState, useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { Menu, X } from 'lucide-react';
 import styles from '@/styles/main.module.css';
-import ThemeToggle from '../home/ThemeToggle';
-import Logo from '../../common/Logo';
+import ThemeToggle from '@/lib/frontend/main/home/ThemeToggle';
+import Logo from '@/lib/frontend/common/Logo';
 
 const navItems = [
-  { label: 'Why OnePage', href: '#why' },
+  { label: 'Why', href: '#why' },
   { label: 'Plans', href: '#plans' },
   { label: 'Contact', href: '#contact' },
 ];
@@ -18,54 +18,89 @@ export default function Header() {
   const [isScrolled, setIsScrolled] = useState(false);
 
   useEffect(() => {
-    const handleScroll = () => setIsScrolled(window.scrollY > 10);
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
+    const onScroll = () => setIsScrolled(window.scrollY > 6);
+    onScroll();
+    window.addEventListener('scroll', onScroll);
+    return () => window.removeEventListener('scroll', onScroll);
   }, []);
+
+  useEffect(() => {
+    if (!menuOpen) return;
+    const onKey = (e: KeyboardEvent) => e.key === 'Escape' && setMenuOpen(false);
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [menuOpen]);
 
   return (
     <header className={`${styles.header} ${isScrolled ? styles.headerScrolled : ''}`}>
-      <div className="container flex items-center justify-between relative z-50">
-        <Link href="/" className={styles.logoGlow}><Logo /></Link>
+      <div className={`container ${styles.headerInner}`}>
+        <Link href="/" className={styles.logoLink} aria-label="myeasypage home">
+          <Logo />
+        </Link>
 
-        <nav className="hidden md:flex items-center gap-6">
-          {navItems.map((item) => (
-            <Link key={item.href} href={item.href} className={styles.navLink}>
-              {item.label}
+        <nav className={`${styles.nav} hidden md:flex`} aria-label="Primary">
+          <ul className={styles.navList}>
+            {navItems.map((item) => (
+              <li key={item.href}>
+                <Link href={item.href} className={styles.navLink}>
+                  {item.label}
+                </Link>
+              </li>
+            ))}
+          </ul>
+
+          <div className={styles.navActions}>
+            <Link href="/login" className={styles.navGhost}>
+              Sign In
             </Link>
-          ))}
-          <Link href="/login" className={styles.navBtn}>Sign In</Link>
-          <Link href="/signup" className="btn-primary shadow-md">Create Page</Link>
-          <ThemeToggle />
+            <Link href="/signup" className={styles.navPrimary}>
+              Create Page
+            </Link>
+            <ThemeToggle />
+          </div>
         </nav>
 
-        <div className="md:hidden">
-          <button
-            onClick={() => setMenuOpen(!menuOpen)}
-            aria-label="Toggle menu"
-            className="z-50"
-          >
-            {menuOpen ? <X size={24} /> : <Menu size={24} />}
+        <button
+          className={`md:hidden ${styles.menuBtn}`}
+          aria-label="Toggle menu"
+          aria-expanded={menuOpen}
+          onClick={() => setMenuOpen((s) => !s)}
+        >
+          {menuOpen ? <X size={22} /> : <Menu size={22} />}
+        </button>
+      </div>
+
+      <div className={`${styles.mobileScrim} ${menuOpen ? styles.showScrim : ''}`} onClick={() => setMenuOpen(false)} />
+
+      <div className={`${styles.mobileDropdown} ${menuOpen ? styles.mobileOpen : ''}`} role="dialog" aria-label="Mobile navigation">
+        <div className={styles.mobileHeader}>
+          <Link href="/" className={styles.logoLink} onClick={() => setMenuOpen(false)}>
+            <Logo />
+          </Link>
+          <button aria-label="Close menu" className={styles.menuBtn} onClick={() => setMenuOpen(false)}>
+            <X size={20} />
           </button>
         </div>
 
-        {menuOpen && (
-          <div className={styles.mobileDropdown}>
-            {navItems.map((item) => (
-              <Link
-                key={item.href}
-                href={item.href}
-                className={styles.mobileNavLink}
-                onClick={() => setMenuOpen(false)}
-              >
+        <ul className={styles.mobileList}>
+          {navItems.map((item) => (
+            <li key={item.href}>
+              <Link href={item.href} className={styles.mobileNavLink} onClick={() => setMenuOpen(false)}>
                 {item.label}
               </Link>
-            ))}
-            <Link href="/login" className={styles.navBtn} onClick={() => setMenuOpen(false)}>Sign In</Link>
-            <Link href="/signup" className="btn-primary mt-2" onClick={() => setMenuOpen(false)}>Create Page</Link>
-            <div className="pt-2"><ThemeToggle /></div>
-          </div>
-        )}
+            </li>
+          ))}
+        </ul>
+
+        <div className={styles.mobileActions}>
+          <Link href="/login" className={styles.navGhost} onClick={() => setMenuOpen(false)}>
+            Sign In
+          </Link>
+          <Link href="/signup" className={styles.navPrimary} onClick={() => setMenuOpen(false)}>
+            Create Page
+          </Link>
+          <ThemeToggle />
+        </div>
       </div>
     </header>
   );

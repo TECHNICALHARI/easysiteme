@@ -12,7 +12,7 @@ export default function LoginPage() {
     otp: '',
     showPass: false,
     useOtp: false,
-    loginWith: 'email',
+    loginWith: 'email' as 'email' | 'mobile',
   });
 
   const [loading, setLoading] = useState(false);
@@ -20,41 +20,46 @@ export default function LoginPage() {
 
   const handleLogin = async () => {
     const { email, mobile, password, otp, useOtp, loginWith } = formData;
-    const identifier = loginWith === 'email' ? email : mobile;
+    const identifier = loginWith === 'email' ? email.trim() : mobile.trim();
 
-    if (!identifier) return alert(`Please enter your ${loginWith}`);
-    if (!useOtp && !password) return alert('Please enter password');
-    if (useOtp && !otp) return alert('Please enter OTP');
+    if (!identifier) return alert(`Please enter your ${loginWith}.`);
+    if (!useOtp && !password.trim()) return alert('Please enter password.');
+    if (useOtp && !otp.trim()) return alert('Please enter OTP.');
 
     setLoading(true);
+    try {
+      const res = await fetch('/api/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          [loginWith]: identifier,
+          ...(useOtp ? { otp } : { password }),
+        }),
+      });
 
-    const res = await fetch('/api/login', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        [loginWith]: identifier,
-        ...(useOtp ? { otp } : { password }),
-      }),
-    });
-
-    const result = await res.json();
-    if (result.success) {
-      alert('Login successful!');
-      // window.location.href = '/dashboard';
-    } else {
-      alert(result.message || 'Login failed');
+      const result = await res.json();
+      if (result?.success) {
+        alert('Login successful!');
+        // window.location.href = '/admin';
+      } else {
+        alert(result?.message || 'Login failed');
+      }
+    } catch (e) {
+      alert('Something went wrong. Please try again.');
+    } finally {
+      setLoading(false);
     }
-
-    setLoading(false);
   };
 
-  const handleSendOtp = () => {
-    setFormData({ ...formData, useOtp: true });
+  const handleSendOtp = async () => {
+    const idVal = formData.loginWith === 'email' ? formData.email.trim() : formData.mobile.trim();
+    if (!idVal) return alert(`Enter your ${formData.loginWith} first.`);
+    setFormData((p) => ({ ...p, useOtp: true }));
     setOtpSent(true);
   };
 
   return (
-    <main className={`${styles.authPage} section`}>
+    <main className={`${styles.authPage} section`} aria-labelledby="login-title">
       <div className="container flex justify-center items-center">
         <LoginForm
           formData={formData}

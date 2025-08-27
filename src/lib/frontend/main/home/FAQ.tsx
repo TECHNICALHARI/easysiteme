@@ -5,65 +5,49 @@ import { AnimatePresence, motion } from 'framer-motion';
 import { ChevronDown } from 'lucide-react';
 import styles from '@/styles/main.module.css';
 
-const faqs = [
-  {
-    q: 'Is OnePage really free to use?',
-    a: 'Yes! Our Free plan gives you all the basics you need to launch your profile page — no credit card required.',
-  },
-  {
-    q: 'How is this different from Linktree or Carrd?',
-    a: 'OnePage gives you richer sections like About, Gallery, Testimonials, Forms — not just links. Plus, you get your own subdomain and cleaner branding.',
-  },
-  {
-    q: 'Can I use my own domain?',
-    a: 'Custom domain support is coming soon for Pro users. Currently, you’ll get a free subdomain like raj.onepage.site.',
-  },
-  {
-    q: 'Is OnePage mobile friendly?',
-    a: 'Absolutely. All pages and layouts are fully responsive and optimized for mobile, tablet, and desktop.',
-  },
-  {
-    q: 'Can I use it without any tech knowledge?',
-    a: 'Yes! No coding, designing, or hosting knowledge needed. Just fill out a form, hit publish, and you’re live.',
-  },
-];
+type QA = { q: string; a: string };
 
-export default function FAQ() {
-  const [openIndex, setOpenIndex] = useState<number | null>(null);
+export default function FAQ({ faqs }: { faqs: QA[] }) {
+  const [openIndex, setOpenIndex] = useState<number | null>(0);
 
   return (
-    <section id="faq" className="section bg-muted">
-      <div className="container text-center">
-        <h2 className="section-title">Frequently Asked Questions</h2>
-        <p className="section-subtitle max-w-xl mx-auto">
-          Everything you need to know before creating or upgrading your OnePage site.
-        </p>
+    <section id="faq" className="section" aria-labelledby="faq-title">
+      <div className="container">
+        <div className="text-center">
+          <h2 id="faq-title" className="section-title">Frequently asked questions</h2>
+          <p className="section-subtitle">
+            Everything about launching a website, blog and link-in-bio with myeasypage.
+          </p>
+        </div>
 
         <div className={styles.faqWrapper}>
           {faqs.map((item, idx) => {
             const isOpen = openIndex === idx;
-
             return (
               <div key={idx} className={styles.faqItem}>
                 <button
                   className={styles.faqQuestion}
                   onClick={() => setOpenIndex(isOpen ? null : idx)}
+                  aria-expanded={isOpen}
+                  aria-controls={`faq-${idx}`}
                 >
                   {item.q}
                   <ChevronDown
                     className={`${styles.faqChevron} ${isOpen ? styles.rotate : ''}`}
                     size={20}
+                    aria-hidden
                   />
                 </button>
 
                 <AnimatePresence initial={false}>
                   {isOpen && (
                     <motion.div
+                      id={`faq-${idx}`}
                       className={styles.faqAnswer}
                       initial={{ opacity: 0, height: 0 }}
                       animate={{ opacity: 1, height: 'auto' }}
                       exit={{ opacity: 0, height: 0 }}
-                      transition={{ duration: 0.3 }}
+                      transition={{ duration: 0.25 }}
                     >
                       <p>{item.a}</p>
                     </motion.div>

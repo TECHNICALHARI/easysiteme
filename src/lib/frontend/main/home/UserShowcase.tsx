@@ -1,58 +1,54 @@
 'use client';
 
 import { motion } from 'framer-motion';
-import { Globe, UserCheck, Image } from 'lucide-react';
+import { Globe, UserCheck, Image, Video } from 'lucide-react';
 import styles from '@/styles/main.module.css';
 import Link from 'next/link';
 
 const users = [
-  {
-    name: '@rajtech',
-    link: 'https://raj.onepage.site',
-    desc: 'Freelancer with GitHub, WhatsApp & services.',
-    icon: <UserCheck size={22} />,
-  },
-  {
-    name: '@artbyaisha',
-    link: 'https://aisha.onepage.site',
-    desc: 'Artist showing gallery, contact & store.',
-    icon: <Image size={22} />,
-  },
-  {
-    name: '@startupdeck',
-    link: 'https://startupdeck.onepage.site',
-    desc: 'Startup pitch deck with embedded video.',
-    icon: <Globe size={22} />,
-  },
+  { name: '@raj', link: 'https://raj.myeasypage.com', desc: 'Freelancer portfolio with services & WhatsApp CTA.', icon: <UserCheck size={20} /> },
+  { name: '@aisha', link: 'https://aisha.myeasypage.com', desc: 'Artist gallery + shop links and contact form.', icon: <Image size={20} /> },
+  { name: '@startupdeck', link: 'https://startupdeck.myeasypage.com', desc: 'Product site with features, video embed & pricing.', icon: <Globe size={20} /> },
+  { name: '@reelsbyzoe', link: 'https://reelsbyzoe.myeasypage.com', desc: 'Creator bio link with YouTube + Instagram embeds.', icon: <Video size={20} /> },
+  { name: '@techhub', link: 'https://techhub.myeasypage.com', desc: 'Tech blog with newsletter signup + projects.', icon: <Globe size={20} /> },
+  { name: '@chefamy', link: 'https://chefamy.myeasypage.com', desc: 'Food recipes with Instagram reels & YouTube.', icon: <Video size={20} /> },
 ];
 
 export default function UserShowcase() {
-  return (
-    <section id="reviews" className="section bg-muted">
-      <div className="container text-center">
-        <h2 className="section-title">Pages Created with OnePage</h2>
-        <p className="section-subtitle max-w-2xl mx-auto">
-          Explore real examples built by users like you. Live subdomains, real content, and custom layouts.
-        </p>
+  // duplicate list to simulate infinite loop
+  const loopUsers = [...users, ...users];
 
-        <div className={styles.userGrid}>
-          {users.map((user, i) => (
-            <motion.div
-              key={i}
-              className={styles.userCard}
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              transition={{ delay: i * 0.2 }}
-              viewport={{ once: true }}
-            >
-              <div className={styles.userIcon}>{user.icon}</div>
-              <h4 className={styles.userHandle}>{user.name}</h4>
-              <Link href={user.link} target="_blank" rel="noopener noreferrer" className={styles.userLink}>
-                {user.link}
-              </Link>
-              <p className={styles.userDesc}>{user.desc}</p>
-            </motion.div>
-          ))}
+  return (
+    <section id="examples" className="section" aria-labelledby="examples-title">
+      <div className="container">
+        <div className={styles.blockHead}>
+          <h2 id="examples-title" className="section-title">Sites built on myeasypage</h2>
+          <p className="section-subtitle">Real pages created by people like you — fast, polished, and live.</p>
+        </div>
+
+        <div className={styles.userCarousel}>
+          <motion.div
+            className={styles.userTrack}
+            animate={{ x: ['0%', '-50%'] }}
+            transition={{ ease: 'linear', duration: 25, repeat: Infinity }}
+          >
+            {loopUsers.map((u, i) => (
+              <div key={`${u.name}-${i}`} className={styles.userCard}>
+                <div className={styles.userIcon}>{u.icon}</div>
+                <h4 className={styles.userHandle}>{u.name}</h4>
+                <Link
+                  href={u.link}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className={styles.userLink}
+                  aria-label={`Open ${u.name} site`}
+                >
+                  {u.link}
+                </Link>
+                <p className={styles.userDesc}>{u.desc}</p>
+              </div>
+            ))}
+          </motion.div>
         </div>
       </div>
     </section>

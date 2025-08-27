@@ -1,55 +1,63 @@
 'use client';
 
-import styles from '@/styles/main.module.css';
-import { Facebook, Twitter, Instagram, Linkedin } from 'lucide-react';
 import Link from 'next/link';
+import { Facebook, Twitter, Instagram, Linkedin } from 'lucide-react';
+import styles from '@/styles/main.module.css';
 
 export default function Footer() {
+  const year = new Date().getFullYear();
+
   return (
-    <footer className={styles.footer}>
+    <footer className={styles.footer} role="contentinfo">
       <div className="container">
         <div className={styles.footerTop}>
+          {/* Brand */}
           <div className={styles.footerBrandBlock}>
-            <h3 className={styles.footerBrand}>OnePage</h3>
+            <h3 className={styles.footerBrand}>myeasypage</h3>
             <p className={styles.footerDesc}>
-              Instantly create beautiful personal & business websites.
-              <br />
-              No code. Fully customizable. Launch in 60 seconds.
+              Create beautiful websites, blogs & bio links instantly — no code.
+              Customizable themes. Instant publishing.
             </p>
           </div>
 
-          <div className={styles.footerGrid}>
-            <div>
-              <h4>Product</h4>
-              <ul>
-                <li><Link href="#plans">Pricing</Link></li>
-                <li><Link href="#faq">FAQ</Link></li>
-                <li><Link href="/create">Get Started</Link></li>
-              </ul>
-            </div>
+          {/* Columns */}
+          <div className={styles.footerCol}>
+            <h4>Product</h4>
+            <ul className={styles.footerList}>
+              <li><Link className={styles.footerLink} href="#plans">Pricing</Link></li>
+              <li><Link className={styles.footerLink} href="#faq">FAQ</Link></li>
+              <li><Link className={styles.footerLink} href="/create">Get Started</Link></li>
+            </ul>
+          </div>
 
-            <div>
-              <h4>Legal</h4>
-              <ul>
-                <li><Link href="/terms">Terms of Service</Link></li>
-                <li><Link href="/privacy">Privacy Policy</Link></li>
-              </ul>
-            </div>
+          <div className={styles.footerCol}>
+            <h4>Company</h4>
+            <ul className={styles.footerList}>
+              <li><Link className={styles.footerLink} href="#why">Why myeasypage</Link></li>
+              <li><Link className={styles.footerLink} href="#contact">Contact</Link></li>
+              <li><Link className={styles.footerLink} href="/blog">Blog</Link></li>
+            </ul>
+          </div>
 
-            <div>
-              <h4>Follow Us</h4>
-              <div className={styles.socialIcons}>
-                <Link href="#"><Facebook size={20} className={styles.footerIcon} /></Link>
-                <Link href="#"><Twitter size={20} className={styles.footerIcon} /></Link>
-                <Link href="#"><Instagram size={20} className={styles.footerIcon} /></Link>
-                <Link href="#"><Linkedin size={20} className={styles.footerIcon} /></Link>
-              </div>
+          <div className={styles.footerCol}>
+            <h4>Legal</h4>
+            <ul className={styles.footerList}>
+              <li><Link className={styles.footerLink} href="/terms">Terms of Service</Link></li>
+              <li><Link className={styles.footerLink} href="/privacy">Privacy Policy</Link></li>
+            </ul>
+
+            <h4 style={{ marginTop: '1rem' }}>Follow</h4>
+            <div className={styles.socialIcons}>
+              <Link href="#" aria-label="Facebook"><Facebook size={18} /></Link>
+              <Link href="#" aria-label="Twitter / X"><Twitter size={18} /></Link>
+              <Link href="#" aria-label="Instagram"><Instagram size={18} /></Link>
+              <Link href="#" aria-label="LinkedIn"><Linkedin size={18} /></Link>
             </div>
           </div>
         </div>
 
         <div className={styles.footerBottom}>
-          <p>&copy; {new Date().getFullYear()} OnePage. All rights reserved.</p>
+          <p>&copy; {year} myeasypage. All rights reserved.</p>
         </div>
       </div>
     </footer>

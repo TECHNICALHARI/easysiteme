@@ -1,52 +1,47 @@
 'use client';
+
 import { motion } from 'framer-motion';
-import {
-  User,
-  Paintbrush,
-  Camera,
-  Building,
-  GraduationCap,
-  Megaphone,
-  Dumbbell,
-  AppWindow,
-  ShoppingBag,
-} from 'lucide-react';
+import { User, Paintbrush, Camera, Building, GraduationCap, Megaphone, Dumbbell, AppWindow, ShoppingBag, Briefcase, Music, HeartHandshake, Newspaper } from 'lucide-react';
 import styles from '@/styles/main.module.css';
 
 const useCases = [
-  { icon: <User size={22} />, title: 'Freelancers', desc: 'Showcase your services, portfolio, contact info and land more gigs.' },
-  { icon: <Paintbrush size={22} />, title: 'Creators & Artists', desc: 'Link to your Instagram, YouTube, gallery, or store — all in one place.' },
-  { icon: <Camera size={22} />, title: 'Photographers', desc: 'Display your best shots, add testimonials, and allow inquiries via form.' },
-  { icon: <Building size={22} />, title: 'Small Businesses', desc: 'Promote your offerings, location, and contact info with professional flair.' },
-  { icon: <GraduationCap size={22} />, title: 'Students & Grads', desc: 'Build your resume site with projects, LinkedIn, and GitHub in under a minute.' },
-  { icon: <Megaphone size={22} />, title: 'Influencers', desc: 'Control your bio link. Add YouTube, TikTok, WhatsApp, and promotions.' },
-  { icon: <Dumbbell size={22} />, title: 'Coaches & Trainers', desc: 'Showcase programs, testimonials, pricing, and booking details.' },
-  { icon: <AppWindow size={22} />, title: 'App Developers', desc: 'Share your product, features, contact, and store links — beautifully.' },
-  { icon: <ShoppingBag size={22} />, title: 'Sellers & Vendors', desc: 'Link your catalog, location, social DMs, and WhatsApp with zero code.' },
+  { icon: <User size={20} />, title: 'Freelancers', desc: 'Pitch services, portfolio, pricing and WhatsApp in one link.' },
+  { icon: <Paintbrush size={20} />, title: 'Creators', desc: 'Reels, YouTube, storefront and sponsor offers on a clean page.' },
+  { icon: <Camera size={20} />, title: 'Photographers', desc: 'Show packages, testimonials and a fast gallery that sells.' },
+  { icon: <Building size={20} />, title: 'Local Businesses', desc: 'Menu/services, map, hours and contact form.' },
+  { icon: <GraduationCap size={20} />, title: 'Students', desc: 'Resume site with projects and posts.' },
+  { icon: <Megaphone size={20} />, title: 'Influencers', desc: 'Own your bio link with campaigns and promos.' },
+  { icon: <Dumbbell size={20} />, title: 'Coaches', desc: 'Programs, results, pricing and booking CTA.' },
+  { icon: <AppWindow size={20} />, title: 'App Makers', desc: 'Feature list, changelog blog and download links.' },
+  { icon: <ShoppingBag size={20} />, title: 'Sellers', desc: 'Catalog highlights, DM/WhatsApp and store links.' },
+  { icon: <Briefcase size={20} />, title: 'Consultants', desc: 'Case studies, services and calendar embed.' },
+  { icon: <Music size={20} />, title: 'Musicians', desc: 'Release embeds, EPK and contact.' },
+  { icon: <HeartHandshake size={20} />, title: 'Non-profits', desc: 'Mission, impact stats and donation link.' },
+  { icon: <Newspaper size={20} />, title: 'Bloggers', desc: 'Write posts with covers, SEO and fast load times.' },
 ];
 
 export default function UseCasesSection() {
   return (
-    <section className="section" id="usecases">
-      <div className="container text-center">
-        <h2 className="section-title">Perfect For</h2>
-        <p className="section-subtitle max-w-2xl mx-auto">
-          OnePage is made for anyone who wants to create a professional presence — fast.
-        </p>
+    <section id="usecases" className="section" aria-labelledby="usecases-title">
+      <div className="container">
+        <div className={styles.blockHead}>
+          <h2 id="usecases-title" className="section-title">Perfect for websites, blogs and bio links</h2>
+          <p className="section-subtitle">Start simple with a bio link or go bigger with a mini-site and blog. Switch layouts anytime.</p>
+        </div>
 
         <div className={styles.useCasesGrid}>
-          {useCases.map(({ icon, title, desc }, i) => (
+          {useCases.map((u, i) => (
             <motion.div
-              key={i}
+              key={u.title}
               className={styles.useCaseCard}
-              initial={{ opacity: 0, y: 20 }}
+              initial={{ opacity: 0, y: 10 }}
               whileInView={{ opacity: 1, y: 0 }}
-              transition={{ delay: i * 0.1 }}
+              transition={{ delay: i * 0.035, duration: 0.3 }}
               viewport={{ once: true }}
             >
-              <div className={styles.useCaseIcon}>{icon}</div>
-              <h4 className={styles.useCaseTitle}>{title}</h4>
-              <p className={styles.useCaseText}>{desc}</p>
+              <div className={styles.useCaseIcon}>{u.icon}</div>
+              <h4 className={styles.useCaseTitle}>{u.title}</h4>
+              <p className={styles.useCaseText}>{u.desc}</p>
             </motion.div>
           ))}
         </div>

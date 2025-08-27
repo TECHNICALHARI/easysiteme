@@ -24,7 +24,7 @@ export default function SignupPage() {
     if (!name) return setSubdomainAvailable(null);
     setCheckingSubdomain(true);
     try {
-      const res = await fetch(`/api/check-subdomain?subdomain=${name}`);
+      const res = await fetch(`/api/check-subdomain?subdomain=${encodeURIComponent(name)}`);
       const data = await res.json();
       setSubdomainAvailable(data.available);
     } catch {
@@ -35,26 +35,31 @@ export default function SignupPage() {
   };
 
   const handleNext = () => {
+    if (!formData.subdomain) return alert('Choose a subdomain');
+    if (subdomainAvailable === false) return alert('Subdomain is taken');
+    if (!formData.password) return alert('Set a password');
     setStep(2);
   };
 
   const handleOtpVerify = async () => {
     setVerifyingOtp(true);
-    const res = await fetch('/api/verify-otp', {
-      method: 'POST',
-      body: JSON.stringify(formData),
-      headers: { 'Content-Type': 'application/json' },
-    });
-
-    const result = await res.json();
-    if (result.success) {
-      alert('Account created! Redirecting...');
-      // window.location.href = '/dashboard';
-    } else {
-      alert(result.message || 'Invalid OTP');
+    try {
+      const res = await fetch('/api/verify-otp', {
+        method: 'POST',
+        body: JSON.stringify(formData),
+        headers: { 'Content-Type': 'application/json' },
+      });
+      const result = await res.json();
+      if (result.success) {
+        window.location.href = '/admin';
+      } else {
+        alert(result.message || 'Invalid OTP');
+      }
+    } catch {
+      alert('Something went wrong. Please try again.');
+    } finally {
+      setVerifyingOtp(false);
     }
-
-    setVerifyingOtp(false);
   };
 
   return (

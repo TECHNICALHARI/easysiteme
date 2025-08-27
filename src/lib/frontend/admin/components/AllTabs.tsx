@@ -51,7 +51,7 @@ const AllTabs: FC<Props> = ({ form, setForm }) => {
       </nav>
 
       <div className={styles.tabContent}>
-        {activeTab === 'Profile' && <ProfileTab form={form} setForm={setForm} />}
+        {activeTab === 'Profile' && <ProfileTab />}
         {activeTab === 'Posts' && <PostTab />}
         {activeTab === 'Design' && <DesignTab />}
         {activeTab === 'Subscribers' && <SubscribersTab />}
