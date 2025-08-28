@@ -20,28 +20,30 @@ export default function FAQ({ faqs }: { faqs: QA[] }) {
           </p>
         </div>
 
-        <div className={styles.faqWrapper}>
+        <dl className={styles.faqWrapper}>
           {faqs.map((item, idx) => {
             const isOpen = openIndex === idx;
             return (
               <div key={idx} className={styles.faqItem}>
-                <button
-                  className={styles.faqQuestion}
-                  onClick={() => setOpenIndex(isOpen ? null : idx)}
-                  aria-expanded={isOpen}
-                  aria-controls={`faq-${idx}`}
-                >
-                  {item.q}
-                  <ChevronDown
-                    className={`${styles.faqChevron} ${isOpen ? styles.rotate : ''}`}
-                    size={20}
-                    aria-hidden
-                  />
-                </button>
+                <dt>
+                  <button
+                    className={styles.faqQuestion}
+                    onClick={() => setOpenIndex(isOpen ? null : idx)}
+                    aria-expanded={isOpen}
+                    aria-controls={`faq-${idx}`}
+                  >
+                    {item.q}
+                    <ChevronDown
+                      className={`${styles.faqChevron} ${isOpen ? styles.rotate : ''}`}
+                      size={20}
+                      aria-hidden="true"
+                    />
+                  </button>
+                </dt>
 
                 <AnimatePresence initial={false}>
                   {isOpen && (
-                    <motion.div
+                    <motion.dd
                       id={`faq-${idx}`}
                       className={styles.faqAnswer}
                       initial={{ opacity: 0, height: 0 }}
@@ -50,13 +52,13 @@ export default function FAQ({ faqs }: { faqs: QA[] }) {
                       transition={{ duration: 0.25 }}
                     >
                       <p>{item.a}</p>
-                    </motion.div>
+                    </motion.dd>
                   )}
                 </AnimatePresence>
               </div>
             );
           })}
-        </div>
+        </dl>
       </div>
     </section>
   );

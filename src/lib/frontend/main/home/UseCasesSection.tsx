@@ -1,50 +1,59 @@
-'use client';
-
+"use client";
 import { motion } from 'framer-motion';
-import { User, Paintbrush, Camera, Building, GraduationCap, Megaphone, Dumbbell, AppWindow, ShoppingBag, Briefcase, Music, HeartHandshake, Newspaper } from 'lucide-react';
+import {
+  User, Paintbrush, Camera, Building, GraduationCap, Megaphone,
+  Dumbbell, AppWindow, ShoppingBag, Briefcase, Music, HeartHandshake, Newspaper
+} from 'lucide-react';
 import styles from '@/styles/main.module.css';
+import { JSX } from 'react';
 
-const useCases = [
-  { icon: <User size={20} />, title: 'Freelancers', desc: 'Pitch services, portfolio, pricing and WhatsApp in one link.' },
-  { icon: <Paintbrush size={20} />, title: 'Creators', desc: 'Reels, YouTube, storefront and sponsor offers on a clean page.' },
-  { icon: <Camera size={20} />, title: 'Photographers', desc: 'Show packages, testimonials and a fast gallery that sells.' },
-  { icon: <Building size={20} />, title: 'Local Businesses', desc: 'Menu/services, map, hours and contact form.' },
-  { icon: <GraduationCap size={20} />, title: 'Students', desc: 'Resume site with projects and posts.' },
+type UseCase = { icon: JSX.Element; title: string; desc: string };
+
+const useCases: UseCase[] = [
+  { icon: <User size={20} />, title: 'Freelancers', desc: 'Pitch services, showcase work and add a quick contact CTA.' },
+  { icon: <Paintbrush size={20} />, title: 'Creators', desc: 'Bring reels, YouTube, storefront and sponsors together.' },
+  { icon: <Camera size={20} />, title: 'Photographers', desc: 'Display packages, testimonials and a fast gallery.' },
+  { icon: <Building size={20} />, title: 'Local Businesses', desc: 'Menu/services, map, hours and an enquiry form.' },
+  { icon: <GraduationCap size={20} />, title: 'Students', desc: 'Portfolio with projects, resume and blog posts.' },
   { icon: <Megaphone size={20} />, title: 'Influencers', desc: 'Own your bio link with campaigns and promos.' },
-  { icon: <Dumbbell size={20} />, title: 'Coaches', desc: 'Programs, results, pricing and booking CTA.' },
-  { icon: <AppWindow size={20} />, title: 'App Makers', desc: 'Feature list, changelog blog and download links.' },
-  { icon: <ShoppingBag size={20} />, title: 'Sellers', desc: 'Catalog highlights, DM/WhatsApp and store links.' },
+  { icon: <Dumbbell size={20} />, title: 'Coaches', desc: 'Programs, client results, pricing and booking link.' },
+  { icon: <AppWindow size={20} />, title: 'App Makers', desc: 'Feature list, changelog and download links.' },
+  { icon: <ShoppingBag size={20} />, title: 'Sellers', desc: 'Catalog highlights with DM/WhatsApp and store links.' },
   { icon: <Briefcase size={20} />, title: 'Consultants', desc: 'Case studies, services and calendar embed.' },
-  { icon: <Music size={20} />, title: 'Musicians', desc: 'Release embeds, EPK and contact.' },
+  { icon: <Music size={20} />, title: 'Musicians', desc: 'Release embeds, EPK and booking contact.' },
   { icon: <HeartHandshake size={20} />, title: 'Non-profits', desc: 'Mission, impact stats and donation link.' },
-  { icon: <Newspaper size={20} />, title: 'Bloggers', desc: 'Write posts with covers, SEO and fast load times.' },
 ];
+
 
 export default function UseCasesSection() {
   return (
     <section id="usecases" className="section" aria-labelledby="usecases-title">
       <div className="container">
         <div className={styles.blockHead}>
-          <h2 id="usecases-title" className="section-title">Perfect for websites, blogs and bio links</h2>
-          <p className="section-subtitle">Start simple with a bio link or go bigger with a mini-site and blog. Switch layouts anytime.</p>
+          <h2 id="usecases-title" className="section-title">
+            Who is myeasypage for?
+          </h2>
+          <p className="section-subtitle">
+            From simple bio links to mini-sites and blogs — pick a layout now and switch anytime.
+          </p>
         </div>
 
-        <div className={styles.useCasesGrid}>
+        <ul className={styles.useCasesGrid} role="list" aria-label="Popular use cases">
           {useCases.map((u, i) => (
-            <motion.div
+            <motion.li
               key={u.title}
               className={styles.useCaseCard}
               initial={{ opacity: 0, y: 10 }}
               whileInView={{ opacity: 1, y: 0 }}
               transition={{ delay: i * 0.035, duration: 0.3 }}
-              viewport={{ once: true }}
+              viewport={{ once: true, amount: 0.2 }}
             >
-              <div className={styles.useCaseIcon}>{u.icon}</div>
-              <h4 className={styles.useCaseTitle}>{u.title}</h4>
+              <div className={styles.useCaseIcon} aria-hidden="true">{u.icon}</div>
+              <h3 className={styles.useCaseTitle}>{u.title}</h3>
               <p className={styles.useCaseText}>{u.desc}</p>
-            </motion.div>
+            </motion.li>
           ))}
-        </div>
+        </ul>
       </div>
     </section>
   );

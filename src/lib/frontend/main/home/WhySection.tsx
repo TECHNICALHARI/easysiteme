@@ -1,10 +1,16 @@
-'use client';
-
+"use client";
 import { motion } from 'framer-motion';
 import { Sparkles, Rocket, ShieldCheck, LayoutTemplate, PenLine, Link as LinkIcon } from 'lucide-react';
 import styles from '@/styles/main.module.css';
+import { JSX } from 'react';
 
-const features = [
+type Feature = {
+  title: string;
+  desc: string;
+  icon: JSX.Element;
+};
+
+const features: Feature[] = [
   {
     title: 'No-code page builder',
     desc: 'Drag-drop sections like About, Gallery, Testimonials, FAQs, Contact and more.',
@@ -43,25 +49,27 @@ export default function WhySection() {
       <div className="container">
         <div className={styles.blockHead}>
           <h2 id="why-title" className="section-title">Why myeasypage?</h2>
-          <p className="section-subtitle">Launch a premium website, blog or bio link on your own subdomain — in minutes.</p>
+          <p className="section-subtitle">
+            Launch a premium website, blog or bio link on your own subdomain — in minutes.
+          </p>
         </div>
 
-        <div className={styles.featureGrid}>
+        <ul className={styles.featureGrid} role="list" aria-label="Key features">
           {features.map((f, i) => (
-            <motion.div
+            <motion.li
               key={f.title}
               className={styles.featureCard}
               initial={{ opacity: 0, y: 14 }}
               whileInView={{ opacity: 1, y: 0 }}
               transition={{ delay: i * 0.06, duration: 0.45 }}
-              viewport={{ once: true }}
+              viewport={{ once: true, amount: 0.2 }}
             >
-              <div className={styles.featureIconWrapper}>{f.icon}</div>
-              <h4 className={styles.featureTitle}>{f.title}</h4>
+              <div className={styles.featureIconWrapper} aria-hidden="true">{f.icon}</div>
+              <h3 className={styles.featureTitle}>{f.title}</h3>
               <p className={styles.featureText}>{f.desc}</p>
-            </motion.div>
+            </motion.li>
           ))}
-        </div>
+        </ul>
       </div>
     </section>
   );

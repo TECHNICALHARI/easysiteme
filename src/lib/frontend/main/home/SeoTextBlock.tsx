@@ -1,23 +1,26 @@
-'use client';
-
+"use client";
 import { CheckCircle2, Sparkles, Layers } from 'lucide-react';
 import styles from '@/styles/main.module.css';
 
 export default function SeoTextBlock() {
   return (
-    <section aria-labelledby="seo-block" className={`${styles.seo} section`}>
+    <section aria-labelledby="seo-block-title" className={`${styles.seo} section`}>
       <div className="container">
         <div className={styles.seoHead}>
-          <h2 id="seo-block" className="section-title">What is myeasypage?</h2>
+          <h2 id="seo-block-title" className="section-title">
+            What is myeasypage?
+          </h2>
           <p className="section-subtitle">
             myeasypage is a fast, no-code builder for websites, blogs and link-in-bio pages on your own subdomain.
-            Create a professional presence, publish posts, embed content and collect leads — all in minutes.
+            Create a professional online presence, publish posts, embed content and collect leads — all in minutes.
           </p>
         </div>
 
         <div className={styles.seoGrid}>
           <article className={styles.seoCard}>
-            <div className={styles.seoCardIcon}><Sparkles size={18} /></div>
+            <div className={styles.seoCardIcon} aria-hidden="true">
+              <Sparkles size={18} />
+            </div>
             <h3 className={styles.seoH3}>Who is it for?</h3>
             <p className={styles.seoP}>
               Creators, freelancers, students, local businesses, coaches and small product teams who want a polished
@@ -26,20 +29,24 @@ export default function SeoTextBlock() {
           </article>
 
           <article className={styles.seoCard}>
-            <div className={styles.seoCardIcon}><Layers size={18} /></div>
+            <div className={styles.seoCardIcon} aria-hidden="true">
+              <Layers size={18} />
+            </div>
             <h3 className={styles.seoH3}>Key features</h3>
-            <ul className={styles.seoList}>
+            <ul className={styles.seoList} role="list">
               <li>Website & bio layouts with premium themes</li>
-              <li>Built-in blog: titles, descriptions, cover images and slugs</li>
+              <li>Built-in blog: titles, descriptions, cover images and clean URLs</li>
               <li>Drag-drop sections: About, Services, Gallery, FAQs, Testimonials</li>
               <li>Embeds: YouTube, Google Maps, Calendly and more</li>
-              <li>Custom domain on Pro & Premium</li>
+              <li>Custom domain support on Pro & Premium</li>
               <li>Secure, fast and SEO-friendly by default</li>
             </ul>
           </article>
 
           <article className={styles.seoCard}>
-            <div className={styles.seoCardIcon}><CheckCircle2 size={18} /></div>
+            <div className={styles.seoCardIcon} aria-hidden="true">
+              <CheckCircle2 size={18} />
+            </div>
             <h3 className={styles.seoH3}>Why choose myeasypage?</h3>
             <p className={styles.seoP}>
               Instead of juggling separate tools for your bio link, website and blog, you can launch everything in one place.

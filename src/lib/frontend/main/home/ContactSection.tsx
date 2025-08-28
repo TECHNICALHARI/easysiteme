@@ -17,7 +17,6 @@ export default function ContactSection() {
     if (!form.name || !form.email || !form.message) return;
     setBusy(true);
     try {
-      // Plug your API route here
       await new Promise((r) => setTimeout(r, 500));
       alert('Thanks! We’ll get back to you shortly.');
       setForm({ name: '', email: '', message: '' });
@@ -29,7 +28,7 @@ export default function ContactSection() {
   };
 
   return (
-    <section id="contact" className="section">
+    <section id="contact" className="section" aria-labelledby="contact-title">
       <div className="container flex items-center justify-center">
         <motion.div
           className={styles.contactCard}
@@ -38,47 +37,66 @@ export default function ContactSection() {
           viewport={{ once: true }}
           transition={{ duration: 0.45 }}
         >
-          <h2 className={styles.contactTitle}>Let’s talk</h2>
+          <h2 id="contact-title" className={styles.contactTitle}>
+            Let’s talk
+          </h2>
           <p className={styles.contactSubtitle}>
             Have questions about websites, blogs or bio links on myeasypage?
             Send a message and we’ll help you get started.
           </p>
 
           <form onSubmit={handleSubmit} className={styles.contactForm}>
-            <input
-              type="text"
-              name="name"
-              placeholder="Your name"
-              value={form.name}
-              onChange={handleChange}
-              className="input"
-              required
-              aria-label="Your name"
-            />
+            <div className={styles.formGroup}>
+              <label htmlFor="name" className="sr-only">Your name</label>
+              <input
+                id="name"
+                type="text"
+                name="name"
+                placeholder="Your name"
+                value={form.name}
+                onChange={handleChange}
+                className="input"
+                required
+                aria-label="Your name"
+              />
+            </div>
 
-            <input
-              type="email"
-              name="email"
-              placeholder="Your email"
-              value={form.email}
-              onChange={handleChange}
-              className="input"
-              required
-              aria-label="Your email"
-            />
+            <div className={styles.formGroup}>
+              <label htmlFor="email" className="sr-only">Your email</label>
+              <input
+                id="email"
+                type="email"
+                name="email"
+                placeholder="Your email"
+                value={form.email}
+                onChange={handleChange}
+                className="input"
+                required
+                aria-label="Your email"
+              />
+            </div>
 
-            <textarea
-              name="message"
-              placeholder="How can we help?"
-              rows={5}
-              value={form.message}
-              onChange={handleChange}
-              className="input"
-              required
-              aria-label="Your message"
-            />
+            <div className={styles.formGroup}>
+              <label htmlFor="message" className="sr-only">Your message</label>
+              <textarea
+                id="message"
+                name="message"
+                placeholder="How can we help?"
+                rows={5}
+                value={form.message}
+                onChange={handleChange}
+                className="input"
+                required
+                aria-label="Your message"
+              />
+            </div>
 
-            <button type="submit" className="btn-primary mt-2" disabled={busy} aria-busy={busy}>
+            <button
+              type="submit"
+              className="btn-primary mt-2"
+              disabled={busy}
+              aria-busy={busy}
+            >
               {busy ? 'Sending…' : 'Send message'}
             </button>
           </form>

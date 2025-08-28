@@ -1,6 +1,4 @@
-"use client";
-
-import Script from "next/script";
+// app/page.tsx  (Home)
 
 import Hero from "@/lib/frontend/main/home/Hero";
 import SocialProof from "@/lib/frontend/main/home/SocialProof";
@@ -14,8 +12,9 @@ import TrustSection from "@/lib/frontend/main/home/TrustSection";
 import FAQ from "@/lib/frontend/main/home/FAQ";
 import ContactSection from "@/lib/frontend/main/home/ContactSection";
 import CallToAction from "@/lib/frontend/main/home/CallToAction";
-import SeoTextBlock from "@/lib/frontend/main/home/SeoTextBlock";
 import SubscribeBand from "@/lib/frontend/main/home/SubscribeBand";
+
+import SeoSchemas from "@/lib/frontend/common/SeoSchemas";
 
 export default function Home() {
   const faqs = [
@@ -23,58 +22,21 @@ export default function Home() {
     { q: "What makes it different from link-in-bio tools?", a: "You get a real, customizable page with rich sections (About, Services, Gallery, FAQs, Forms) on your own subdomain." },
     { q: "Do I need to code?", a: "No. Fill a form, hit publish. Your page goes live instantly." },
     { q: "Can I use a custom domain?", a: "Custom domains are available on Pro and Premium. You also get a free subdomain like yourname.myeasypage.com." },
+    { q: "Can I switch between bio link and website layouts?", a: "Yes. You can start with a simple bio link and switch to a full website layout anytime without losing content." },
+    { q: "Does myeasypage support blogs?", a: "Yes. You can write blog posts with titles, cover images, and SEO fields built-in." },
+    { q: "Will my site be SEO friendly?", a: "Absolutely. Pages include clean URLs, meta tags, and fast loading for better search ranking." },
+    { q: "Do I need hosting?", a: "No. Hosting is included. Your site is served globally from edge servers for speed and reliability." }
   ];
 
-  const faqSchema = {
-    "@context": "https://schema.org",
-    "@type": "FAQPage",
-    mainEntity: faqs.map((f) => ({
-      "@type": "Question",
-      name: f.q,
-      acceptedAnswer: { "@type": "Answer", text: f.a },
-    })),
-  };
-
-  const orgSchema = {
-    "@context": "https://schema.org",
-    "@type": "Organization",
-    name: "myeasypage",
-    url: "https://myeasypage.com",
-    logo: "https://myeasypage.com/og/logo.png",
-  };
-
-  const productSchema = {
-    "@context": "https://schema.org",
-    "@type": "SoftwareApplication",
-    name: "myeasypage",
-    applicationCategory: "WebApplication",
-    operatingSystem: "Any",
-    url: "https://myeasypage.com",
-    description: "Build a personal or business one-page website with your own subdomain in under a minute. No code.",
-    offers: [
-      { "@type": "Offer", price: "0", priceCurrency: "INR", name: "Free" },
-      { "@type": "Offer", price: "199", priceCurrency: "INR", name: "Pro", priceValidUntil: "2026-12-31" },
-      { "@type": "Offer", price: "499", priceCurrency: "INR", name: "Premium", priceValidUntil: "2026-12-31" },
-    ],
-    aggregateRating: { "@type": "AggregateRating", ratingValue: "4.8", ratingCount: 128 },
-    publisher: { "@type": "Organization", name: "myeasypage" },
-  };
-
-  const breadcrumbSchema = {
-    "@context": "https://schema.org",
-    "@type": "BreadcrumbList",
-    itemListElement: [
-      { "@type": "ListItem", position: 1, name: "Home", item: "https://myeasypage.com/" },
-      { "@type": "ListItem", position: 2, name: "Pricing", item: "https://myeasypage.com/#plans" },
-    ],
-  };
+  const plans = [
+    { name: "Free", priceValue: 0, price: "₹0" },
+    { name: "Pro", priceValue: 199, price: "₹199/year" },
+    { name: "Premium", priceValue: 499, price: "₹499/year" },
+  ];
 
   return (
     <main id="main">
-      <Script id="faq-schema" type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }} />
-      <Script id="org-schema" type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(orgSchema) }} />
-      <Script id="product-schema" type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(productSchema) }} />
-      <Script id="breadcrumb-schema" type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }} />
+      <SeoSchemas page="home" faqs={faqs} plans={plans} />
 
       <Hero />
       <WhySection />
@@ -85,7 +47,6 @@ export default function Home() {
       <ComparisonSection />
       <PricingSection />
       <TrustSection />
-      <SeoTextBlock />
       <FAQ faqs={faqs} />
       <ContactSection />
       <CallToAction />

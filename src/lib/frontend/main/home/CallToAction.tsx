@@ -1,5 +1,4 @@
-'use client';
-
+"use client";
 import { motion } from 'framer-motion';
 import styles from '@/styles/main.module.css';
 import Link from 'next/link';
@@ -16,7 +15,7 @@ export default function CallToAction() {
           transition={{ duration: 0.45 }}
           viewport={{ once: true }}
         >
-          Launch your website, blog & bio link today
+          Launch your website, blog &amp; bio link today
         </motion.h2>
 
         <motion.p
@@ -27,7 +26,7 @@ export default function CallToAction() {
           viewport={{ once: true }}
         >
           Claim a free subdomain, add your sections and start publishing in minutes.
-          Upgrade anytime for custom domain and advanced blocks.
+          Upgrade anytime for a custom domain and advanced blocks.
         </motion.p>
 
         <motion.div
@@ -37,11 +36,17 @@ export default function CallToAction() {
           transition={{ delay: 0.25, duration: 0.4 }}
           viewport={{ once: true }}
         >
-          <Link href="/create" className="btn-primary">Create my site</Link>
-          <Link href="#plans" className="btn-white">See pricing</Link>
+          <Link href="/create" className="btn-primary" aria-label="Create your free website on myeasypage">
+            Create my site
+          </Link>
+          <Link href="#plans" className="btn-white" aria-label="View pricing plans on myeasypage">
+            See pricing
+          </Link>
         </motion.div>
 
-        <p className={styles.ctaNote}>No credit card required · Switch layouts anytime · Instant publishing</p>
+        <p className={styles.ctaNote}>
+          No credit card required · Switch layouts anytime · Instant publishing
+        </p>
       </div>
     </section>
   );

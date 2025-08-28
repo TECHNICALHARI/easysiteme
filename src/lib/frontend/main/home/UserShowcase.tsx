@@ -1,53 +1,173 @@
 'use client';
 
-import { motion } from 'framer-motion';
-import { Globe, UserCheck, Image, Video } from 'lucide-react';
-import styles from '@/styles/main.module.css';
+import { useEffect, useMemo, useState } from 'react';
+import { motion, useReducedMotion } from 'framer-motion';
 import Link from 'next/link';
+import Image from 'next/image';
+import styles from '@/styles/main.module.css';
 
-const users = [
-  { name: '@raj', link: 'https://raj.myeasypage.com', desc: 'Freelancer portfolio with services & WhatsApp CTA.', icon: <UserCheck size={20} /> },
-  { name: '@aisha', link: 'https://aisha.myeasypage.com', desc: 'Artist gallery + shop links and contact form.', icon: <Image size={20} /> },
-  { name: '@startupdeck', link: 'https://startupdeck.myeasypage.com', desc: 'Product site with features, video embed & pricing.', icon: <Globe size={20} /> },
-  { name: '@reelsbyzoe', link: 'https://reelsbyzoe.myeasypage.com', desc: 'Creator bio link with YouTube + Instagram embeds.', icon: <Video size={20} /> },
-  { name: '@techhub', link: 'https://techhub.myeasypage.com', desc: 'Tech blog with newsletter signup + projects.', icon: <Globe size={20} /> },
-  { name: '@chefamy', link: 'https://chefamy.myeasypage.com', desc: 'Food recipes with Instagram reels & YouTube.', icon: <Video size={20} /> },
-];
+type LayoutType = 'bio' | 'website';
+
+export type FeaturedUser = {
+  username: string;
+  fullName: string;
+  title?: string;
+  avatar?: string;
+  bannerImage?: string;
+  tags?: string[];
+  layoutType?: LayoutType;
+  customDomain?: string;
+};
+
+function publicUrl(u: FeaturedUser) {
+  if (u.customDomain && /^https?:\/\//i.test(u.customDomain)) return u.customDomain;
+  if (u.customDomain && !/^https?:\/\//i.test(u.customDomain)) return `https://${u.customDomain}`;
+  return `https://${u.username}.myeasypage.com`;
+}
+
+function smallLine(u: FeaturedUser) {
+  return u.title?.trim() || u.tags?.[0] || `@${u.username}`;
+}
+
+function pillText(u: FeaturedUser) {
+  return (u.layoutType === 'website' ? 'Website' : 'Bio');
+}
 
 export default function UserShowcase() {
-  // duplicate list to simulate infinite loop
-  const loopUsers = [...users, ...users];
+  const [items, setItems] = useState<FeaturedUser[] | null>(null);
+  const reduceMotion = useReducedMotion();
+
+  useEffect(() => {
+    let ignore = false;
+    (async () => {
+      try {
+        const res = await fetch('/api/public/featured', { cache: 'no-store' });
+        if (!res.ok) throw new Error('failed');
+        const data: FeaturedUser[] = await res.json();
+        if (!ignore) setItems(data?.length ? data : []);
+      } catch {
+        // optional: fallback curated examples till you wire the API
+        if (!ignore) {
+          setItems([
+            {
+              username: 'raj',
+              fullName: 'Raj Verma',
+              title: 'Freelance Developer',
+              avatar: 'https://patientportalapi.akosmd.in/assets/patient/2025/fcab01f1b13fc6d8095431d56da4aabd.png',
+              bannerImage: 'https://patientportalapi.akosmd.in/assets/patient/2025/571402977de4c6c762df1f903668d7f7.jpeg',
+              tags: ['freelancer', 'developer'],
+              layoutType: 'website',
+            },
+            {
+              username: 'aisha',
+              fullName: 'Aisha Khan',
+              title: 'Artist & Shop',
+              avatar: 'https://patientportalapi.akosmd.in/assets/patient/2025/fcab01f1b13fc6d8095431d56da4aabd.png',
+              bannerImage: 'https://patientportalapi.akosmd.in/assets/patient/2025/20655a3b5329a87b9862d05d774502c8.jpeg',
+              tags: ['artist'],
+              layoutType: 'bio',
+            },
+            {
+              username: 'startupdeck',
+              fullName: 'StartupDeck',
+              title: 'Product Landing',
+              avatar: 'https://patientportalapi.akosmd.in/assets/patient/2025/fcab01f1b13fc6d8095431d56da4aabd.png',
+              bannerImage: 'https://patientportalapi.akosmd.in/assets/patient/2025/20655a3b5329a87b9862d05d774502c8.jpeg',
+              tags: ['startup'],
+              layoutType: 'website',
+            },
+            {
+              username: 'reelsbyzoe',
+              fullName: 'Zoe',
+              title: 'Creator / Reels',
+              avatar: 'https://patientportalapi.akosmd.in/assets/patient/2025/fcab01f1b13fc6d8095431d56da4aabd.png',
+              bannerImage: 'https://patientportalapi.akosmd.in/assets/patient/2025/571402977de4c6c762df1f903668d7f7.jpeg',
+              tags: ['creator'],
+              layoutType: 'bio',
+            },
+            {
+              username: 'techhub',
+              fullName: 'Tech Hub',
+              title: 'Tech Blog',
+              avatar: 'https://patientportalapi.akosmd.in/assets/patient/2025/fcab01f1b13fc6d8095431d56da4aabd.png',
+              bannerImage: 'https://patientportalapi.akosmd.in/assets/patient/2025/20655a3b5329a87b9862d05d774502c8.jpeg',
+              tags: ['blog'],
+              layoutType: 'website',
+            },
+            {
+              username: 'chefamy',
+              fullName: 'Chef Amy',
+              title: 'Recipes & Videos',
+              avatar: 'https://patientportalapi.akosmd.in/assets/patient/2025/fcab01f1b13fc6d8095431d56da4aabd.png',
+              bannerImage: 'https://patientportalapi.akosmd.in/assets/patient/2025/571402977de4c6c762df1f903668d7f7.jpeg',
+              tags: ['food'],
+              layoutType: 'bio',
+            },
+          ]);
+        }
+      }
+    })();
+    return () => {
+      ignore = true;
+    };
+  }, []);
+
+  const loop = useMemo(() => (items ? [...items, ...items] : []), [items]);
 
   return (
     <section id="examples" className="section" aria-labelledby="examples-title">
       <div className="container">
         <div className={styles.blockHead}>
-          <h2 id="examples-title" className="section-title">Sites built on myeasypage</h2>
-          <p className="section-subtitle">Real pages created by people like you — fast, polished, and live.</p>
+          <h2 id="examples-title" className="section-title">Loved by makers</h2>
+          <p className="section-subtitle">
+            From bio links to full websites — freelancers, creators, startups, and small businesses
+            use myeasypage to launch polished online profiles in minutes.
+          </p>
         </div>
 
-        <div className={styles.userCarousel}>
+        <div className={styles.userCarousel} aria-label="User site examples">
           <motion.div
             className={styles.userTrack}
-            animate={{ x: ['0%', '-50%'] }}
-            transition={{ ease: 'linear', duration: 25, repeat: Infinity }}
+            animate={reduceMotion ? undefined : { x: ['0%', '-50%'] }}
+            transition={reduceMotion ? undefined : { ease: 'linear', duration: 25, repeat: Infinity }}
           >
-            {loopUsers.map((u, i) => (
-              <div key={`${u.name}-${i}`} className={styles.userCard}>
-                <div className={styles.userIcon}>{u.icon}</div>
-                <h4 className={styles.userHandle}>{u.name}</h4>
+            {loop.map((u, i) => {
+              const href = publicUrl(u);
+              const bg = u.bannerImage || u.avatar || '';
+              return (
                 <Link
-                  href={u.link}
+                  key={`${u.username}-${i}`}
+                  href={href}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className={styles.userLink}
-                  aria-label={`Open ${u.name} site`}
+                  className={`${styles.userCard} ${styles.userCardFull}`}
+                  aria-label={`Open ${u.fullName} site`}
                 >
-                  {u.link}
+                  {bg ? (
+                    <Image
+                      src={bg}
+                      alt=""
+                      fill
+                      sizes="(max-width: 600px) 260px, 320px"
+                      className={styles.userBgImg}
+                      priority={i < 4}
+                    />
+                  ) : (
+                    <div className={styles.userBgFallback} aria-hidden="true" />
+                  )}
+
+                  <div className={styles.userOverlay} aria-hidden="true" />
+
+                  <div className={styles.userBottom}>
+                    <div className={styles.userName}>{u.fullName}</div>
+                    <div className={styles.userSub}>
+                      <span className={styles.userSubText}>{smallLine(u)}</span>
+                      <span className={styles.userPill}>{pillText(u)}</span>
+                    </div>
+                  </div>
                 </Link>
-                <p className={styles.userDesc}>{u.desc}</p>
-              </div>
-            ))}
+              );
+            })}
           </motion.div>
         </div>
       </div>

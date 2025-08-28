@@ -1,4 +1,4 @@
-'use client';
+"use client"
 import { useMemo, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
@@ -17,13 +17,26 @@ export default function Hero() {
 
   const create = (e?: React.SyntheticEvent) => {
     e?.preventDefault();
-    router.push(`/create?u=${encodeURIComponent(safe)}`);
+    const q = safe ? `?u=${encodeURIComponent(safe)}` : '';
+    router.push(`/create${q}`);
+  };
+
+  const vh: React.CSSProperties = {
+    position: 'absolute',
+    width: 1,
+    height: 1,
+    padding: 0,
+    margin: -1,
+    overflow: 'hidden',
+    clip: 'rect(0, 0, 0, 0)',
+    whiteSpace: 'nowrap',
+    border: 0,
   };
 
   return (
     <section className={styles.hero} aria-labelledby="hero-title">
       <div className={styles.heroBackdrop} />
-      <div className={`container`}>
+      <div className="container">
         <div className={styles.heroGrid}>
           <div className={styles.left}>
             <motion.h1
@@ -41,56 +54,51 @@ export default function Hero() {
               initial={{ opacity: 0, y: 6 }}
               animate={{ opacity: 1, y: 0 }}
             >
-              Launch on your own subdomain today.
+              Launch on your own subdomain — publish instantly.
             </motion.p>
 
             <motion.form
-              onSubmit={(e) => {
-                e.preventDefault();
-                create(e);
-              }}
+              onSubmit={create}
               className={styles.domainForm}
+              aria-labelledby="hero-title"
               initial={{ opacity: 0, y: 6 }}
               animate={{ opacity: 1, y: 0 }}
             >
               <div className={styles.groupCompact}>
                 <div className={styles.composeWrap}>
+                  <label htmlFor="username" style={vh}>
+                    Choose a username
+                  </label>
+
                   <div className={styles.composedValue} aria-hidden="true">
-                    <span className={styles.userText}>
-                      {safe || 'username'}
-                    </span>
+                    <span className={styles.userText}>{safe || 'username'}</span>
                     <span className={styles.dot}>.</span>
                     <span className={styles.hostText}>myeasypage.com</span>
                   </div>
+
                   <input
                     ref={inputRef}
                     id="username"
+                    name="username"
                     className={styles.composeInput}
                     type="text"
                     inputMode="text"
                     autoComplete="off"
+                    autoCapitalize="none"
+                    autoCorrect="off"
                     spellCheck={false}
+                    placeholder="Pick a username"
                     aria-label="Choose a username"
                     value={username}
                     onChange={(e) => setUsername(e.target.value)}
-                    onKeyDown={(e) => e.key === 'Enter' && create(e)}
                   />
                 </div>
-                <button type="button" className={styles.primaryBtnGroup} onClick={create}>
+
+                <button type="submit" className={styles.primaryBtnGroup} aria-label="Create your page">
                   Create
                 </button>
               </div>
             </motion.form>
-
-            <motion.p
-              className={styles.secureText}
-              initial={{ opacity: 0, y: 6 }}
-              animate={{ opacity: 1, y: 0 }}
-            >
-              <span>Secure your link</span>{' '}
-              <code>{safe || 'username'}.myeasypage.com</code>.{' '}
-              <span>Publish instantly.</span>
-            </motion.p>
 
             <motion.div
               className={styles.benefitsStrip}

@@ -3,9 +3,8 @@ import React from 'react'
 
 const Logo = () => {
     return (
-        <div className="logo2">
-            {/* my<span className="highlight">easy</span>page */}
-            <Image src="/logo.png" alt="myeasypage" width={150} height={30} className='logo-image'  />
+        <div className="logo">
+            <Image src="/logo.png" alt="myeasypage" width={100} height={30} />
         </div>
     )
 }

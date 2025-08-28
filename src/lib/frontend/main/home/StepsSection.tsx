@@ -1,10 +1,12 @@
-'use client';
-
+"use client";
 import { motion } from 'framer-motion';
 import { PencilLine, LayoutTemplate, Globe2, Rocket } from 'lucide-react';
 import styles from '@/styles/main.module.css';
+import { JSX } from 'react';
 
-const steps = [
+type Step = { title: string; desc: string; icon: JSX.Element };
+
+const steps: Step[] = [
     {
         title: 'Claim your subdomain',
         desc: 'Pick something memorable like yourname.myeasypage.com. No credit card needed.',
@@ -12,17 +14,17 @@ const steps = [
     },
     {
         title: 'Choose layout & theme',
-        desc: 'Bio link or full website, light or dark, swap themes anytime.',
+        desc: 'Bio link or full website, light or dark — switch anytime.',
         icon: <LayoutTemplate size={22} />,
     },
     {
         title: 'Add content & posts',
-        desc: 'Drag-drop sections for About, Services, Gallery, FAQs and write blog posts with SEO fields.',
+        desc: 'Drag-drop About, Services, Gallery, FAQs, and write blog posts with SEO fields.',
         icon: <PencilLine size={22} />,
     },
     {
         title: 'Publish in seconds',
-        desc: 'Your page goes live instantly with global edge delivery and clean links.',
+        desc: 'Go live instantly with global delivery and clean links.',
         icon: <Rocket size={22} />,
     },
 ];
@@ -36,24 +38,26 @@ export default function StepsSection() {
                     <p className="section-subtitle">From idea to live site — no code, no friction.</p>
                 </div>
 
-                <div className={styles.featureGrid}>
+                <ol className={styles.featureGrid} aria-label="Setup steps">
                     {steps.map((s, i) => (
-                        <motion.div
+                        <motion.li
                             key={s.title}
                             className={styles.featureCard}
                             initial={{ opacity: 0, y: 10 }}
                             whileInView={{ opacity: 1, y: 0 }}
                             transition={{ delay: i * 0.05, duration: 0.35 }}
-                            viewport={{ once: true }}
+                            viewport={{ once: true, amount: 0.2 }}
                         >
-                            <div className={styles.featureIconWrapper}>
+                            <div className={styles.featureIconWrapper} aria-hidden="true">
                                 <span className={styles.featureIcon}>{s.icon}</span>
                             </div>
-                            <h4 className={styles.featureTitle}>{i + 1}. {s.title}</h4>
+                            <h3 className={styles.featureTitle}>
+                                {i + 1}. {s.title}
+                            </h3>
                             <p className={styles.featureText}>{s.desc}</p>
-                        </motion.div>
+                        </motion.li>
                     ))}
-                </div>
+                </ol>
             </div>
         </section>
     );

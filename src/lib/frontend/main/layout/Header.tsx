@@ -8,9 +8,10 @@ import ThemeToggle from '@/lib/frontend/main/home/ThemeToggle';
 import Logo from '@/lib/frontend/common/Logo';
 
 const navItems = [
-  { label: 'Why', href: '#why' },
-  { label: 'Plans', href: '#plans' },
-  { label: 'Contact', href: '#contact' },
+  { label: 'Why', href: '/#why' },
+  { label: 'Plans', href: '/#plans' },
+  { label: 'About', href: '/about' },
+  { label: 'Contact', href: '/#contact' },
 ];
 
 export default function Header() {
@@ -34,10 +35,12 @@ export default function Header() {
   return (
     <header className={`${styles.header} ${isScrolled ? styles.headerScrolled : ''}`}>
       <div className={`container ${styles.headerInner}`}>
+        {/* Logo */}
         <Link href="/" className={styles.logoLink} aria-label="myeasypage home">
           <Logo />
         </Link>
 
+        {/* Desktop Nav */}
         <nav className={`${styles.nav} hidden md:flex`} aria-label="Primary">
           <ul className={styles.navList}>
             {navItems.map((item) => (
@@ -60,6 +63,7 @@ export default function Header() {
           </div>
         </nav>
 
+        {/* Mobile Menu Button */}
         <button
           className={`md:hidden ${styles.menuBtn}`}
           aria-label="Toggle menu"
@@ -70,14 +74,27 @@ export default function Header() {
         </button>
       </div>
 
-      <div className={`${styles.mobileScrim} ${menuOpen ? styles.showScrim : ''}`} onClick={() => setMenuOpen(false)} />
+      {/* Mobile Overlay */}
+      <div
+        className={`${styles.mobileScrim} ${menuOpen ? styles.showScrim : ''}`}
+        onClick={() => setMenuOpen(false)}
+      />
 
-      <div className={`${styles.mobileDropdown} ${menuOpen ? styles.mobileOpen : ''}`} role="dialog" aria-label="Mobile navigation">
+      {/* Mobile Dropdown */}
+      <div
+        className={`${styles.mobileDropdown} ${menuOpen ? styles.mobileOpen : ''}`}
+        role="dialog"
+        aria-label="Mobile navigation"
+      >
         <div className={styles.mobileHeader}>
           <Link href="/" className={styles.logoLink} onClick={() => setMenuOpen(false)}>
             <Logo />
           </Link>
-          <button aria-label="Close menu" className={styles.menuBtn} onClick={() => setMenuOpen(false)}>
+          <button
+            aria-label="Close menu"
+            className={styles.menuBtn}
+            onClick={() => setMenuOpen(false)}
+          >
             <X size={20} />
           </button>
         </div>
@@ -85,7 +102,11 @@ export default function Header() {
         <ul className={styles.mobileList}>
           {navItems.map((item) => (
             <li key={item.href}>
-              <Link href={item.href} className={styles.mobileNavLink} onClick={() => setMenuOpen(false)}>
+              <Link
+                href={item.href}
+                className={styles.mobileNavLink}
+                onClick={() => setMenuOpen(false)}
+              >
                 {item.label}
               </Link>
             </li>

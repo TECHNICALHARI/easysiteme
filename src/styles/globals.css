@@ -37,46 +37,14 @@ html {
 }
 
 /* logo start */
-.logo {
-  font-family: var(--font-base);
-  font-weight: 800;
-  font-size: 2.4rem;
-  line-height: 1.1;
-  letter-spacing: -0.04em;
-  display: inline-flex;
-  align-items: center;
-  color: var(--color-text);
-  white-space: nowrap;
+.logo img{
   cursor: pointer;
   transition: transform 0.3s ease, color 0.3s ease;
 }
 
-.logo .highlight {
-  font-weight: 900;
-  background: linear-gradient(90deg,
-      var(--color-brand),
-      var(--color-brand-dark));
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  display: inline-block;
-  margin: 0 2px;
-  transition: filter 0.3s ease;
-}
-
-.logo:hover {
+.logo img:hover {
   transform: translateY(-2px) scale(1.03);
 }
-
-.logo:hover .highlight {
-  filter: brightness(1.25);
-}
-
-@media (max-width: 1024px) {
-  .logo {
-    font-size: 1.8rem;
-  }
-}
-
 /* logo end */
 .container {
   width: min(76rem, 100% - clamp(1rem, 4vw, 2rem));
@@ -84,7 +52,7 @@ html {
 }
 
 .section {
-  padding-block: clamp(2.5rem, 6vw, 4rem);
+  padding-block: clamp(2rem, 6vw, 3rem);
   padding-inline: clamp(1rem, 3vw, 1.5rem);
 }
 
