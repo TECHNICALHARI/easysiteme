@@ -13,11 +13,6 @@ import {
 } from "lucide-react";
 
 export default function AboutPage() {
-  const plans = [
-    { name: "Free", priceValue: 0, price: "₹0" },
-    { name: "Pro", priceValue: 199, price: "₹199/year" },
-    { name: "Premium", priceValue: 499, price: "₹499/year" },
-  ];
 
   const values = [
     {
@@ -55,7 +50,7 @@ export default function AboutPage() {
 
   return (
     <main id="main">
-      <SeoSchemas page="about" plans={plans} />
+      <SeoSchemas page="about" />
 
       <section className="section bg-muted" aria-labelledby="about-title">
         <div className="container">

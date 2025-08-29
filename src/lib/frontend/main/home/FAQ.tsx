@@ -4,10 +4,10 @@ import { useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { ChevronDown } from 'lucide-react';
 import styles from '@/styles/main.module.css';
+import { faqs } from '../../utils/faqs';
 
-type QA = { q: string; a: string };
 
-export default function FAQ({ faqs }: { faqs: QA[] }) {
+export default function FAQ() {
   const [openIndex, setOpenIndex] = useState<number | null>(0);
 
   return (

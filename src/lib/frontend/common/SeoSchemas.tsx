@@ -1,15 +1,12 @@
 import Script from "next/script";
-
-type FAQ = { q: string; a: string };
-type Plan = { name: string; priceValue: number; price: string };
+import { faqs } from "@/lib/frontend/utils/faqs";
+import { plans } from "@/lib/frontend/utils/plans";
 
 type Props = {
   page: "home" | "about" | "terms" | "privacy";
-  faqs?: FAQ[];
-  plans: Plan[];
 };
 
-export default function SeoSchemas({ page, faqs = [], plans }: Props) {
+export default function SeoSchemas({ page }: Props) {
   const hasFaqs = Array.isArray(faqs) && faqs.length > 0;
   const nowIso = new Date().toISOString();
   const lang = "en";
@@ -25,9 +22,9 @@ export default function SeoSchemas({ page, faqs = [], plans }: Props) {
         "@type": "ContactPoint",
         contactType: "customer support",
         url: "https://myeasypage.com/#contact",
-        availableLanguage: ["en", "hi"],
-      },
-    ],
+        availableLanguage: ["en", "hi"]
+      }
+    ]
   };
 
   const productSchema = {
@@ -37,16 +34,15 @@ export default function SeoSchemas({ page, faqs = [], plans }: Props) {
     applicationCategory: "WebApplication",
     operatingSystem: "Any",
     url: "https://myeasypage.com",
-    description:
-      "Build a personal or business one-page website with your own subdomain in under a minute. No code.",
+    description: "Build a personal or business one-page website with your own subdomain in under a minute. No code.",
     offers: plans.map((p) => ({
       "@type": "Offer",
       price: String(p.priceValue),
       priceCurrency: "INR",
       name: `${p.name} Plan`,
-      url: "https://myeasypage.com/#plans",
+      url: "https://myeasypage.com/#plans"
     })),
-    publisher: { "@type": "Organization", name: "myeasypage" },
+    publisher: { "@type": "Organization", name: "myeasypage" }
   };
 
   const offerCatalogSchema = {
@@ -63,17 +59,17 @@ export default function SeoSchemas({ page, faqs = [], plans }: Props) {
         "@type": "Service",
         name: `myeasypage ${p.name} Plan`,
         url: "https://myeasypage.com/#plans",
-        provider: { "@type": "Organization", name: "myeasypage" },
+        provider: { "@type": "Organization", name: "myeasypage" }
       },
       priceSpecification: {
         "@type": "UnitPriceSpecification",
         price: p.priceValue,
         priceCurrency: "INR",
-        unitText: "YEAR",
+        unitText: "YEAR"
       },
       availability: "https://schema.org/InStock",
-      eligibleCustomerType: "https://schema.org/IndividualCustomer",
-    })),
+      eligibleCustomerType: "https://schema.org/IndividualCustomer"
+    }))
   };
 
   const siteNavigationSchema = {
@@ -91,7 +87,7 @@ export default function SeoSchemas({ page, faqs = [], plans }: Props) {
       "FAQ",
       "About",
       "Contact",
-      "Get Started",
+      "Get Started"
     ],
     url: [
       "https://myeasypage.com/#why",
@@ -104,26 +100,25 @@ export default function SeoSchemas({ page, faqs = [], plans }: Props) {
       "https://myeasypage.com/#faq",
       "https://myeasypage.com/about",
       "https://myeasypage.com/#contact",
-      "https://myeasypage.com/create",
-    ],
+      "https://myeasypage.com/create"
+    ]
   };
 
-  // HOME
   const homeSchemas = [
     hasFaqs
       ? {
-          id: "faq-schema",
-          data: {
-            "@context": "https://schema.org",
-            "@type": "FAQPage",
-            mainEntity: faqs.map((f) => ({
-              "@type": "Question",
-              name: f.q,
-              acceptedAnswer: { "@type": "Answer", text: f.a },
-            })),
-            inLanguage: lang,
-          },
+        id: "faq-schema",
+        data: {
+          "@context": "https://schema.org",
+          "@type": "FAQPage",
+          mainEntity: faqs.map((f) => ({
+            "@type": "Question",
+            name: f.q,
+            acceptedAnswer: { "@type": "Answer", text: f.a }
+          })),
+          inLanguage: lang
         }
+      }
       : null,
     {
       id: "home-breadcrumb",
@@ -132,9 +127,9 @@ export default function SeoSchemas({ page, faqs = [], plans }: Props) {
         "@type": "BreadcrumbList",
         itemListElement: [
           { "@type": "ListItem", position: 1, name: "Home", item: "https://myeasypage.com/" },
-          { "@type": "ListItem", position: 2, name: "Pricing", item: "https://myeasypage.com/#plans" },
-        ],
-      },
+          { "@type": "ListItem", position: 2, name: "Pricing", item: "https://myeasypage.com/#plans" }
+        ]
+      }
     },
     {
       id: "home-webpage",
@@ -145,17 +140,15 @@ export default function SeoSchemas({ page, faqs = [], plans }: Props) {
         url: "https://myeasypage.com/",
         name: "myeasypage — website, blog & bio link builder",
         isPartOf: { "@type": "WebSite", url: "https://myeasypage.com", name: "myeasypage" },
-        description:
-          "Create a fast website, blog and link-in-bio on your own subdomain. Start free, upgrade for custom domains and premium layouts.",
+        description: "Create a fast website, blog and link-in-bio on your own subdomain. Start free, upgrade for custom domains and premium layouts.",
         breadcrumb: { "@id": "https://myeasypage.com/#breadcrumb" },
         primaryImageOfPage: { "@type": "ImageObject", url: "https://myeasypage.com/og/cover.png" },
         inLanguage: lang,
-        dateModified: nowIso,
-      },
-    },
+        dateModified: nowIso
+      }
+    }
   ].filter(Boolean) as { id: string; data: any }[];
 
-  // ABOUT
   const aboutSchemas = [
     {
       id: "about-breadcrumb",
@@ -164,9 +157,9 @@ export default function SeoSchemas({ page, faqs = [], plans }: Props) {
         "@type": "BreadcrumbList",
         itemListElement: [
           { "@type": "ListItem", position: 1, name: "Home", item: "https://myeasypage.com/" },
-          { "@type": "ListItem", position: 2, name: "About", item: "https://myeasypage.com/about" },
-        ],
-      },
+          { "@type": "ListItem", position: 2, name: "About", item: "https://myeasypage.com/about" }
+        ]
+      }
     },
     {
       id: "aboutpage-schema",
@@ -176,16 +169,14 @@ export default function SeoSchemas({ page, faqs = [], plans }: Props) {
         "@id": "https://myeasypage.com/about#aboutpage",
         name: "About myeasypage",
         url: "https://myeasypage.com/about",
-        description:
-          "myeasypage helps creators, freelancers and small businesses build fast sites, blogs and bio links without code.",
+        description: "myeasypage helps creators, freelancers and small businesses build fast sites, blogs and bio links without code.",
         isPartOf: { "@type": "WebSite", name: "myeasypage", url: "https://myeasypage.com" },
         inLanguage: lang,
-        dateModified: nowIso,
-      },
-    },
+        dateModified: nowIso
+      }
+    }
   ];
 
-  // TERMS
   const termsSchemas = [
     {
       id: "terms-breadcrumb",
@@ -194,9 +185,9 @@ export default function SeoSchemas({ page, faqs = [], plans }: Props) {
         "@type": "BreadcrumbList",
         itemListElement: [
           { "@type": "ListItem", position: 1, name: "Home", item: "https://myeasypage.com/" },
-          { "@type": "ListItem", position: 2, name: "Terms of Service", item: "https://myeasypage.com/terms" },
-        ],
-      },
+          { "@type": "ListItem", position: 2, name: "Terms of Service", item: "https://myeasypage.com/terms" }
+        ]
+      }
     },
     {
       id: "terms-webpage",
@@ -206,12 +197,11 @@ export default function SeoSchemas({ page, faqs = [], plans }: Props) {
         "@id": "https://myeasypage.com/terms#webpage",
         url: "https://myeasypage.com/terms",
         name: "Terms of Service — myeasypage",
-        description:
-          "Terms of Service for using myeasypage: eligibility, acceptable use, payments, termination and changes.",
+        description: "Terms of Service for using myeasypage: eligibility, acceptable use, payments, termination and changes.",
         isPartOf: { "@type": "WebSite", url: "https://myeasypage.com", name: "myeasypage" },
         inLanguage: lang,
-        dateModified: nowIso,
-      },
+        dateModified: nowIso
+      }
     },
     {
       id: "terms-doc",
@@ -223,12 +213,11 @@ export default function SeoSchemas({ page, faqs = [], plans }: Props) {
         url: "https://myeasypage.com/terms",
         publisher: { "@type": "Organization", name: "myeasypage", url: "https://myeasypage.com" },
         inLanguage: lang,
-        dateModified: nowIso,
-      },
-    },
+        dateModified: nowIso
+      }
+    }
   ];
 
-  // PRIVACY
   const privacySchemas = [
     {
       id: "privacy-breadcrumb",
@@ -237,9 +226,9 @@ export default function SeoSchemas({ page, faqs = [], plans }: Props) {
         "@type": "BreadcrumbList",
         itemListElement: [
           { "@type": "ListItem", position: 1, name: "Home", item: "https://myeasypage.com/" },
-          { "@type": "ListItem", position: 2, name: "Privacy Policy", item: "https://myeasypage.com/privacy" },
-        ],
-      },
+          { "@type": "ListItem", position: 2, name: "Privacy Policy", item: "https://myeasypage.com/privacy" }
+        ]
+      }
     },
     {
       id: "privacy-webpage",
@@ -249,12 +238,11 @@ export default function SeoSchemas({ page, faqs = [], plans }: Props) {
         "@id": "https://myeasypage.com/privacy#webpage",
         url: "https://myeasypage.com/privacy",
         name: "Privacy Policy — myeasypage",
-        description:
-          "Privacy Policy describing how myeasypage collects, uses and protects your information.",
+        description: "Privacy Policy describing how myeasypage collects, uses and protects your information.",
         isPartOf: { "@type": "WebSite", url: "https://myeasypage.com", name: "myeasypage" },
         inLanguage: lang,
-        dateModified: nowIso,
-      },
+        dateModified: nowIso
+      }
     },
     {
       id: "privacy-doc",
@@ -266,16 +254,16 @@ export default function SeoSchemas({ page, faqs = [], plans }: Props) {
         url: "https://myeasypage.com/privacy",
         publisher: { "@type": "Organization", name: "myeasypage", url: "https://myeasypage.com" },
         inLanguage: lang,
-        dateModified: nowIso,
-      },
-    },
+        dateModified: nowIso
+      }
+    }
   ];
 
   const commonSchemas = [
     { id: "org-schema", data: orgSchema },
     { id: "product-schema", data: productSchema },
     { id: "offer-catalog-schema", data: offerCatalogSchema },
-    { id: "sitenav-schema", data: siteNavigationSchema },
+    { id: "sitenav-schema", data: siteNavigationSchema }
   ];
 
   let pageSchemas: { id: string; data: any }[] = [];

@@ -116,7 +116,7 @@ export default function UserShowcase() {
 
   return (
     <section id="examples" className="section" aria-labelledby="examples-title">
-      <div className="container">
+      <div className="container-fluid">
         <div className={styles.blockHead}>
           <h2 id="examples-title" className="section-title">Loved by makers</h2>
           <p className="section-subtitle">

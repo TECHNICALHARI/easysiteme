@@ -2,15 +2,9 @@ import SeoSchemas from "@/lib/frontend/common/SeoSchemas";
 import styles from "@/styles/main.module.css";
 
 export default function TermsPage() {
-  const plans = [
-    { name: "Free", priceValue: 0, price: "₹0" },
-    { name: "Pro", priceValue: 199, price: "₹199/year" },
-    { name: "Premium", priceValue: 499, price: "₹499/year" },
-  ];
-
   return (
     <main id="main">
-      <SeoSchemas page="terms" plans={plans} />
+      <SeoSchemas page="terms" />
 
       <section className={`section ${styles.legalSection}`} aria-labelledby="terms-title">
         <div className="container">
