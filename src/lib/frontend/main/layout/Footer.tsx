@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { Facebook, Twitter, Instagram, Linkedin } from 'lucide-react';
 import styles from '@/styles/main.module.css';
+import Logo from '../../common/Logo';
 
 export default function Footer() {
   const year = new Date().getFullYear();
@@ -12,7 +13,9 @@ export default function Footer() {
       <div className="container">
         <div className={styles.footerTop}>
           <div className={styles.footerBrandBlock}>
-            <h3 className={styles.footerBrand}>myeasypage</h3>
+            <Link href="/" className={styles.logoLink} aria-label="myeasypage home">
+              <Logo width={140} />
+            </Link>
             <p className={styles.footerDesc}>
               Create beautiful websites, blogs &amp; bio links instantly — no code.
               Customizable themes. Instant publishing.

@@ -789,7 +789,7 @@
   margin-inline: calc(50% - 50vw);
   padding-block: 10px;
   contain: content;
-  \--fade: 12%;
+  --fade: 12%;
   mask-image: linear-gradient(to right, transparent, #000 var(--fade), #000 calc(100% - var(--fade)), transparent);
   -webkit-mask-image: linear-gradient(to right, transparent, #000 var(--fade), #000 calc(100% - var(--fade)), transparent);
 }
@@ -1579,6 +1579,7 @@
   line-height: 1.7;
   color: var(--color-text-muted);
   margin-bottom: 1rem;
+  margin-top: -1.5rem;
 }
 
 .footerGrid {

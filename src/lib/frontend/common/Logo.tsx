@@ -1,10 +1,13 @@
 import Image from 'next/image'
-import React from 'react'
+import React, { FC } from 'react'
 
-const Logo = () => {
+interface Props {
+    width?: number;
+}
+const Logo: FC<Props> = ({ width }) => {
     return (
-        <div className="logo">
-            <Image src="/logo.png" alt="myeasypage" width={100} height={30} />
+        <div className={`logo`}>
+            <Image src="/logo.png" alt="myeasypage" width={width ? width : 100} height={30} />
         </div>
     )
 }

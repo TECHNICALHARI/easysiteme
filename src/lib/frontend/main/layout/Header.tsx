@@ -35,12 +35,10 @@ export default function Header() {
   return (
     <header className={`${styles.header} ${isScrolled ? styles.headerScrolled : ''}`}>
       <div className={`container ${styles.headerInner}`}>
-        {/* Logo */}
         <Link href="/" className={styles.logoLink} aria-label="myeasypage home">
           <Logo />
         </Link>
 
-        {/* Desktop Nav */}
         <nav className={`${styles.nav} hidden md:flex`} aria-label="Primary">
           <ul className={styles.navList}>
             {navItems.map((item) => (
@@ -63,7 +61,6 @@ export default function Header() {
           </div>
         </nav>
 
-        {/* Mobile Menu Button */}
         <button
           className={`md:hidden ${styles.menuBtn}`}
           aria-label="Toggle menu"
@@ -74,13 +71,11 @@ export default function Header() {
         </button>
       </div>
 
-      {/* Mobile Overlay */}
       <div
         className={`${styles.mobileScrim} ${menuOpen ? styles.showScrim : ''}`}
         onClick={() => setMenuOpen(false)}
       />
 
-      {/* Mobile Dropdown */}
       <div
         className={`${styles.mobileDropdown} ${menuOpen ? styles.mobileOpen : ''}`}
         role="dialog"
