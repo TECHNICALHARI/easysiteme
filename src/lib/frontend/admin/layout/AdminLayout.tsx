@@ -39,7 +39,20 @@ const EMPTY_FORM: FormData = {
     resumeUrl: '',
   },
   design: { theme: 'brand', emojiLink: '', brandingOff: false, layoutType: 'bio' },
-  seo: { metaTitle: '', metaDescription: '' },
+  seo: {
+    metaTitle: '',
+    metaDescription: '',
+    metaKeywords: [],
+    canonicalUrl: '',
+    ogTitle: '',
+    ogDescription: '',
+    ogImage: '',
+    twitterTitle: '',
+    twitterDescription: '',
+    twitterImage: '',
+    noIndex: false,
+    noFollow: false,
+  },
   settings: { nsfwWarning: false, preferredLink: 'primary', customDomain: '', gaId: '' },
   socials: { youtube: '', instagram: '', calendly: '' },
   posts: { posts: [] },
@@ -47,29 +60,45 @@ const EMPTY_FORM: FormData = {
     SubscriberList: { data: [], total: 0, active: 0, unsubscribed: 0 },
     subscriberSettings: { hideSubscribeButton: false, subject: '', thankYouMessage: '' },
   },
+  stats: {
+    linkClicks: [],
+    trafficSources: [],
+    contactSubmissions: [],
+    topLinks: [],
+  },
 };
 
-function mergeForm(base: FormData, incoming: Partial<FormData>): FormData {
+function mergeForm(
+  base: FormData,
+  apiData?: Partial<FormData>,
+  draft?: Partial<FormData>
+): FormData {
   return {
     ...base,
-    ...incoming,
-    profile: { ...base.profile, ...(incoming.profile || {}) },
-    design: { ...base.design, ...(incoming.design || {}) },
-    seo: { ...base.seo, ...(incoming.seo || {}) },
-    settings: { ...base.settings, ...(incoming.settings || {}) },
-    socials: { ...base.socials, ...(incoming.socials || {}) },
-    posts: { ...base.posts, ...(incoming.posts || {}) },
+    ...apiData,
+    ...draft,
+    profile: { ...base.profile, ...apiData?.profile, ...draft?.profile },
+    design: { ...base.design, ...apiData?.design, ...draft?.design },
+    seo: { ...base.seo, ...apiData?.seo, ...draft?.seo },
+    settings: { ...base.settings, ...apiData?.settings, ...draft?.settings },
+    socials: { ...base.socials, ...apiData?.socials, ...draft?.socials },
+    posts: { ...base.posts, ...apiData?.posts, ...draft?.posts },
     subscriberSettings: {
-      ...base.subscriberSettings,
-      ...(incoming.subscriberSettings || {}),
       SubscriberList: {
         ...base.subscriberSettings.SubscriberList,
-        ...(incoming.subscriberSettings?.SubscriberList || {}),
+        ...apiData?.subscriberSettings?.SubscriberList,
+        ...draft?.subscriberSettings?.SubscriberList,
       },
       subscriberSettings: {
         ...base.subscriberSettings.subscriberSettings,
-        ...(incoming.subscriberSettings?.subscriberSettings || {}),
+        ...apiData?.subscriberSettings?.subscriberSettings,
+        ...draft?.subscriberSettings?.subscriberSettings,
       },
+    },
+    stats: {
+      ...base.stats,
+      ...apiData?.stats,
+      ...draft?.stats,
     },
   };
 }
@@ -80,22 +109,22 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const isPreviewRoute = useMemo(() => /(?:^|\/)admin\/preview(?:\/|$)/.test(path), [path]);
 
   const [form, setForm] = useState<FormData>(EMPTY_FORM);
+  const [serverData, setServerData] = useState<Partial<FormData>>({});
   const [plan, setPlan] = useState<PlanType>('pro');
-  const [isLoading, setIsLoading] = useState<boolean>(true);
-  const [bootstrapped, setBootstrapped] = useState<boolean>(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [bootstrapped, setBootstrapped] = useState(false);
 
   useEffect(() => {
-    try {
-      const draft = loadDraft();
-      if (draft && typeof draft === 'object') {
-        setForm(prev => mergeForm(prev, draft));
-      }
-    } catch { }
+    const draft = loadDraft();
+    if (draft && Object.keys(draft).length > 0) {
+      setForm((prev) => mergeForm(prev, {}, draft));
+    }
   }, []);
 
   useEffect(() => {
+    if (typeof window === 'undefined') return;
     let embedded = false;
-    if (typeof window !== 'undefined') embedded = !!(window.parent && window.parent !== window);
+    if (window.parent && window.parent !== window) embedded = true;
     if (isPreviewRoute && embedded) {
       setIsLoading(false);
       setBootstrapped(true);
@@ -115,13 +144,11 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         if (res.ok) {
           const json = await res.json();
           const payload = json?.data ?? json;
-
           if (payload && typeof payload === 'object') {
-            if (payload.plan) {
-              setPlan(payload.plan as PlanType); 
-            }
-            const { plan: _ignore, ...rest } = payload;
-            setForm(prev => mergeForm(prev, rest));
+            if (payload.plan) setPlan(payload.plan as PlanType);
+            setServerData(payload);
+            const draft = loadDraft();
+            setForm((prev) => mergeForm(prev, payload, draft));
           }
         }
       } catch {
@@ -134,7 +161,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     return () => ac.abort();
   }, [isPreviewRoute]);
 
-  useLocalDraft(form, true);
+  useLocalDraft(form, true, serverData);
   usePreviewBus(form, plan);
 
   return (

@@ -77,18 +77,28 @@ export interface Resume {
 export interface SEO {
   metaTitle: string;
   metaDescription: string;
+  metaKeywords?: string[];
+  canonicalUrl?: string;
+  ogTitle?: string;
+  ogDescription?: string;
+  ogImage?: string;
+  twitterTitle?: string;
+  twitterDescription?: string;
+  twitterImage?: string;
+  noIndex?: boolean;
+  noFollow?: boolean;
 }
 
 export interface Design {
   theme: string;
   emojiLink?: string;
   brandingOff?: boolean;
-  layoutType: 'bio' | 'website';
+  layoutType: "bio" | "website";
 }
 
 export interface Settings {
   nsfwWarning: boolean;
-  preferredLink: 'primary' | 'custom';
+  preferredLink: "primary" | "custom";
   customDomain: string;
   gaId?: string;
 }
@@ -132,7 +142,7 @@ export interface SubscriberList {
   data: {
     email: string;
     subscribedOn: string;
-    status: 'Active' | 'Unsubscribed';
+    status: "Active" | "Unsubscribed";
   }[];
   total: number;
   active: number;
@@ -148,6 +158,36 @@ export interface SubscriberDataTypes {
   SubscriberList: SubscriberList;
 }
 
+export interface LinkClick {
+  label: string;
+  value: number;
+}
+
+export interface TrafficSource {
+  label: string;
+  value: number;
+}
+
+export interface ContactSubmission {
+  name: string;
+  email: string;
+  message: string;
+  submittedOn: string;
+}
+
+export interface TopLink {
+  title: string;
+  url: string;
+  clicks: number;
+}
+
+export interface Stats {
+  linkClicks?: LinkClick[];
+  trafficSources?: TrafficSource[];
+  contactSubmissions?: ContactSubmission[];
+  topLinks?: TopLink[];
+}
+
 export interface FormData {
   profile: ProfileTabData;
   previewMode?: boolean;
@@ -157,17 +197,18 @@ export interface FormData {
   socials: Socials;
   posts: PostsTabData;
   subscriberSettings: SubscriberDataTypes;
+  stats?: Stats;
   // plan: 'free' | 'pro' | 'premium';
 }
 
 export type ReorderableProfileKeys =
-  | 'links'
-  | 'headers'
-  | 'embeds'
-  | 'testimonials'
-  | 'faqs'
-  | 'services'
-  | 'featured';
+  | "links"
+  | "headers"
+  | "embeds"
+  | "testimonials"
+  | "faqs"
+  | "services"
+  | "featured";
 
 export type ProfileTypeMap = {
   links: Link[];

@@ -13,12 +13,7 @@ import SettingsTab from './setting/SettingsTab';
 
 const tabs = ['Profile', 'Posts', 'Design', 'Subscribers', 'Stats', 'Settings'];
 
-interface Props {
-  form: FormData;
-  setForm: React.Dispatch<React.SetStateAction<FormData>>;
-}
-
-const AllTabs: FC<Props> = ({ form, setForm }) => {
+const AllTabs = () => {
   const router = useRouter();
   const searchParams = useSearchParams();
 

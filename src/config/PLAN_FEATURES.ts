@@ -20,6 +20,8 @@ export interface PlanFeatureConfig {
   layoutType: boolean;
   showSubscribers: boolean;
   customDomain: boolean;
+  stats: boolean;
+  fullSEO: boolean;
 }
 
 export const PLAN_FEATURES: Record<PlanType, PlanFeatureConfig> = {
@@ -43,6 +45,8 @@ export const PLAN_FEATURES: Record<PlanType, PlanFeatureConfig> = {
     layoutType: false,
     showSubscribers: false,
     customDomain: false,
+    stats: false,
+    fullSEO: false,
   },
   pro: {
     links: 5,
@@ -64,6 +68,8 @@ export const PLAN_FEATURES: Record<PlanType, PlanFeatureConfig> = {
     layoutType: true,
     showSubscribers: true,
     customDomain: true,
+    stats: true,
+    fullSEO: true,
   },
   premium: {
     links: 50,
@@ -85,5 +91,7 @@ export const PLAN_FEATURES: Record<PlanType, PlanFeatureConfig> = {
     layoutType: true,
     showSubscribers: true,
     customDomain: true,
+    stats: true,
+    fullSEO: true,
   },
 };

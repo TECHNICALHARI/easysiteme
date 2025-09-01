@@ -1,33 +1,52 @@
-// SubscribersTab.tsx
 'use client';
 
-import { useRouter } from 'next/navigation';
-import LockedOverlay from '../../layout/LockedOverlay';
-import { PLAN_FEATURES } from '@/config/PLAN_FEATURES';
-import { useAdminForm } from '@/lib/frontend/admin/context/AdminFormContext';
-import styles from "@/styles/admin.module.css";
+import { useState } from 'react';
 import { Settings } from 'lucide-react';
+import styles from '@/styles/admin.module.css';
+
+import LockedOverlay from '../../layout/LockedOverlay';
 import AdminTable from '@/lib/frontend/superadmin/AdminTable';
 import ManageSubscribersModal from './ManageSubscribersModal';
-import { useState } from 'react';
+
+import { PLAN_FEATURES } from '@/config/PLAN_FEATURES';
+import { useAdminForm } from '@/lib/frontend/admin/context/AdminFormContext';
 import { SubscriberDataTypes } from '@/lib/frontend/types/form';
 
-const SubscribersTab = () => {
-    const router = useRouter();
-    const { form, setForm } = useAdminForm();
-    const plan = form?.plan;
-    const limits = PLAN_FEATURES[plan];
+const Section = ({
+    title,
+    sub,
+    right,
+    children,
+}: {
+    title?: string | React.ReactNode;
+    sub?: string;
+    right?: React.ReactNode;
+    children: React.ReactNode;
+}) => (
+    <div className={styles.sectionMain}>
+        {(title || right) && (
+            <div className={styles.SecHeadAndBtn}>
+                {title && <h4 className={styles.sectionLabel}>{title}</h4>}
+                {right}
+            </div>
+        )}
+        {sub && <p className="text-sm text-muted mb-2">{sub}</p>}
+        {children}
+    </div>
+);
 
+export default function SubscribersTab() {
+    const { form, setForm, plan } = useAdminForm();
+    const limits = PLAN_FEATURES[plan];
     const [showManageModal, setShowManageModal] = useState(false);
 
+    const subscriberList = form.subscriberSettings.SubscriberList;
+    const subscribers = subscriberList.data || [];
+    const total = subscriberList.total || 0;
+    const active = subscriberList.active || 0;
+    const unsubscribed = subscriberList.unsubscribed || 0;
 
-    const subscribersData = [
-        { email: 'user1@example.com', subscribedOn: '2023-01-15', status: 'Active' },
-        { email: 'user2@example.com', subscribedOn: '2023-02-20', status: 'Active' },
-        { email: 'user3@example.com', subscribedOn: '2023-03-10', status: 'Unsubscribed' },
-        { email: 'user4@example.com', subscribedOn: '2023-04-05', status: 'Active' },
-        { email: 'user5@example.com', subscribedOn: '2023-05-25', status: 'Unsubscribed' },
-    ];
+    const isSubscribeEnabled = limits?.showSubscribers;
 
     const columns = [
         { key: 'email', label: 'Email', sortable: true },
@@ -45,58 +64,68 @@ const SubscribersTab = () => {
         }));
     };
 
-    const isEnableSubscribe = limits?.showSubscribers
     return (
         <div className={styles.TabPageMain}>
             <div className={styles.sectionHead}>
-                <h3>Manage Your Subscribers</h3>
-                <p>View and update your subscriber list, track their status, and send communications.</p>
+                <h3>Subscribers & Email List</h3>
+                <p>
+                    Collect subscribers from your page, track activity, and manage
+                    communication settings.
+                </p>
             </div>
-            <div className={styles.sectionMain}>
-                <div className={`${styles.SecHeadAndBtn} ${styles.subscribeSecHeadBtn}`}>
-                    <h4 className={styles.sectionLabel}>Your Subscribers <span className="badge-pro">Pro</span></h4>
-                    <div className='flex gap-4'>
-                        <button
-                            className="btn-primary"
-                            disabled={!isEnableSubscribe}
-                        >
+
+            <Section
+                title={
+                    <>
+                        Your Subscribers <span className="badge-pro">Pro</span>
+                    </>
+                }
+                right={
+                    <div className="flex gap-3">
+                        <button className="btn-primary" disabled={!isSubscribeEnabled}>
                             Send Email
                         </button>
                         <button
                             className="btn-secondary gap-2"
-                            disabled={!isEnableSubscribe}
-                            onClick={() => setShowManageModal(true)} // Open the manage modal
+                            disabled={!isSubscribeEnabled}
+                            onClick={() => setShowManageModal(true)}
                         >
                             <Settings size={16} />
                             Manage Settings
                         </button>
                     </div>
-                </div>
-
-                <LockedOverlay
-                    enabled={isEnableSubscribe}
-                    mode="overlay"
-                >
-                    <div className='grid grid-cols-3 md:grid-cols-3 gap-4'>
+                }
+                sub="View your subscriber list, send updates, and customize opt-in preferences."
+            >
+                <LockedOverlay enabled={isSubscribeEnabled} mode="overlay">
+                    <div className="grid grid-cols-3 gap-4 mb-6">
                         <div className={`${styles.sectionMain} ${styles.subscribeCard}`}>
                             <h4>Total</h4>
-                            <p>30</p>
+                            <p>{total}</p>
                         </div>
                         <div className={`${styles.sectionMain} ${styles.subscribeCard}`}>
                             <h4>Active</h4>
-                            <p>26</p>
+                            <p>{active}</p>
                         </div>
                         <div className={`${styles.sectionMain} ${styles.subscribeCard}`}>
                             <h4>Unsubscribed</h4>
-                            <p>4</p>
+                            <p>{unsubscribed}</p>
                         </div>
                     </div>
+
                     <div className={styles.SubsTableMain}>
-                        <h4>Subscriber List</h4>
-                        <AdminTable columns={columns} data={subscribersData} />
+                        <h4 className="mb-3">Subscriber List</h4>
+                        {subscribers.length > 0 ? (
+                            <AdminTable columns={columns} data={subscribers} />
+                        ) : (
+                            <p className="text-sm text-muted">
+                                No subscribers yet. Once users subscribe through your page,
+                                they’ll appear here.
+                            </p>
+                        )}
                     </div>
                 </LockedOverlay>
-            </div>
+            </Section>
 
             {showManageModal && (
                 <ManageSubscribersModal
@@ -107,6 +136,4 @@ const SubscribersTab = () => {
             )}
         </div>
     );
-};
-
-export default SubscribersTab;
+}

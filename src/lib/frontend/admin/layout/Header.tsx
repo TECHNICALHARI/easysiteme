@@ -9,11 +9,9 @@ import ShareModal from '@/lib/frontend/singlepage/components/ShareModal';
 import { useAdminForm } from '@/lib/frontend/admin/context/AdminFormContext';
 
 function getPublicUrl(username?: string, customDomain?: string) {
-  if (typeof window === 'undefined') return '';
-  const origin = window.location.origin;
+  if (!username && !customDomain) return '';
   if (customDomain) return `https://${customDomain}`;
-  if (username) return `${origin}/${username}`;
-  return origin;
+  return `https://${username}.myeasypage.com`;
 }
 
 export default function AdminHeader() {
@@ -33,15 +31,14 @@ export default function AdminHeader() {
     try {
       if (navigator.share) {
         await navigator.share({
-          title: 'Check out my OnePage',
-          text: 'Here is my OnePage link:',
+          title: 'Check out my myeasypage',
+          text: 'Here is my myeasypage link:',
           url: publicUrl,
         });
       } else {
         setOpenShare(true);
       }
-    } catch {
-    }
+    } catch { }
   };
 
   return (
@@ -82,7 +79,8 @@ export default function AdminHeader() {
             >
               <Link2 size={16} className={styles.icon} />
               <span className={styles.btnLabel}>
-                {form?.settings?.customDomain || `${form?.profile?.username || 'yourname'}.bio.link`}
+                {form?.settings?.customDomain ||
+                  (form?.profile?.username ? `${form.profile.username}.myeasypage.com` : 'yourname.myeasypage.com')}
               </span>
             </a>
 

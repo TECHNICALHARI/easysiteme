@@ -7,6 +7,7 @@ const nextConfig: NextConfig = {
   typescript: {
     ignoreBuildErrors: true,
   },
+  
   images: {
     domains: [
       "patientportalapi.akosmd.in",

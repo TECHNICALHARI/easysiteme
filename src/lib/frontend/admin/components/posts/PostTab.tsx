@@ -1,6 +1,5 @@
 'use client';
 
-import { useRouter } from 'next/navigation';
 import {
     DndContext,
     closestCenter,
@@ -16,22 +15,45 @@ import {
     verticalListSortingStrategy,
     sortableKeyboardCoordinates,
 } from '@dnd-kit/sortable';
+import { useRouter } from 'next/navigation';
+import styles from '@/styles/admin.module.css';
 
 import LockedOverlay from '../../layout/LockedOverlay';
 import SortablePost from './SortablePost';
 import { PLAN_FEATURES } from '@/config/PLAN_FEATURES';
 import { useAdminForm } from '@/lib/frontend/admin/context/AdminFormContext';
-import styles from "@/styles/admin.module.css"
-const PostTab = () => {
+
+const Section = ({
+    title,
+    sub,
+    right,
+    children,
+}: {
+    title?: string | React.ReactNode;
+    sub?: string;
+    right?: React.ReactNode;
+    children: React.ReactNode;
+}) => (
+    <div className={styles.sectionMain}>
+        {(title || right) && (
+            <div className={styles.SecHeadAndBtn}>
+                {title && <h4 className={styles.sectionLabel}>{title}</h4>}
+                {right}
+            </div>
+        )}
+        {sub && <p className="text-sm text-muted mb-2">{sub}</p>}
+        {children}
+    </div>
+);
+
+export default function PostTab() {
     const router = useRouter();
-    const { form, setForm } = useAdminForm();
+    const { form, setForm, plan } = useAdminForm();
 
     const posts = form.posts.posts || [];
-    const plan = 'free';
     const limits = PLAN_FEATURES[plan];
-    const postsLimitReached = posts.length >= limits.posts;
     const isPostsEnabled = limits.posts > 0;
-    const showPostLimitNotice = isPostsEnabled && postsLimitReached;
+    const postsLimitReached = posts.length >= limits.posts;
 
     const sensors = useSensors(
         useSensor(PointerSensor),
@@ -44,6 +66,7 @@ const PostTab = () => {
 
         const oldIndex = posts.findIndex((p) => p.id === active.id);
         const newIndex = posts.findIndex((p) => p.id === over.id);
+
         if (oldIndex !== -1 && newIndex !== -1) {
             const reordered = arrayMove(posts, oldIndex, newIndex);
             setForm((prev) => ({
@@ -62,24 +85,32 @@ const PostTab = () => {
     };
 
     const handleTogglePublish = (index: number) => {
-        const updatedPosts = [...posts];
-        updatedPosts[index].published = !updatedPosts[index].published;
-        setForm(prev => ({
+        const updated = [...posts];
+        updated[index].published = !updated[index].published;
+        setForm((prev) => ({
             ...prev,
-            posts: { ...prev.posts, posts: updatedPosts },
+            posts: { ...prev.posts, posts: updated },
         }));
     };
-
 
     return (
         <div className={styles.TabPageMain}>
             <div className={styles.sectionHead}>
                 <h3>Share Posts, Blogs & Updates</h3>
-                <p>Write and manage content that showcases your voice — from articles and announcements to guides and stories. Add rich text, images, SEO, and more to publish directly to your site.</p>
+                <p>
+                    Write and manage content that showcases your voice — from articles
+                    and announcements to guides and stories. Add rich text, images, SEO,
+                    and more to publish directly to your site.
+                </p>
             </div>
-            <div className={styles.sectionMain}>
-                <div className={styles.SecHeadAndBtn}>
-                    <h4 className={styles.sectionLabel}>Posts <span className="badge-pro">Pro</span></h4>
+
+            <Section
+                title={
+                    <>
+                        Posts <span className="badge-pro">Pro</span>
+                    </>
+                }
+                right={
                     <button
                         className="btn-primary"
                         disabled={postsLimitReached}
@@ -87,38 +118,45 @@ const PostTab = () => {
                     >
                         + Add Post
                     </button>
-                </div>
-
+                }
+                sub="Create blog posts, updates, and long-form content that lives on your personal site."
+            >
                 <LockedOverlay
                     enabled={isPostsEnabled && !postsLimitReached}
-                    limitReached={showPostLimitNotice}
+                    limitReached={postsLimitReached}
                     mode="notice"
                 >
-                    {posts.length > 0 && (
-                        <>
-                            <h4 className="text-lg font-semibold mb-3">Your Posts</h4>
-                            <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
-                                <SortableContext items={posts.map((p) => p.id)} strategy={verticalListSortingStrategy}>
-                                    <div className="grid gap-3">
-                                        {posts.map((post, index) => (
-                                            <SortablePost
-                                                key={post.id}
-                                                id={post.id}
-                                                post={post}
-                                                onEdit={() => router.push(`/admin/posts/${post.id}/edit`)}
-                                                onDelete={() => handleDelete(index)}
-                                                onTogglePublish={() => handleTogglePublish(index)}
-                                            />
-                                        ))}
-                                    </div>
-                                </SortableContext>
-                            </DndContext>
-                        </>
+                    {posts.length > 0 ? (
+                        <DndContext
+                            sensors={sensors}
+                            collisionDetection={closestCenter}
+                            onDragEnd={handleDragEnd}
+                        >
+                            <SortableContext
+                                items={posts.map((p) => p.id)}
+                                strategy={verticalListSortingStrategy}
+                            >
+                                <div className="grid gap-3">
+                                    {posts.map((post, index) => (
+                                        <SortablePost
+                                            key={post.id}
+                                            id={post.id}
+                                            post={post}
+                                            onEdit={() => router.push(`/admin/posts/${post.id}/edit`)}
+                                            onDelete={() => handleDelete(index)}
+                                            onTogglePublish={() => handleTogglePublish(index)}
+                                        />
+                                    ))}
+                                </div>
+                            </SortableContext>
+                        </DndContext>
+                    ) : (
+                        <p className="text-sm text-muted">
+                            No posts yet. Start by adding your first one!
+                        </p>
                     )}
                 </LockedOverlay>
-            </div>
+            </Section>
         </div>
     );
-};
-
-export default PostTab;
+}

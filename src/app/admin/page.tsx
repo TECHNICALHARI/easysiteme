@@ -23,7 +23,7 @@ export default function Dashboard() {
 
         <div className={styles.pageContainer}>
           <div className={styles.dashboard_mainRapper}>
-            <AllTabs form={form} setForm={setForm} />
+            <AllTabs />
           </div>
         </div>
       </div>
