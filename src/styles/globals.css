@@ -367,11 +367,42 @@ input[type="date"]::-webkit-calendar-picker-indicator {
   box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15);
 }
 
+.inputGroup button {
+  height: 46px;
+  padding: 0 14px;
+  border-radius: 10px;
+  font-weight: 600;
+  font-size: 0.9rem;
+  transition: all .2s;
+}
+
+.inputGroup button:hover {
+  background: color-mix(in srgb, var(--color-brand) 10%, var(--color-bg));
+  border-color: color-mix(in srgb, var(--color-brand) 30%, transparent);
+}
+
 .otpInput {
-  width: 50px !important;
-  height: 50px !important;
-  padding: 0;
-  margin: 0;
+  width: 48px !important;
+  height: 52px !important;
+  text-align: center;
+  font-weight: 700;
+  font-size: 1.1rem;
+  border: 1px solid rgba(0, 0, 0, .12);
+  border-radius: 10px;
+  background: #fff;
+  transition: all .2s;
+}
+
+.otpInput:focus {
+  outline: none;
+  border-color: var(--color-brand);
+  box-shadow: 0 0 0 3px rgba(79, 70, 229, .25);
+}
+
+[data-theme='dark'] .otpInput {
+  background: rgba(255, 255, 255, .06);
+  border-color: rgba(255, 255, 255, .1);
+  color: #fff;
 }
 
 .input-icon {
