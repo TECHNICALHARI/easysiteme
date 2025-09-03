@@ -302,6 +302,7 @@ input[type="date"]::-webkit-calendar-picker-indicator {
   font-size: 0.9rem;
   font-weight: 400;
   color: var(--color-text-muted);
+  line-height: 35px;
 }
 
 .date-label {
@@ -353,6 +354,7 @@ input[type="date"]::-webkit-calendar-picker-indicator {
   transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
 
+
 .input::placeholder {
   color: var(--color-text-muted);
   font-weight: 400;
@@ -394,6 +396,21 @@ input[type="date"]::-webkit-calendar-picker-indicator {
   font-size: 0.8rem;
   margin-top: 0.25rem;
   color: var(--color-text-muted);
+}
+
+.inputWithIcon {
+  padding-left: 2.7rem;
+}
+
+.input-action-icon {
+  pointer-events: auto;
+  position: absolute;
+  right: 1rem;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--color-text-muted);
+  font-size: 1rem;
+  cursor: pointer;
 }
 
 /* -------------------------------

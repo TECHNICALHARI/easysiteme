@@ -3,6 +3,7 @@ import { Inter } from "next/font/google";
 import "@/styles/globals.css";
 import Header from "@/lib/frontend/main/layout/Header";
 import Footer from "@/lib/frontend/main/layout/Footer";
+import { ToastProvider } from "@/lib/frontend/common/ToastProvider";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -41,7 +42,7 @@ export const metadata: Metadata = {
     "myeasypage",
   ],
   alternates: {
-    canonical: "/", 
+    canonical: "/",
   },
   openGraph: {
     title: "myeasypage — Build your personal site in 60 seconds",
@@ -110,9 +111,11 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <a href="#main" className="sr-only focus:not-sr-only focus:absolute focus:top-2 focus:left-2">
           Skip to content
         </a>
-        <Header />
-        {children}
-        <Footer />
+        <ToastProvider>
+          <Header />
+          {children}
+          <Footer />
+        </ToastProvider>
       </body>
     </html>
   );

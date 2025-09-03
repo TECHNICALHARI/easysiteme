@@ -25,8 +25,8 @@ async function fetchUserPage(username: string): Promise<FormData | null> {
     });
     return res.success ? (res.data as FormData) : null;
   } catch {
-    return null;
-    // return dummyFormData;
+    // return null;
+    return dummyFormData;
   }
 }
 
@@ -42,7 +42,7 @@ export async function generateMetadata(props: LayoutProps): Promise<Metadata> {
     };
   }
 
-  
+
   const seo = data.seo ?? {};
   const profile = data.profile ?? {};
 
@@ -59,8 +59,8 @@ export async function generateMetadata(props: LayoutProps): Promise<Metadata> {
       images: seo.ogImage
         ? [seo.ogImage]
         : profile.avatar
-        ? [profile.avatar]
-        : [],
+          ? [profile.avatar]
+          : [],
     },
     twitter: {
       card: "summary_large_image",

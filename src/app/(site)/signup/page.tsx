@@ -21,17 +21,18 @@ export default function SignupPage() {
   const [verifyingOtp, setVerifyingOtp] = useState(false);
 
   const checkSubdomain = async (name: string) => {
+    setSubdomainAvailable(true); // Set subdomain as available initially
     if (!name) return setSubdomainAvailable(null);
-    setCheckingSubdomain(true);
-    try {
-      const res = await fetch(`/api/check-subdomain?subdomain=${encodeURIComponent(name)}`);
-      const data = await res.json();
-      setSubdomainAvailable(data.available);
-    } catch {
-      setSubdomainAvailable(null);
-    } finally {
-      setCheckingSubdomain(false);
-    }
+    // setCheckingSubdomain(true);
+    // try {
+    //   const res = await fetch(`/api/check-subdomain?subdomain=${encodeURIComponent(name)}`);
+    //   const data = await res.json();
+    //   setSubdomainAvailable(data.available);
+    // } catch {
+    //   setSubdomainAvailable(null);
+    // } finally {
+    //   setCheckingSubdomain(false);
+    // }
   };
 
   const handleNext = () => {

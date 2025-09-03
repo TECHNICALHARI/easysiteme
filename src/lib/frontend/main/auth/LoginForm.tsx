@@ -1,18 +1,24 @@
 'use client';
 
-import { Mail, Phone, Eye, EyeOff } from 'lucide-react';
+import {
+  Mail,
+  Phone,
+  Eye,
+  EyeOff,
+  Lock,
+  Check,
+  X,
+} from 'lucide-react';
 import styles from '@/styles/main.module.css';
-import OtpInput from 'react-otp-input';
 import Link from 'next/link';
 
-type FormShape = {
-  email: string;
-  mobile: string;
-  password: string;
-  otp: string;
-  showPass: boolean;
-  useOtp: boolean;
-  loginWith: 'email' | 'mobile';
+type Props = {
+  formData: any;
+  setFormData: (v: any) => void;
+  onSubmit: () => void;
+  onSendOtp: () => void;
+  loading: boolean;
+  errors: Record<string, string>;
 };
 
 export default function LoginForm({
@@ -21,149 +27,148 @@ export default function LoginForm({
   onSubmit,
   onSendOtp,
   loading,
-  otpSent,
-}: {
-  formData: FormShape;
-  setFormData: (data: FormShape | ((p: FormShape) => FormShape)) => void;
-  onSubmit: () => void;
-  onSendOtp: () => void;
-  loading: boolean;
-  otpSent: boolean;
-}) {
-  const { loginWith, useOtp, showPass } = formData;
+  errors,
+}: Props) {
+  const togglePassword = () =>
+    setFormData({ ...formData, showPass: !formData.showPass });
+
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  const mobileRegex = /^[0-9]{8,15}$/;
+
+  const emailValid = formData.email && emailRegex.test(formData.email);
+  const mobileValid = formData.mobile && mobileRegex.test(formData.mobile);
 
   return (
-    <div className={styles.authBox} role="form" aria-describedby="login-sub">
-      <h1 id="login-title" className={styles.authTitle}>Sign in to myeasypage</h1>
-      <p id="login-sub" className={styles.authSubtitle}>Access your dashboard to manage your website, blog and bio link</p>
+    <form onSubmit={(e) => { e.preventDefault(); onSubmit(); }} className={styles.authBox} noValidate>
+      <h2 className={styles.authTitle}>Sign in to your account</h2>
+      <p className={styles.authSubtitle}>
+        Continue with {formData.loginWith === 'email' ? 'email' : 'mobile number'}
+      </p>
 
-      <div className="text-sm text-center mb-4">
-        {loginWith === 'email' ? (
-          <>
-            Prefer mobile?{' '}
-            <button
-              type="button"
-              className="text-brand font-semibold cursor-pointer"
-              onClick={() => setFormData({ ...formData, loginWith: 'mobile' })}
-            >
-              Use mobile
-            </button>
-          </>
-        ) : (
-          <>
-            Prefer email?{' '}
-            <button
-              type="button"
-              className="text-brand font-semibold cursor-pointer"
-              onClick={() => setFormData({ ...formData, loginWith: 'email' })}
-            >
-              Use email
-            </button>
-          </>
-        )}
-      </div>
-
-      <div className="inputGroup">
-        {loginWith === 'email' ? (
-          <Mail className="input-icon" size={18} aria-hidden />
-        ) : (
-          <Phone className="input-icon" size={18} aria-hidden />
-        )}
-        <input
-          id="login-identifier"
-          className="input"
-          autoComplete={loginWith === 'email' ? 'email' : 'tel'}
-          placeholder={loginWith === 'email' ? 'Email address' : 'Mobile number'}
-          value={formData[loginWith]}
-          onChange={(e) => setFormData({ ...formData, [loginWith]: e.target.value })}
-          aria-label={loginWith === 'email' ? 'Email address' : 'Mobile number'}
-        />
-      </div>
-
-      {useOtp ? (
-        <div>
-          <label htmlFor="otp" className="block text-sm text-gray-600 mb-2">
-            Enter the OTP sent to your {formData.loginWith}
-          </label>
-          <OtpInput
-            value={String(formData.otp || '')}
-            onChange={(val) => setFormData({ ...formData, otp: val })}
-            numInputs={6}
-            inputType="tel"
-            containerStyle={{ gap: '0.5rem' }}
-            renderInput={(props) => (
-              <input
-                {...props}
-                name="otp"
-                inputMode="numeric"
-                className="input otpInput"
-                aria-label="One-time password"
-              />
-            )}
-          />
-        </div>
-      ) : (
-        <div className="inputGroup">
-          {showPass ? (
-            <EyeOff
-              className="input-icon cursor-pointer"
-              size={18}
-              onClick={() => setFormData({ ...formData, showPass: false })}
-              aria-label="Hide password"
-              role="button"
-            />
-          ) : (
-            <Eye
-              className="input-icon cursor-pointer"
-              size={18}
-              onClick={() => setFormData({ ...formData, showPass: true })}
-              aria-label="Show password"
-              role="button"
-            />
-          )}
-          <input
-            id="login-password"
-            type={showPass ? 'text' : 'password'}
-            className="input"
-            placeholder="Password"
-            autoComplete="current-password"
-            value={formData.password}
-            onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-            aria-label="Password"
-          />
-        </div>
-      )}
-
-      <button
-        type="button"
-        onClick={onSubmit}
-        className="btn-primary w-full mt-3"
-        disabled={loading}
-        aria-busy={loading}
-      >
-        {useOtp ? 'Verify & Sign in' : 'Sign in'}
-      </button>
-
-      {!useOtp && (
-        <p className={`text-center text-sm mt-4 ${styles.OrText}`}>
-          OR{' '}
+      {!formData.useOtp && !formData.otpSent && (
+        <div className="flex gap-2 mb-4">
           <button
             type="button"
-            className="text-brand font-medium cursor-pointer"
-            onClick={onSendOtp}
-            disabled={otpSent}
+            className={`flex-1 py-2 rounded-md border cursor-pointer ${formData.loginWith === 'email' ? 'border-brand text-brand font-medium' : 'border-gray-300'}`}
+            onClick={() => setFormData({ ...formData, loginWith: 'email' })}
           >
-            Sign in with OTP
+            Use Email
           </button>
-        </p>
+          <button
+            type="button"
+            className={`flex-1 py-2 rounded-md border cursor-pointer ${formData.loginWith === 'mobile' ? 'border-brand text-brand font-medium' : 'border-gray-300'}`}
+            onClick={() => setFormData({ ...formData, loginWith: 'mobile' })}
+          >
+            Use Mobile
+          </button>
+        </div>
       )}
 
+      {formData.loginWith === 'email' && (
+        <>
+          <div className="inputGroup relative">
+            <Mail className="input-icon" size={18} />
+            <input
+              name="email"
+              className="input inputWithIcon pr-8"
+              placeholder="Email address"
+              type="email"
+              value={formData.email}
+              disabled={formData.useOtp && formData.otpSent}
+              onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+            />
+            {formData.email &&
+              (emailValid ? (
+                <Check size={18} className="absolute right-2 top-1/2 -translate-y-1/2 text-green-600" />
+              ) : (
+                <X size={18} className="absolute right-2 top-1/2 -translate-y-1/2 text-red-500" />
+              ))}
+          </div>
+          {errors.email && <p className="text-red-500 text-sm mb-2">{errors.email}</p>}
+        </>
+      )}
+
+      {formData.loginWith === 'mobile' && (
+        <>
+          <div className="inputGroup relative">
+            <Phone className="input-icon" size={18} />
+            <input
+              name="mobile"
+              className="input inputWithIcon pr-8"
+              placeholder="Mobile number"
+              type="tel"
+              value={formData.mobile}
+              disabled={formData.useOtp && formData.otpSent}
+              onChange={(e) =>
+                setFormData({ ...formData, mobile: e.target.value.replace(/[^0-9]/g, '') })
+              }
+            />
+            {formData.mobile &&
+              (mobileValid ? (
+                <Check size={18} className="absolute right-2 top-1/2 -translate-y-1/2 text-green-600" />
+              ) : (
+                <X size={18} className="absolute right-2 top-1/2 -translate-y-1/2 text-red-500" />
+              ))}
+          </div>
+          {errors.mobile && <p className="text-red-500 text-sm mb-2">{errors.mobile}</p>}
+        </>
+      )}
+
+      {!formData.useOtp && (
+        <div className="inputGroup relative">
+          <Lock className="input-icon" size={18} />
+          <input
+            name="password"
+            className="input inputWithIcon pr-10"
+            type={formData.showPass ? 'text' : 'password'}
+            placeholder="Password"
+            value={formData.password}
+            onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+          />
+          {formData.showPass ? (
+            <EyeOff className="input-action-icon" size={18} onClick={togglePassword} />
+          ) : (
+            <Eye className="input-action-icon" size={18} onClick={togglePassword} />
+          )}
+        </div>
+      )}
+      {errors.password && <p className="text-red-500 text-sm mb-2">{errors.password}</p>}
+
+      {formData.useOtp && formData.otpSent && (
+        <div className="inputGroup relative">
+          <Lock className="input-icon" size={18} />
+          <input
+            name="otp"
+            className="input inputWithIcon"
+            placeholder="Enter OTP"
+            value={formData.otp}
+            onChange={(e) => setFormData({ ...formData, otp: e.target.value })}
+          />
+        </div>
+      )}
+      {errors.otp && <p className="text-red-500 text-sm mb-2">{errors.otp}</p>}
+
+      {!formData.useOtp ? (
+        <button
+          type="button"
+          className="btn-secondary w-full mt-2"
+          onClick={onSendOtp}
+          disabled={loading}
+        >
+          {loading ? 'Sending OTP...' : 'Sign in with OTP'}
+        </button>
+      ) : null}
+
+      <button type="submit" className="btn-primary w-full mt-3" disabled={loading}>
+        {loading ? 'Processing...' : 'Sign in'}
+      </button>
+
       <p className={styles.authBottomText}>
-        New to myeasypage?{' '}
+        Don’t have an account?{' '}
         <Link href="/signup" className="text-brand font-medium">
-          Create an account
+          Sign up
         </Link>
       </p>
-    </div>
+    </form>
   );
 }
