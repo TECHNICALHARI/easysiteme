@@ -8,7 +8,7 @@ import { useToast } from '@/lib/frontend/common/ToastProvider';
 export default function LoginPage() {
   const { showToast } = useToast();
 
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<AuthFormData>({
     email: '',
     mobile: '',
     password: '',

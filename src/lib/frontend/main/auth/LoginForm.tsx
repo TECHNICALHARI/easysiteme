@@ -15,8 +15,8 @@ import Link from 'next/link';
 import OTPInput from 'react-otp-input';
 
 type Props = {
-  formData: any;
-  setFormData: (v: any) => void;
+  formData: AuthFormData;
+  setFormData: React.Dispatch<React.SetStateAction<AuthFormData>>;
   onSubmit: () => void;
   onSendOtp: () => void;
   loading: boolean;
@@ -58,22 +58,20 @@ export default function LoginForm({
         <div className="flex gap-2 mb-4">
           <button
             type="button"
-            className={`flex-1 py-2 rounded-lg border text-sm font-medium transition ${
-              formData.loginWith === 'email'
-                ? 'border-brand text-brand bg-brand/5'
-                : 'border-gray-300 dark:border-gray-600'
-            }`}
+            className={`flex-1 cursor-pointer py-2 rounded-lg border text-sm font-medium transition ${formData.loginWith === 'email'
+              ? 'border-brand text-brand bg-brand/5'
+              : 'border-gray-300 dark:border-gray-600'
+              }`}
             onClick={() => setFormData({ ...formData, loginWith: 'email' })}
           >
             Use Email
           </button>
           <button
             type="button"
-            className={`flex-1 py-2 rounded-lg border text-sm font-medium transition ${
-              formData.loginWith === 'mobile'
-                ? 'border-brand text-brand bg-brand/5'
-                : 'border-gray-300 dark:border-gray-600'
-            }`}
+            className={`flex-1 cursor-pointer py-2 rounded-lg border text-sm font-medium transition ${formData.loginWith === 'mobile'
+              ? 'border-brand text-brand bg-brand/5'
+              : 'border-gray-300 dark:border-gray-600'
+              }`}
             onClick={() => setFormData({ ...formData, loginWith: 'mobile' })}
           >
             Use Mobile
@@ -163,7 +161,7 @@ export default function LoginForm({
               numInputs={6}
               inputType="tel"
               containerStyle={{ gap: '0.6rem', justifyContent: 'center' }}
-              renderInput={(props) => <input {...props} className="input otpInput" />}
+              renderInput={(props) => <input {...props} className="input otpInput" name='emailOtp' />}
             />
           </div>
         </div>

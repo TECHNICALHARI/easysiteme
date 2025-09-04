@@ -17,8 +17,8 @@ import OTPInput from 'react-otp-input';
 import { debounceCheckDomain, validateSubdomain } from '../../utils/checkdomain';
 
 type Props = {
-    formData: any;
-    setFormData: (v: any) => void;
+    formData: AuthSignupData;
+    setFormData: React.Dispatch<React.SetStateAction<AuthSignupData>>;
     checking: boolean;
     subdomainAvailable: boolean | null;
     checkSubdomain: (v: string) => void;
@@ -101,6 +101,7 @@ export default function SignupForm({
                 <input
                     placeholder="Choose your subdomain"
                     value={formData.subdomain}
+                    name='subdomain'
                     onChange={(e) => handleSubdomainChange(e.target.value)}
                     className="input inputWithIcon pr-8"
                 />
@@ -141,6 +142,7 @@ export default function SignupForm({
                 <div className="flex-1 relative">
                     <Mail className="input-icon" size={18} />
                     <input
+                        name='email'
                         placeholder="Email address"
                         type="email"
                         value={formData.email}
@@ -174,7 +176,7 @@ export default function SignupForm({
                         numInputs={6}
                         inputType="tel"
                         containerStyle={{ gap: '0.6rem', justifyContent: 'center' }}
-                        renderInput={(props) => <input {...props} className="input otpInput" />}
+                        renderInput={(props) => <input {...props} className="input otpInput" name='emailOtp' />}
                     />
                     <button
                         type="button"
@@ -192,6 +194,7 @@ export default function SignupForm({
                     <input
                         placeholder="Mobile number"
                         type="tel"
+                        name='mobile'
                         value={formData.mobile}
                         onChange={(e) =>
                             setFormData({
@@ -229,7 +232,7 @@ export default function SignupForm({
                         numInputs={6}
                         inputType="tel"
                         containerStyle={{ gap: '0.6rem', justifyContent: 'center' }}
-                        renderInput={(props) => <input {...props} className="input otpInput" />}
+                        renderInput={(props) => <input {...props} className="input otpInput" name='mobileOtp' />}
                     />
                     <button
                         type="button"
@@ -245,6 +248,7 @@ export default function SignupForm({
             <div className="inputGroup relative">
                 <Lock className="input-icon" size={18} />
                 <input
+                    name='password'
                     placeholder="Password (min 8 chars, Aa1@)"
                     type={formData.showPass ? 'text' : 'password'}
                     value={formData.password}

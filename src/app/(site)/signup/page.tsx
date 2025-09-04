@@ -8,7 +8,7 @@ import { useToast } from '@/lib/frontend/common/ToastProvider';
 export default function SignupPage() {
   const { showToast } = useToast();
 
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<AuthSignupData>({
     subdomain: '',
     email: '',
     mobile: '',
