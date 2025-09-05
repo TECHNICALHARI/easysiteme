@@ -3,7 +3,7 @@
 import { createContext, useContext, useState, ReactNode } from 'react';
 import styles from '@/styles/toast.module.css';
 
-type ToastType = 'success' | 'error';
+type ToastType = 'success' | 'error' | 'info';
 
 type Toast = {
     id: number;
@@ -38,7 +38,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
                 {toasts.map((toast) => (
                     <div
                         key={toast.id}
-                        className={`${styles.toast} ${toast.type === 'success' ? styles.success : styles.error
+                        className={`${styles.toast} ${toast.type === 'success' ? styles.success : toast.type === 'info' ? styles.info : styles.error
                             }`}
                     >
                         {toast.message}

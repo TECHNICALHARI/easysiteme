@@ -7,7 +7,6 @@ import styles from '@/styles/admin.module.css';
 import { staticIconMap } from '../../../common/UploadModal';
 
 export default function SortableLink({ id, link, onDelete, onEdit }: any) {
-  console.log(link, "link")
   const { attributes, listeners, setNodeRef, transform, transition } =
     useSortable({ id });
 
@@ -22,10 +21,10 @@ export default function SortableLink({ id, link, onDelete, onEdit }: any) {
       style={style}
       className={`${styles.linkItem} ${link.highlighted ? 'bg-violet-50 border-brand' : 'bg-white'}`}
     >
-      <div className="flex items-center gap-3">
-        <GripVertical size={18} className="cursor-move text-muted" {...listeners} {...attributes} />
+      <div className="flex items-start gap-4 flex-1">
+        <GripVertical size={18} className="mt-1 text-gray-400 hover:text-gray-600 cursor-grab flex-shrink-0" {...listeners} {...attributes} />
         <div>
-          <p className="font-semibold text-base">{link.title}</p>
+          <p className="font-semibold text-base pr-2">{link.title}</p>
           <a href={link.url} target="_blank" className="text-sm text-brand hover:underline break-all">
             {link.url}
           </a>

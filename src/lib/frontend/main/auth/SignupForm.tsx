@@ -64,7 +64,6 @@ export default function SignupForm({
         if (Object.keys(newErrors).length === 0) onNext();
     };
 
-    // ✅ Password strength checker
     const checkPasswordStrength = (password: string) => {
         const conditions = [
             /[a-z]/.test(password),

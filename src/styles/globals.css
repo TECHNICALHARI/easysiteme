@@ -653,7 +653,9 @@ input[type="date"]::-webkit-calendar-picker-indicator {
 }
 
 /* select end */
-
+.lucide-grip-vertical:focus {
+  outline: none !important;
+}
 
 /* not found page */
 .notfoundWrapper {

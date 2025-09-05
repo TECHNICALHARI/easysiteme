@@ -3,95 +3,90 @@
 import { useEffect, useState } from 'react';
 import Modal from '../../../common/Modal';
 import styles from '@/styles/admin.module.css';
+import { FeaturedMedia } from '@/lib/frontend/types/form';
+import { isValidHttpUrl, normalizeHttpUrl } from '@/lib/frontend/utils/url';
+import { useToast } from '@/lib/frontend/common/ToastProvider';
 
-export default function FeaturedMediaModal({
-  onClose,
-  onSave,
-  initialData,
-}: {
+type Props = {
   onClose: () => void;
-  onSave: (data: {
-    id?: string;
-    title: string;
-    url: string;
-    description?: string;
-    ctaLabel?: string;
-    ctaLink?: string;
-  }) => void;
-  initialData?: {
-    id?: string;
-    title: string;
-    url: string;
-    description?: string;
-    ctaLabel?: string;
-    ctaLink?: string;
-  };
-}) {
+  onSave: (data: FeaturedMedia) => void;
+  initialData?: FeaturedMedia;
+};
+
+type FieldErrors = {
+  title?: string;
+  url?: string;
+  ctaLink?: string;
+};
+
+export default function FeaturedMediaModal({ onClose, onSave, initialData }: Props) {
+  const { showToast } = useToast();
+
   const [title, setTitle] = useState(initialData?.title || '');
   const [url, setUrl] = useState(initialData?.url || '');
   const [description, setDescription] = useState(initialData?.description || '');
   const [ctaLabel, setCtaLabel] = useState(initialData?.ctaLabel || '');
   const [ctaLink, setCtaLink] = useState(initialData?.ctaLink || '');
-  const [errors, setErrors] = useState<{ title?: string; url?: string; ctaLink?: string }>({});
+  const [errors, setErrors] = useState<FieldErrors>({});
   const [isValid, setIsValid] = useState(false);
 
   useEffect(() => {
-    const newErrors: typeof errors = {};
+    const next: FieldErrors = {};
 
-    if (!title.trim()) {
-      newErrors.title = 'Title is required.';
+    const t = title.trim();
+    if (!t) next.title = 'Title is required.';
+    else if (t.length > 120) next.title = 'Title must be 120 characters or less.';
+
+    const mediaUrl = url.trim();
+    if (!mediaUrl) {
+      next.url = 'URL is required.';
+    } else if (!isValidHttpUrl(mediaUrl)) {
+      next.url = 'Enter a valid URL starting with http:// or https://';
     }
 
-    if (!url.trim()) {
-      newErrors.url = 'URL is required.';
-    } else {
-      try {
-        const parsed = new URL(url.trim());
-        if (!['http:', 'https:'].includes(parsed.protocol)) {
-          newErrors.url = 'URL must start with http:// or https://';
-        }
-      } catch {
-        newErrors.url = 'Please enter a valid URL.';
-      }
+    const cta = ctaLink.trim();
+    if (cta && !isValidHttpUrl(cta)) {
+      next.ctaLink = 'CTA link must start with http:// or https://';
     }
 
-    if (ctaLink.trim()) {
-      try {
-        const parsed = new URL(ctaLink.trim());
-        if (!['http:', 'https:'].includes(parsed.protocol)) {
-          newErrors.ctaLink = 'CTA link must start with http:// or https://';
-        }
-      } catch {
-        newErrors.ctaLink = 'Enter a valid CTA URL or leave blank.';
-      }
-    }
-
-    setErrors(newErrors);
-    setIsValid(Object.keys(newErrors).length === 0);
+    setErrors(next);
+    setIsValid(Object.keys(next).length === 0);
   }, [title, url, ctaLink]);
 
   const handleSave = () => {
-    if (!isValid) return;
-    const data = {
+    if (!isValid) {
+      showToast('Please fix the errors before saving.', 'error');
+      return;
+    }
+
+    const data: FeaturedMedia = {
       id: initialData?.id || `featured-${Date.now()}`,
       title: title.trim(),
-      url: url.trim(),
+      url: normalizeHttpUrl(url),
       description: description.trim() || undefined,
       ctaLabel: ctaLabel.trim() || undefined,
-      ctaLink: ctaLink.trim() || undefined,
+      ctaLink: ctaLink.trim() ? normalizeHttpUrl(ctaLink) : undefined,
     };
+
     onSave(data);
+    showToast(initialData ? 'Featured media updated' : 'Featured media added', 'success');
   };
 
   return (
-    <Modal title={initialData ? 'Edit Featured Media' : 'Add Featured Media'} onClose={onClose} width="500px">
+    <Modal
+      title={initialData ? 'Edit Featured Media' : 'Add Featured Media'}
+      onClose={onClose}
+      width="500px"
+    >
       <div className="flex flex-col gap-4">
         <div>
           <input
             className="input"
-            placeholder="Media Title (e.g. My YouTube video)"
+            placeholder="Media Title (e.g. Product teaser video)"
             value={title}
             onChange={(e) => setTitle(e.target.value)}
+            onBlur={(e) => setTitle(e.target.value.trim())}
+            maxLength={120}
           />
           {errors.title && <p className="errorText">{errors.title}</p>}
         </div>
@@ -102,6 +97,7 @@ export default function FeaturedMediaModal({
             placeholder="Media URL (https://youtube.com/...)"
             value={url}
             onChange={(e) => setUrl(e.target.value)}
+            onBlur={(e) => setUrl(e.target.value.trim())}
           />
           {errors.url && <p className="errorText">{errors.url}</p>}
         </div>
@@ -112,6 +108,7 @@ export default function FeaturedMediaModal({
           placeholder="Optional: Short description"
           value={description}
           onChange={(e) => setDescription(e.target.value)}
+          maxLength={800}
         />
 
         <input
@@ -119,18 +116,28 @@ export default function FeaturedMediaModal({
           placeholder="Optional: CTA Button Label (e.g. Watch Now)"
           value={ctaLabel}
           onChange={(e) => setCtaLabel(e.target.value)}
+          onBlur={(e) => setCtaLabel(e.target.value.trim())}
+          maxLength={40}
         />
 
-        <input
-          className="input"
-          placeholder="Optional: CTA Button Link (https://...)"
-          value={ctaLink}
-          onChange={(e) => setCtaLink(e.target.value)}
-        />
-        {errors.ctaLink && <p className="errorText">{errors.ctaLink}</p>}
+        <div>
+          <input
+            className="input"
+            placeholder="Optional: CTA Button Link (https://...)"
+            value={ctaLink}
+            onChange={(e) => setCtaLink(e.target.value)}
+            onBlur={(e) => setCtaLink(e.target.value.trim())}
+          />
+          {errors.ctaLink && <p className="errorText">{errors.ctaLink}</p>}
+        </div>
 
         <div className={styles.saveButtonMain}>
-          <button className={`btn-primary ${styles.saveButton}`} onClick={handleSave} disabled={!isValid}>
+          <button
+            className={`btn-primary ${styles.saveButton}`}
+            onClick={handleSave}
+            disabled={!isValid}
+            aria-label="Save featured media"
+          >
             Save
           </button>
         </div>

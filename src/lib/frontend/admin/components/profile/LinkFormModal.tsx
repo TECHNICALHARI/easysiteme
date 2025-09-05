@@ -2,89 +2,81 @@
 
 import { useState, useEffect } from 'react';
 import { ImagePlus, X } from 'lucide-react';
-import CustomModal from '../../../common/CustomModal';
+import Modal from '../../../common/Modal';
 import UploadModal, { staticIconMap } from '../../../common/UploadModal';
 import styles from '@/styles/admin.module.css';
-import Modal from '../../../common/Modal';
+import { isValidHttpUrl, normalizeHttpUrl } from '@/lib/frontend/utils/url';
+import type { Link as LinkType } from '@/lib/frontend/types/form';
+import { useToast } from '@/lib/frontend/common/ToastProvider';
 
-interface LinkFormModalProps {
-  onSave: (data: any) => void;
+type LinkFormModalProps = {
+  onSave: (data: LinkType) => void;
   onClose: () => void;
-  initialData?: {
-    title: string;
-    url: string;
-    highlighted: boolean;
-    image?: File | null;
-    icon?: string | null;
-    id?: string;
-  };
-}
+  initialData?: LinkType;
+};
+
+type FieldErrors = {
+  title?: string;
+  url?: string;
+};
 
 export default function LinkFormModal({ onSave, onClose, initialData }: LinkFormModalProps) {
-  const [title, setTitle] = useState('');
-  const [url, setUrl] = useState('');
-  const [highlighted, setHighlighted] = useState(false);
-  const [image, setImage] = useState<File | null>(null);
-  const [iconName, setIconName] = useState<string | null>(null);
-  const [uploadPreview, setUploadPreview] = useState<string | null>(null);
-  const [showUploadModal, setShowUploadModal] = useState(false);
-  const [errors, setErrors] = useState<{ title?: string; url?: string }>({});
-  const [isValid, setIsValid] = useState(false);
+  const { showToast } = useToast();
 
-  useEffect(() => {
-    if (initialData) {
-      setTitle(initialData.title || '');
-      setUrl(initialData.url || '');
-      setHighlighted(initialData.highlighted || false);
-      setImage(initialData.image || null);
-      setIconName(initialData.icon || null);
-    }
-  }, [initialData]);
+  const [title, setTitle] = useState<string>(initialData?.title ?? '');
+  const [url, setUrl] = useState<string>(initialData?.url ?? '');
+  const [highlighted, setHighlighted] = useState<boolean>(initialData?.highlighted ?? false);
+  const [image, setImage] = useState<File | null>((initialData?.image as File | null) ?? null);
+  const [iconName, setIconName] = useState<keyof typeof staticIconMap | null>(
+    (initialData?.icon as keyof typeof staticIconMap | null) ?? null
+  );
+
+  const [previewSrc, setPreviewSrc] = useState<string | null>(null);
+  const [showUploadModal, setShowUploadModal] = useState<boolean>(false);
+  const [errors, setErrors] = useState<FieldErrors>({});
+  const [isValid, setIsValid] = useState<boolean>(false);
 
   useEffect(() => {
     if (image) {
       const reader = new FileReader();
-      reader.onload = () => setUploadPreview(reader.result as string);
+      reader.onload = () => setPreviewSrc(reader.result as string);
       reader.readAsDataURL(image);
-    } else if (iconName) {
-      setUploadPreview(iconName);
     } else {
-      setUploadPreview(null);
+      setPreviewSrc(null);
     }
-  }, [image, iconName]);
+  }, [image]);
 
   useEffect(() => {
-    const newErrors: typeof errors = {};
-    if (!title.trim()) newErrors.title = 'Title is required.';
+    const next: FieldErrors = {};
 
-    if (!url.trim()) {
-      newErrors.url = 'URL is required.';
-    } else {
-      try {
-        const parsed = new URL(url.trim());
-        if (!['http:', 'https:'].includes(parsed.protocol)) {
-          newErrors.url = 'URL must start with http:// or https://';
-        }
-      } catch {
-        newErrors.url = 'Please enter a valid URL.';
-      }
-    }
+    const t = title.trim();
+    if (!t) next.title = 'Title is required.';
 
-    setErrors(newErrors);
-    setIsValid(Object.keys(newErrors).length === 0);
+    const u = url.trim();
+    if (!u) next.url = 'URL is required.';
+    else if (!isValidHttpUrl(normalizeHttpUrl(u))) next.url = 'Enter a valid URL starting with http:// or https://';
+
+    setErrors(next);
+    setIsValid(Object.keys(next).length === 0);
   }, [title, url]);
 
   const handleSave = () => {
-    if (!isValid) return;
+    if (!isValid) {
+      showToast('Please fix the errors before saving.', 'error');
+      return;
+    }
 
-    onSave({
+    const data: LinkType = {
+      id: initialData?.id ?? `link-${Date.now()}`,
       title: title.trim(),
-      url: url.trim(),
+      url: normalizeHttpUrl(url),
       highlighted,
-      image,
-      icon: iconName,
-      id: initialData?.id || Date.now().toString(),
-    });
+      image: image ?? null,
+      icon: iconName ?? null,
+    };
+
+    onSave(data);
+    showToast(initialData ? 'Link updated' : 'Link added', 'success');
 
     if (!initialData) {
       setTitle('');
@@ -92,7 +84,7 @@ export default function LinkFormModal({ onSave, onClose, initialData }: LinkForm
       setHighlighted(false);
       setImage(null);
       setIconName(null);
-      setUploadPreview(null);
+      setPreviewSrc(null);
     }
   };
 
@@ -104,10 +96,11 @@ export default function LinkFormModal({ onSave, onClose, initialData }: LinkForm
             <input
               className="input"
               type="text"
-              placeholder="Title"
+              placeholder="Link title (e.g., Portfolio, Store, Contact)"
               name="title"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
+              onBlur={(e) => setTitle(e.target.value.trim())}
             />
             {errors.title && <span className="errorText">{errors.title}</span>}
           </div>
@@ -120,6 +113,7 @@ export default function LinkFormModal({ onSave, onClose, initialData }: LinkForm
               placeholder="https://example.com"
               value={url}
               onChange={(e) => setUrl(e.target.value)}
+              onBlur={(e) => setUrl(e.target.value.trim())}
             />
             {errors.url && <span className="errorText">{errors.url}</span>}
           </div>
@@ -129,37 +123,44 @@ export default function LinkFormModal({ onSave, onClose, initialData }: LinkForm
               type="checkbox"
               checked={highlighted}
               name="highlighted"
-              onChange={() => setHighlighted(!highlighted)}
+              onChange={() => setHighlighted((v) => !v)}
             />
             <span>Highlight this link</span>
           </label>
         </div>
 
-        {/* Preview */}
         <div className="flex flex-col items-center justify-center gap-2">
-          <div className={styles.previewCircle} onClick={() => setShowUploadModal(true)}>
-            {(uploadPreview || image) && (
+          <div
+            className={styles.previewCircle}
+            onClick={() => setShowUploadModal(true)}
+            role="button"
+            tabIndex={0}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' || e.key === ' ') setShowUploadModal(true);
+            }}
+          >
+            {(previewSrc || iconName) && (
               <button
                 className={styles.removeBtn}
                 onClick={(e) => {
                   e.stopPropagation();
                   setImage(null);
                   setIconName(null);
-                  setUploadPreview(null);
+                  setPreviewSrc(null);
                 }}
+                aria-label="Remove thumbnail or icon"
               >
                 <X size={14} />
               </button>
             )}
-            {uploadPreview ? (
-              typeof uploadPreview === 'string' && !image ? (
-                (() => {
-                  const Icon = staticIconMap[uploadPreview as keyof typeof staticIconMap];
-                  return Icon ? <Icon size={36} /> : <div className="text-xs">{uploadPreview}</div>;
-                })()
-              ) : (
-                <img src={uploadPreview} alt="Preview" className={styles.previewImage} />
-              )
+
+            {previewSrc ? (
+              <img src={previewSrc} alt="Preview" className={styles.previewImage} />
+            ) : iconName ? (
+              (() => {
+                const Icon = staticIconMap[iconName];
+                return Icon ? <Icon size={36} /> : <div className="text-xs">{String(iconName)}</div>;
+              })()
             ) : (
               <div className={styles.previewPlaceholder}>
                 <ImagePlus className="text-gray-400" size={24} />
@@ -170,32 +171,28 @@ export default function LinkFormModal({ onSave, onClose, initialData }: LinkForm
         </div>
       </div>
 
-      {/* Save Button */}
       <div className={styles.saveButtonMain}>
-        <button
-          className={`btn-primary ${styles.saveButton}`}
-          onClick={handleSave}
-          disabled={!isValid}
-        >
+        <button className={`btn-primary ${styles.saveButton}`} onClick={handleSave} disabled={!isValid}>
           Save
         </button>
       </div>
 
-      {/* Upload Modal */}
       {showUploadModal && (
         <UploadModal
           onClose={() => setShowUploadModal(false)}
           onSelectImage={(val) => {
             if (typeof val === 'string') {
               setImage(null);
-              setIconName(val);
-              setUploadPreview(val);
+              setIconName(val as keyof typeof staticIconMap);
+              setPreviewSrc(null);
             } else {
               setImage(val);
               setIconName(null);
             }
             setShowUploadModal(false);
           }}
+          showTabs
+          type="image"
         />
       )}
     </Modal>

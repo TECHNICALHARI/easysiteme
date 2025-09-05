@@ -110,7 +110,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
   const [form, setForm] = useState<FormData>(EMPTY_FORM);
   const [serverData, setServerData] = useState<Partial<FormData>>({});
-  const [plan, setPlan] = useState<PlanType>('pro');
+  const [plan, setPlan] = useState<PlanType>('premium');
   const [isLoading, setIsLoading] = useState(true);
   const [bootstrapped, setBootstrapped] = useState(false);
 

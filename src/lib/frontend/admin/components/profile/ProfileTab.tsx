@@ -16,7 +16,7 @@ import {
   sortableKeyboardCoordinates,
   verticalListSortingStrategy,
 } from '@dnd-kit/sortable';
-import { ImagePlus, X, FileText, Youtube, Link as LinkIcon, MapPin } from 'lucide-react';
+import { ImagePlus, X, MapPin } from 'lucide-react';
 import clsx from 'clsx';
 import styles from '@/styles/admin.module.css';
 
@@ -41,8 +41,9 @@ import LockedOverlay from '../../layout/LockedOverlay';
 import ToggleSwitch from '../../../common/ToggleSwitch';
 
 import { PLAN_FEATURES } from '@/config/PLAN_FEATURES';
-import { ProfileTypeMap, ReorderableProfileKeys } from '@/lib/frontend/types/form';
+import { ProfileTypeMap, ReorderableProfileKeys, FormData as AdminFormData, Link, Embed, Service, FeaturedMedia, Testimonial, FAQ } from '@/lib/frontend/types/form';
 import { useAdminForm } from '@/lib/frontend/admin/context/AdminFormContext';
+import { useToast } from '@/lib/frontend/common/ToastProvider';
 
 const Section: FC<{
   title?: string | React.ReactNode;
@@ -63,8 +64,39 @@ const Section: FC<{
   </div>
 );
 
+function isValidUrl(u?: string) {
+  if (!u) return false;
+  try {
+    const url = new URL(u);
+    return ['http:', 'https:'].includes(url.protocol);
+  } catch {
+    return false;
+  }
+}
+
+function clampLat(v: string) {
+  const n = Number(v);
+  if (Number.isNaN(n)) return null;
+  if (n < -90 || n > 90) return null;
+  return n.toString();
+}
+
+function clampLng(v: string) {
+  const n = Number(v);
+  if (Number.isNaN(n)) return null;
+  if (n < -180 || n > 180) return null;
+  return n.toString();
+}
+
+function sanitizePrice(v?: string) {
+  if (!v) return '';
+  const n = Number(String(v).replace(/[^\d.]/g, ''));
+  return Number.isFinite(n) && n >= 0 ? n.toString() : '';
+}
+
 export default function ProfileTab() {
-  const { form, setForm, plan } = useAdminForm();
+  const { form, setForm, plan } = useAdminForm() as { form: AdminFormData; setForm: (f: AdminFormData | ((p: AdminFormData) => AdminFormData)) => void; plan: keyof typeof PLAN_FEATURES };
+  const { showToast } = useToast();
 
   const limits = PLAN_FEATURES[plan];
   const isWebsite = (form.design?.layoutType || 'bio') === 'website';
@@ -120,6 +152,7 @@ export default function ProfileTab() {
     if (oldIndex !== -1 && newIndex !== -1) {
       const reordered = arrayMove([...sectionItems], oldIndex, newIndex);
       setForm(prev => ({ ...prev, profile: { ...prev.profile, [type]: reordered as any } }));
+      showToast('Reordered successfully', 'success');
     }
   };
 
@@ -129,46 +162,105 @@ export default function ProfileTab() {
   const handleImageRemove = () => {
     setForm({ ...form, profile: { ...form.profile, avatar: '' } });
     setUploadPreview(null);
+    showToast('Profile image removed', 'success');
   };
 
-  const handleAddLink = (data: any) => {
-    const updated = [...form.profile.links];
-    if (editLinkIndex !== null) updated[editLinkIndex] = data;
-    else updated.push({ ...data, id: `link-${Date.now()}` });
+  const handleAddLink = (data: Link) => {
+    if (!data?.title?.trim() || !isValidUrl(data?.url)) {
+      showToast('Enter a title and a valid URL (http/https).', 'error');
+      return;
+    }
+    const updated = [...(form.profile.links || [])];
+    if (editLinkIndex !== null) updated[editLinkIndex] = { ...updated[editLinkIndex], ...data };
+    else {
+      if (linksLimitReached) {
+        showToast(`Link limit reached (${limits.links}). Upgrade to add more.`, 'error');
+        return;
+      }
+      updated.push({ ...data, id: data.id || `link-${Date.now()}` });
+    }
     setForm({ ...form, profile: { ...form.profile, links: updated } });
     setShowLinkModal(false);
     setEditLinkIndex(null);
+    showToast('Link saved', 'success');
   };
 
-  const handleSaveEmbed = (data: { title: string; url: string }) => {
+  const handleSaveEmbed = (data: Pick<Embed, 'title' | 'url'>) => {
+    if (!data.title?.trim() || !isValidUrl(data.url)) {
+      showToast('Enter a title and a valid embed URL.', 'error');
+      return;
+    }
     const updated = [...(form.profile.embeds || [])];
     if (editEmbedIndex !== null) updated[editEmbedIndex] = { ...updated[editEmbedIndex], ...data };
-    else updated.push({ ...data, id: `embed-${Date.now()}` });
+    else {
+      if (embedsLimitReached) {
+        showToast(`Embed limit reached (${limits.embeds}).`, 'error');
+        return;
+      }
+      updated.push({ id: `embed-${Date.now()}`, ...data });
+    }
     setForm({ ...form, profile: { ...form.profile, embeds: updated } });
     setShowEmbedModal(false);
     setEditEmbedIndex(null);
+    showToast('Embed saved', 'success');
   };
 
-  const handleSaveService = (data: any) => {
-    const updated = [...(form.profile.services || [])];
-    const newData = {
-      id: editServiceIndex !== null ? form.profile.services[editServiceIndex].id : `service-${Date.now()}`,
-      ...data,
+  const handleSaveService = (data: Service) => {
+    if (!data.title?.trim() || !data.description?.trim()) {
+      showToast('Service title and description are required.', 'error');
+      return;
+    }
+
+    const normalizeAmount = (v?: string) => {
+      if (!v) return '';
+      const x = v.replace(',', '.').trim();
+      return /^\d{1,9}(\.\d{1,2})?$/.test(x) ? x : '';
     };
-    if (editServiceIndex !== null) updated[editServiceIndex] = newData;
-    else updated.push(newData);
-    setForm({ ...form, profile: { ...form.profile, services: updated } });
+
+    const normalized: Service = {
+      ...data,
+      amount: normalizeAmount(data.amount),
+    };
+
+    const list = [...(form.profile.services || [])];
+    if (editServiceIndex !== null) {
+      const id = list[editServiceIndex]?.id;
+      list[editServiceIndex] = { ...normalized, id };
+    } else {
+      if (servicesLimitReached) {
+        showToast(`Services limit reached (${limits.services}).`, 'error');
+        return;
+      }
+      list.push({ ...normalized, id: `service-${Date.now()}` });
+    }
+
+    setForm({ ...form, profile: { ...form.profile, services: list } });
     setShowServiceModal(false);
     setEditServiceIndex(null);
+    showToast('Service saved', 'success');
   };
 
-  const handleSaveFeatured = (newFeatured: any) => {
+
+  const handleSaveFeatured = (newFeatured: FeaturedMedia) => {
+    if (!newFeatured.title?.trim() || !isValidUrl(newFeatured.url)) {
+      showToast('Featured item needs a title and a valid URL.', 'error');
+      return;
+    }
     const updated = [...(form.profile.featured || [])];
-    if (editFeaturedIndex !== null) updated[editFeaturedIndex] = { ...updated[editFeaturedIndex], ...newFeatured };
-    else updated.push({ ...newFeatured, id: `featured-${Date.now() + Math.random()}` });
+    if (editFeaturedIndex !== null) {
+      const id = updated[editFeaturedIndex].id;
+      updated[editFeaturedIndex] = { ...updated[editFeaturedIndex], ...newFeatured, id };
+    } else {
+      if (featuredLimitReached) {
+        showToast(`Featured limit reached (${limits.featured}).`, 'error');
+        return;
+      }
+      updated.push({ ...newFeatured, id: `featured-${Date.now() + Math.random()}` });
+    }
     setForm({ ...form, profile: { ...form.profile, featured: updated } });
     setShowFeaturedModal(false);
     setEditFeaturedIndex(null);
+    showToast('Featured media saved', 'success');
   };
 
   const isAvatarSet = Boolean(form.profile.avatar);
@@ -192,6 +284,9 @@ export default function ProfileTab() {
           placeholder="Full Name"
           value={form.profile.fullName}
           onChange={(e) => setForm({ ...form, profile: { ...form.profile, fullName: e.target.value } })}
+          onBlur={() => {
+            if (!form.profile.fullName?.trim()) showToast('Full name is required.', 'error');
+          }}
         />
         <textarea
           className="input my-4"
@@ -207,7 +302,7 @@ export default function ProfileTab() {
               <div className="relative w-full">
                 <img src={bannerPreview!} alt="Cover Banner" className="w-full h-40 object-cover rounded-lg border" />
                 <button
-                  onClick={() => { setForm({ ...form, profile: { ...form.profile, bannerImage: '' } }); setBannerPreview(null); }}
+                  onClick={() => { setForm({ ...form, profile: { ...form.profile, bannerImage: '' } }); setBannerPreview(null); showToast('Cover image removed', 'success'); }}
                   className="absolute top-2 right-2 bg-white/80 rounded-full p-1 hover:bg-white"
                 >
                   <X size={16} />
@@ -281,8 +376,8 @@ export default function ProfileTab() {
 
       <Section title="Publish checklist" sub="Two quick wins that make your page feel complete.">
         <div className="flex flex-wrap gap-2">
-          <span className={clsx('px-3 py-1 rounded-full text-sm border', isAvatarSet ? 'bg-green-50 border-green-200 text-green-700' : 'bg-amber-50 border-amber-200 text-amber-700')}>🖼️ Avatar {isAvatarSet ? 'added' : 'missing'}</span>
-          <span className={clsx('px-3 py-1 rounded-full text-sm border', hasLink ? 'bg-green-50 border-green-200 text-green-700' : 'bg-amber-50 border-amber-200 text-amber-700')}>🔗 {hasLink ? '1+ link added' : 'add at least 1 link'}</span>
+          <span className={clsx('px-3 py-1 rounded-full text-sm border', isAvatarSet ? 'bg-green-50 border-green-200 text-green-700' : 'bg-amber-50 border-amber-200 text-amber-700')}>Avatar {isAvatarSet ? 'added' : 'missing'}</span>
+          <span className={clsx('px-3 py-1 rounded-full text-sm border', hasLink ? 'bg-green-50 border-green-200 text-green-700' : 'bg-amber-50 border-amber-200 text-amber-700')}>{hasLink ? '1+ link added' : 'add at least 1 link'}</span>
         </div>
       </Section>
 
@@ -294,20 +389,24 @@ export default function ProfileTab() {
         switch (key) {
           case 'links':
             return (
-              <Section key={key} title="Links" right={<button className="btn-primary" onClick={() => setShowLinkModal(true)} disabled={linksLimitReached}>+ Add Link</button>}>
+              <Section key={key} title="Links" right={<button className="btn-primary" onClick={() => {
+                if (linksLimitReached) { showToast(`Link limit reached (${limits.links}).`, 'error'); return; }
+                setShowLinkModal(true);
+              }} disabled={linksLimitReached}>+ Add Link</button>}>
                 <LockedOverlay mode="notice" enabled={!linksLimitReached} limitReached={linksLimitReached}>
                   <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd('links')}>
-                    <SortableContext items={form.profile.links.map((l: any) => l.id)} strategy={verticalListSortingStrategy}>
+                    <SortableContext items={(form.profile.links || []).map((l: Link) => l.id)} strategy={verticalListSortingStrategy}>
                       <div className="grid gap-4">
-                        {form.profile.links.map((link: any, i: number) => (
+                        {(form.profile.links || []).map((link: Link, i: number) => (
                           <SortableLink
                             key={link.id}
                             id={link.id}
                             link={link}
                             onEdit={() => { setEditLinkIndex(i); setShowLinkModal(true); }}
-                            onDelete={() =>
-                              setForm({ ...form, profile: { ...form.profile, links: form.profile.links.filter((_: any, j: number) => j !== i) } })
-                            }
+                            onDelete={() => {
+                              setForm({ ...form, profile: { ...form.profile, links: (form.profile.links || []).filter((_: Link, j: number) => j !== i) } });
+                              showToast('Link removed', 'success');
+                            }}
                           />
                         ))}
                       </div>
@@ -321,17 +420,18 @@ export default function ProfileTab() {
               <Section key={key} title="Headers" right={<button className="btn-primary" onClick={() => setShowHeaderModal(true)} disabled={headersLimitReached}>+ Add Header</button>}>
                 <LockedOverlay mode="notice" enabled={!headersLimitReached} limitReached={headersLimitReached}>
                   <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd('headers')}>
-                    <SortableContext items={form.profile.headers.map((h: any) => h.id)} strategy={verticalListSortingStrategy}>
+                    <SortableContext items={(form.profile.headers || []).map((h) => h.id)} strategy={verticalListSortingStrategy}>
                       <div className="grid gap-3">
-                        {form.profile.headers.map((header: any, i: number) => (
+                        {(form.profile.headers || []).map((header, i: number) => (
                           <SortableLink
                             key={header.id}
                             id={header.id}
-                            link={{ ...header, type: 'header' }}
+                            link={{ ...(header as any), type: 'header' }}
                             onEdit={() => { setEditHeaderIndex(i); setShowHeaderModal(true); }}
-                            onDelete={() =>
-                              setForm({ ...form, profile: { ...form.profile, headers: form.profile.headers.filter((_: any, j: number) => j !== i) } })
-                            }
+                            onDelete={() => {
+                              setForm({ ...form, profile: { ...form.profile, headers: (form.profile.headers || []).filter((_: any, j: number) => j !== i) } });
+                              showToast('Header removed', 'success');
+                            }}
                             isHeader
                           />
                         ))}
@@ -363,10 +463,22 @@ export default function ProfileTab() {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                     <input className="input" placeholder="Full address" value={form.profile.fullAddress || ''} disabled={mapDisabled}
                       onChange={(e) => setForm({ ...form, profile: { ...form.profile, fullAddress: e.target.value } })} />
-                    <input className="input" placeholder="Latitude" value={form.profile.latitude || ''} disabled={mapDisabled}
-                      onChange={(e) => setForm({ ...form, profile: { ...form.profile, latitude: e.target.value } })} />
-                    <input className="input" placeholder="Longitude" value={form.profile.longitude || ''} disabled={mapDisabled}
-                      onChange={(e) => setForm({ ...form, profile: { ...form.profile, longitude: e.target.value } })} />
+                    <input className="input" placeholder="Latitude (-90 to 90)" value={form.profile.latitude || ''} disabled={mapDisabled}
+                      onChange={(e) => setForm({ ...form, profile: { ...form.profile, latitude: e.target.value } })}
+                      onBlur={(e) => {
+                        const v = clampLat(e.target.value);
+                        if (v === null) showToast('Latitude must be a number between -90 and 90.', 'error');
+                        else setForm({ ...form, profile: { ...form.profile, latitude: v } });
+                      }}
+                    />
+                    <input className="input" placeholder="Longitude (-180 to 180)" value={form.profile.longitude || ''} disabled={mapDisabled}
+                      onChange={(e) => setForm({ ...form, profile: { ...form.profile, longitude: e.target.value } })}
+                      onBlur={(e) => {
+                        const v = clampLng(e.target.value);
+                        if (v === null) showToast('Longitude must be a number between -180 and 180.', 'error');
+                        else setForm({ ...form, profile: { ...form.profile, longitude: v } });
+                      }}
+                    />
                   </div>
                   <div className="mt-4">
                     <iframe
@@ -399,12 +511,17 @@ export default function ProfileTab() {
                     <ResumeUpload
                       ref={resumeRef}
                       onSelectFile={(file) => {
+                        if (!file?.type?.includes('pdf')) {
+                          showToast('Please upload a PDF resume.', 'error');
+                          return;
+                        }
                         if (form.profile.resumeUrl?.startsWith('blob:')) URL.revokeObjectURL(form.profile.resumeUrl);
                         const reader = new FileReader();
                         reader.onload = () => {
                           const blob = new Blob([reader.result as ArrayBuffer], { type: file.type });
                           const url = URL.createObjectURL(blob);
                           setForm({ ...form, profile: { ...form.profile, resumeUrl: url } });
+                          showToast('Resume added', 'success');
                         };
                         reader.readAsArrayBuffer(file);
                       }}
@@ -418,6 +535,7 @@ export default function ProfileTab() {
                             if (form.profile.resumeUrl?.startsWith('blob:')) URL.revokeObjectURL(form.profile.resumeUrl);
                             setForm({ ...form, profile: { ...form.profile, resumeUrl: '' } });
                             resumeRef.current?.reset();
+                            showToast('Resume removed', 'success');
                           }}
                         >
                           Remove
@@ -430,20 +548,24 @@ export default function ProfileTab() {
             );
           case 'featured':
             return (
-              <Section key={key} title="Featured Media" right={<button className="btn-primary" onClick={() => { setEditFeaturedIndex(null); setShowFeaturedModal(true); }} disabled={featuredLimitReached}>+ Add Media</button>}>
+              <Section key={key} title="Featured Media" right={<button className="btn-primary" onClick={() => {
+                if (featuredLimitReached) { showToast(`Featured limit reached (${limits.featured}).`, 'error'); return; }
+                setEditFeaturedIndex(null); setShowFeaturedModal(true);
+              }} disabled={featuredLimitReached}>+ Add Media</button>}>
                 <LockedOverlay enabled={isFeaturedEnabled && !featuredLimitReached} limitReached={featuredLimitReached} mode="notice">
                   <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd('featured')}>
-                    <SortableContext items={(form.profile.featured || []).map((f: any) => f.id)} strategy={verticalListSortingStrategy}>
+                    <SortableContext items={(form.profile.featured || []).map((f: FeaturedMedia) => f.id)} strategy={verticalListSortingStrategy}>
                       <div className="grid gap-3">
-                        {(form.profile.featured || []).map((featured: any, i: number) => (
+                        {(form.profile.featured || []).map((featured: FeaturedMedia, i: number) => (
                           <SortableFeaturedMediaItem
                             key={featured.id}
                             id={featured.id}
                             media={featured}
                             onEdit={() => { setEditFeaturedIndex(i); setShowFeaturedModal(true); }}
-                            onDelete={() =>
-                              setForm({ ...form, profile: { ...form.profile, featured: form.profile.featured.filter((_: any, j: number) => j !== i) } })
-                            }
+                            onDelete={() => {
+                              setForm({ ...form, profile: { ...form.profile, featured: (form.profile.featured || []).filter((_: any, j: number) => j !== i) } });
+                              showToast('Featured item removed', 'success');
+                            }}
                           />
                         ))}
                       </div>
@@ -454,20 +576,24 @@ export default function ProfileTab() {
             );
           case 'embeds':
             return (
-              <Section key={key} title={<span>Embed Widgets <span className="badge-pro">Pro</span></span>} right={<button className="btn-primary" onClick={() => setShowEmbedModal(true)} disabled={embedsLimitReached}>+ Add Embed</button>}>
+              <Section key={key} title={<span>Embed Widgets <span className="badge-pro">Pro</span></span>} right={<button className="btn-primary" onClick={() => {
+                if (embedsLimitReached) { showToast(`Embed limit reached (${limits.embeds}).`, 'error'); return; }
+                setShowEmbedModal(true);
+              }} disabled={embedsLimitReached}>+ Add Embed</button>}>
                 <LockedOverlay enabled={isEmbedEnabled && !embedsLimitReached} limitReached={embedsLimitReached} mode="notice">
                   <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd('embeds')}>
-                    <SortableContext items={(form.profile.embeds || []).map((e: any) => e.id)} strategy={verticalListSortingStrategy}>
+                    <SortableContext items={(form.profile.embeds || []).map((e: Embed) => e.id)} strategy={verticalListSortingStrategy}>
                       <div className="grid gap-3">
-                        {(form.profile.embeds || []).map((embed: any, i: number) => (
+                        {(form.profile.embeds || []).map((embed: Embed, i: number) => (
                           <SortableLink
                             key={embed.id}
                             id={embed.id}
                             link={{ ...embed, type: 'embed' }}
                             onEdit={() => { setEditEmbedIndex(i); setShowEmbedModal(true); }}
-                            onDelete={() =>
-                              setForm({ ...form, profile: { ...form.profile, embeds: form.profile.embeds.filter((_: any, j: number) => j !== i) } })
-                            }
+                            onDelete={() => {
+                              setForm({ ...form, profile: { ...form.profile, embeds: (form.profile.embeds || []).filter((_: any, j: number) => j !== i) } });
+                              showToast('Embed removed', 'success');
+                            }}
                             isEmbed
                           />
                         ))}
@@ -479,20 +605,24 @@ export default function ProfileTab() {
             );
           case 'services':
             return (
-              <Section key={key} title={<span>Services <span className="badge-pro">Pro</span></span>} right={<button className="btn-primary" onClick={() => { setEditServiceIndex(null); setShowServiceModal(true); }} disabled={servicesLimitReached}>+ Add Service</button>}>
+              <Section key={key} title={<span>Services <span className="badge-pro">Pro</span></span>} right={<button className="btn-primary" onClick={() => {
+                if (servicesLimitReached) { showToast(`Services limit reached (${limits.services}).`, 'error'); return; }
+                setEditServiceIndex(null); setShowServiceModal(true);
+              }} disabled={servicesLimitReached}>+ Add Service</button>}>
                 <LockedOverlay enabled={isServicesEnabled && !servicesLimitReached} limitReached={servicesLimitReached} mode="notice">
                   <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd('services')}>
-                    <SortableContext items={form.profile.services.map((s: any) => s.id)} strategy={verticalListSortingStrategy}>
+                    <SortableContext items={(form.profile.services || []).map((s: Service) => s.id)} strategy={verticalListSortingStrategy}>
                       <div className="grid gap-3">
-                        {form.profile.services.map((service: any, i: number) => (
+                        {(form.profile.services || []).map((service: Service, i: number) => (
                           <SortableService
                             key={service.id}
                             id={service.id}
                             service={service}
                             onEdit={() => { setEditServiceIndex(i); setShowServiceModal(true); }}
-                            onDelete={() =>
-                              setForm({ ...form, profile: { ...form.profile, services: form.profile.services.filter((_: any, j: number) => j !== i) } })
-                            }
+                            onDelete={() => {
+                              setForm({ ...form, profile: { ...form.profile, services: (form.profile.services || []).filter((_: any, j: number) => j !== i) } });
+                              showToast('Service removed', 'success');
+                            }}
                           />
                         ))}
                       </div>
@@ -503,20 +633,24 @@ export default function ProfileTab() {
             );
           case 'testimonials':
             return (
-              <Section key={key} title={<span>Testimonials <span className="badge-pro">Pro</span></span>} right={<button className="btn-primary" onClick={() => { setEditTestimonialIndex(null); setShowTestimonialModal(true); }} disabled={testimonialsLimitReached}>+ Add Testimonial</button>}>
+              <Section key={key} title={<span>Testimonials <span className="badge-pro">Pro</span></span>} right={<button className="btn-primary" onClick={() => {
+                if (testimonialsLimitReached) { showToast(`Testimonials limit reached (${limits.testimonials}).`, 'error'); return; }
+                setEditTestimonialIndex(null); setShowTestimonialModal(true);
+              }} disabled={testimonialsLimitReached}>+ Add Testimonial</button>}>
                 <LockedOverlay enabled={isTestimonialsEnabled && !testimonialsLimitReached} limitReached={testimonialsLimitReached} mode="notice">
                   <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd('testimonials')}>
-                    <SortableContext items={(form.profile.testimonials || []).map((t: any) => t.id)} strategy={verticalListSortingStrategy}>
+                    <SortableContext items={(form.profile.testimonials || []).map((t: Testimonial) => t.id)} strategy={verticalListSortingStrategy}>
                       <div className="grid gap-3">
-                        {(form.profile.testimonials || []).map((t: any, i: number) => (
+                        {(form.profile.testimonials || []).map((t: Testimonial, i: number) => (
                           <SortableTestimonial
                             key={t.id}
                             id={t.id}
                             testimonial={t}
                             onEdit={() => { setEditTestimonialIndex(i); setShowTestimonialModal(true); }}
-                            onDelete={() =>
-                              setForm({ ...form, profile: { ...form.profile, testimonials: form.profile.testimonials.filter((_: any, j: number) => j !== i) } })
-                            }
+                            onDelete={() => {
+                              setForm({ ...form, profile: { ...form.profile, testimonials: (form.profile.testimonials || []).filter((_: any, j: number) => j !== i) } });
+                              showToast('Testimonial removed', 'success');
+                            }}
                           />
                         ))}
                       </div>
@@ -527,20 +661,24 @@ export default function ProfileTab() {
             );
           case 'faqs':
             return (
-              <Section key={key} title={<span>FAQs <span className="badge-pro">Pro</span></span>} right={<button className="btn-primary" onClick={() => { setEditFAQIndex(null); setShowFAQModal(true); }} disabled={faqsLimitReached}>+ Add FAQ</button>}>
+              <Section key={key} title={<span>FAQs <span className="badge-pro">Pro</span></span>} right={<button className="btn-primary" onClick={() => {
+                if (faqsLimitReached) { showToast(`FAQ limit reached (${limits.faqs}).`, 'error'); return; }
+                setEditFAQIndex(null); setShowFAQModal(true);
+              }} disabled={faqsLimitReached}>+ Add FAQ</button>}>
                 <LockedOverlay enabled={isFaqsEnabled && !faqsLimitReached} limitReached={faqsLimitReached} mode="notice">
                   <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd('faqs')}>
-                    <SortableContext items={form.profile.faqs.map((f: any) => f.id)} strategy={verticalListSortingStrategy}>
+                    <SortableContext items={(form.profile.faqs || []).map((f: FAQ) => f.id)} strategy={verticalListSortingStrategy}>
                       <div className="grid gap-3">
-                        {form.profile.faqs.map((faq: any, i: number) => (
+                        {(form.profile.faqs || []).map((faq: FAQ, i: number) => (
                           <SortableFAQ
                             key={faq.id}
                             id={faq.id}
                             faq={faq}
                             onEdit={() => { setEditFAQIndex(i); setShowFAQModal(true); }}
-                            onDelete={() =>
-                              setForm({ ...form, profile: { ...form.profile, faqs: form.profile.faqs.filter((_: any, j: number) => j !== i) } })
-                            }
+                            onDelete={() => {
+                              setForm({ ...form, profile: { ...form.profile, faqs: (form.profile.faqs || []).filter((_: any, j: number) => j !== i) } });
+                              showToast('FAQ removed', 'success');
+                            }}
                           />
                         ))}
                       </div>
@@ -592,11 +730,13 @@ export default function ProfileTab() {
           initialData={editHeaderIndex !== null ? form.profile.headers?.[editHeaderIndex] : undefined}
           onClose={() => setShowHeaderModal(false)}
           onSave={(newHeader) => {
-            const updated = [...form.profile.headers];
+            if (!newHeader?.title?.trim()) { showToast('Header title is required.', 'error'); return; }
+            const updated = [...(form.profile.headers || [])];
             if (editHeaderIndex !== null) updated[editHeaderIndex] = { ...updated[editHeaderIndex], ...newHeader };
             else updated.push({ ...newHeader, id: `header-${Date.now() + Math.random()}` });
             setForm({ ...form, profile: { ...form.profile, headers: updated } });
             setShowHeaderModal(false);
+            showToast('Header saved', 'success');
           }}
         />
       )}
@@ -608,11 +748,13 @@ export default function ProfileTab() {
             if (typeof val === 'string') {
               setForm({ ...form, profile: { ...form.profile, avatar: val } });
               setUploadPreview(val);
+              showToast('Profile image updated', 'success');
             } else {
               const reader = new FileReader();
               reader.onload = () => {
                 setForm({ ...form, profile: { ...form.profile, avatar: reader.result as string } });
                 setUploadPreview(reader.result as string);
+                showToast('Profile image updated', 'success');
               };
               reader.readAsDataURL(val);
             }
@@ -635,11 +777,16 @@ export default function ProfileTab() {
           onClose={() => setShowTestimonialModal(false)}
           initialData={editTestimonialIndex !== null ? form.profile.testimonials?.[editTestimonialIndex] : undefined}
           onSave={(newTestimonial) => {
+            if (!newTestimonial?.name?.trim() || !newTestimonial?.message?.trim()) {
+              showToast('Testimonial name and message are required.', 'error');
+              return;
+            }
             if (editTestimonialIndex !== null) {
-              const updated = [...form.profile.testimonials];
+              const updated = [...(form.profile.testimonials || [])];
               updated[editTestimonialIndex] = { ...updated[editTestimonialIndex], ...newTestimonial };
               setForm({ ...form, profile: { ...form.profile, testimonials: updated } });
             } else {
+              if (testimonialsLimitReached) { showToast(`Testimonials limit reached (${limits.testimonials}).`, 'error'); return; }
               const id = `testimonial-${Date.now() + Math.random()}`;
               setForm({
                 ...form,
@@ -650,6 +797,7 @@ export default function ProfileTab() {
               });
             }
             setShowTestimonialModal(false);
+            showToast('Testimonial saved', 'success');
           }}
         />
       )}
@@ -659,11 +807,16 @@ export default function ProfileTab() {
           onClose={() => setShowFAQModal(false)}
           initialData={editFAQIndex !== null ? form.profile.faqs?.[editFAQIndex] : undefined}
           onSave={(newFaq) => {
+            if (!newFaq?.question?.trim() || !newFaq?.answer?.trim()) {
+              showToast('FAQ question and answer are required.', 'error');
+              return;
+            }
             if (editFAQIndex !== null) {
-              const updated = [...form.profile.faqs];
+              const updated = [...(form.profile.faqs || [])];
               updated[editFAQIndex] = { ...updated[editFAQIndex], ...newFaq };
               setForm({ ...form, profile: { ...form.profile, faqs: updated } });
             } else {
+              if (faqsLimitReached) { showToast(`FAQ limit reached (${limits.faqs}).`, 'error'); return; }
               const id = `faq-${Date.now() + Math.random()}`;
               setForm({
                 ...form,
@@ -674,6 +827,7 @@ export default function ProfileTab() {
               });
             }
             setShowFAQModal(false);
+            showToast('FAQ saved', 'success');
           }}
         />
       )}
@@ -683,12 +837,11 @@ export default function ProfileTab() {
           onClose={() => setShowServiceModal(false)}
           onSave={handleSaveService}
           initialData={
-            editServiceIndex !== null
-              ? { ...form.profile.services[editServiceIndex], price: form.profile.services[editServiceIndex].price }
-              : undefined
+            editServiceIndex !== null ? form.profile.services[editServiceIndex] : undefined
           }
         />
       )}
+
 
       {showFeaturedModal && (
         <FeaturedMediaModal
@@ -706,12 +859,14 @@ export default function ProfileTab() {
               setForm({ ...form, profile: { ...form.profile, bannerImage: val } });
               setBannerPreview(val);
               setShowUploadBannerModal(false);
+              showToast('Cover image updated', 'success');
             } else if (val instanceof File) {
               const reader = new FileReader();
               reader.onloadend = () => {
                 if (typeof reader.result === 'string') {
                   setForm({ ...form, profile: { ...form.profile, bannerImage: reader.result } });
                   setBannerPreview(reader.result);
+                  showToast('Cover image updated', 'success');
                 }
                 setShowUploadBannerModal(false);
               };

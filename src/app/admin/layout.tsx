@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Inter } from "next/font/google";
 import "@/styles/globals.css";
 import AdminLayout from "@/lib/frontend/admin/layout/AdminLayout";
+import { ToastProvider } from "@/lib/frontend/common/ToastProvider";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -14,7 +15,7 @@ export const viewport: Viewport = {
   initialScale: 1,
   maximumScale: 5,
   viewportFit: "cover",
-  themeColor: "#111827", 
+  themeColor: "#111827",
 };
 
 export const metadata: Metadata = {
@@ -24,7 +25,7 @@ export const metadata: Metadata = {
   },
   description: "Admin panel for myeasypage SaaS platform.",
   robots: {
-    index: false, 
+    index: false,
     follow: false,
   },
 };
@@ -37,7 +38,11 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={`${inter.variable} antialiased`}>
-        <AdminLayout>{children}</AdminLayout>
+        <ToastProvider>
+          <AdminLayout>
+            {children}
+          </AdminLayout>
+        </ToastProvider>
       </body>
     </html>
   );

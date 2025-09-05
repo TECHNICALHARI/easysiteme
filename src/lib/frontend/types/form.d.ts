@@ -44,7 +44,10 @@ export interface Service {
   id: string;
   title: string;
   description: string;
-  price?: string;
+  amount?: string;
+  currencyCode?: "INR" | "USD" | "EUR" | "GBP" | "NONE" | "OTHER";
+  currencySymbol?: string;
+  customSymbol?: string;
   image?: string;
   ctaLabel?: string;
   ctaLink?: string;

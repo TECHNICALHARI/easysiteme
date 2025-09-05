@@ -500,7 +500,15 @@
 
 /* service start */
 .sortableCard {
-    padding: 1rem 0;
+    background-color: white;
+    border: 1px solid #e5e7eb;
+    border-radius: 1rem;
+    padding: 1rem;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
+    display: flex;
+    justify-content: space-between;
+    transition: all 0.2s ease;
+    width: 100%;
 }
 
 .PTserviceImg {
@@ -737,6 +745,36 @@
     display: block;
     border: 0;
 }
+
+.previewBox {
+    background: var(--color-bg);
+    border: 1px solid rgba(0, 0, 0, .06);
+    border-radius: .8rem;
+    padding: .85rem 1rem;
+    margin: .3rem 0 1rem;
+    text-align: center;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, .03);
+}
+
+[data-theme='dark'] .previewBox {
+    background: rgba(255, 255, 255, .025);
+    border-color: rgba(255, 255, 255, .06);
+}
+
+.previewUrl {
+    display: block;
+    font-weight: 800;
+    font-size: .92rem;
+    color: var(--color-text);
+    margin-bottom: .25rem;
+    word-break: break-word;
+}
+
+.previewNote {
+    font-size: .82rem;
+    color: var(--color-text-muted);
+}
+
 
 /* global floating preview button styles*/
 .previewFabGlobal {

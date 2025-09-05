@@ -1,12 +1,14 @@
 'use client';
 
 import { useState } from 'react';
-import { X } from 'lucide-react';
+import { X, Check, User } from 'lucide-react';
 import styles from '@/styles/admin.module.css';
 import { useAdminForm } from '@/lib/frontend/admin/context/AdminFormContext';
 import { PLAN_FEATURES } from '@/config/PLAN_FEATURES';
 import DomainSetupModal from './DomainSetupModal';
 import LockedOverlay from '../../layout/LockedOverlay';
+import { useToast } from '@/lib/frontend/common/ToastProvider';
+import { debounceCheckDomain, validateSubdomain } from '@/lib/frontend/utils/checkdomain';
 
 const MAX_SEO_TITLE = 60;
 const MAX_SEO_DESCRIPTION = 160;
@@ -16,12 +18,17 @@ export default function SettingsTab() {
     const { form, setForm, plan } = useAdminForm();
     const { profile, settings, seo } = form;
     const limits = PLAN_FEATURES[plan];
+    const { showToast } = useToast();
+
     const [showDomainModal, setShowDomainModal] = useState(false);
     const [errors, setErrors] = useState<Record<string, string>>({});
+    const [checkingUsername, setCheckingUsername] = useState(false);
+    const [usernameAvailable, setUsernameAvailable] = useState<null | boolean>(null);
+    const [usernameError, setUsernameError] = useState<string | null>(null);
 
     const handleProfileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const { name, value } = e.target;
-        const finalValue = name === "username" ? value.toLowerCase() : value;
+        const finalValue = name === 'username' ? value.toLowerCase() : value;
         setForm((prev) => ({
             ...prev,
             profile: {
@@ -29,8 +36,37 @@ export default function SettingsTab() {
                 [name]: finalValue,
             },
         }));
+
+        if (name === 'username') {
+            const cleanVal = finalValue.replace(/[^a-z0-9-]/gi, '').toLowerCase();
+            const err = validateSubdomain(cleanVal);
+            setUsernameError(err);
+            setUsernameAvailable(null);
+            if (!err && cleanVal) debounceCheckDomain(cleanVal, checkUsername, 500);
+        }
     };
 
+    const checkUsername = async (name: string) => {
+        if (!name) {
+            setUsernameAvailable(null);
+            return;
+        }
+        // setCheckingUsername(true);
+        setUsernameAvailable(true); // demo
+        // try {
+        //     const res = await fetch(`/api/check-subdomain?subdomain=${encodeURIComponent(name)}`);
+        //     if (!res.ok) {
+        //         setUsernameAvailable(null);
+        //     } else {
+        //         const data = await res.json();
+        //         setUsernameAvailable(Boolean(data.available));
+        //     }
+        // } catch {
+        //     setUsernameAvailable(null);
+        // } finally {
+        //     setCheckingUsername(false);
+        // }
+    };
 
     const handleSettingsChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const { name, value, type, checked } = e.target;
@@ -84,6 +120,7 @@ export default function SettingsTab() {
             settings: { ...prev.settings, customDomain: domain },
         }));
         setShowDomainModal(false);
+        showToast('Custom domain saved', 'success');
     };
 
     const handleAddKeyword = (e: React.KeyboardEvent<HTMLInputElement>) => {
@@ -116,22 +153,55 @@ export default function SettingsTab() {
                 <h3>Settings</h3>
                 <p>Manage your domain, SEO, analytics, and other preferences.</p>
             </div>
-
             <div className={styles.sectionMain}>
                 <div className={styles.SecHeadAndBtn}>
                     <h4 className={styles.sectionLabel}>Username</h4>
                 </div>
                 <div className="custumGroupInput">
                     <label htmlFor="username" className="labelText">Your Public Username</label>
-                    <input
-                        id="username"
-                        className="input"
-                        type="text"
-                        name="username"
-                        placeholder="yourname"
-                        value={profile.username}
-                        onChange={handleProfileChange}
-                    />
+                    <div className="inputGroup relative">
+                        <User className="input-icon" size={18} />
+                        <input
+                            id="username"
+                            className="input inputWithIcon pr-8"
+                            type="text"
+                            name="username"
+                            placeholder="yourname"
+                            value={profile.username}
+                            onChange={handleProfileChange}
+                        />
+                        {profile.username &&
+                            (usernameError ? (
+                                <X size={18} className="absolute right-2 top-1/2 -translate-y-1/2 text-red-500" />
+                            ) : usernameAvailable ? (
+                                <Check size={18} className="absolute right-2 top-1/2 -translate-y-1/2 text-green-600" />
+                            ) : usernameAvailable === false ? (
+                                <X size={18} className="absolute right-2 top-1/2 -translate-y-1/2 text-red-500" />
+                            ) : checkingUsername ? (
+                                <span className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 text-xs">Checking...</span>
+                            ) : null)}
+                    </div>
+                    {errors.username && <p className="text-red-500 text-sm mb-2">{errors.username}</p>}
+
+                    {profile.username && !usernameError && (
+                        <div className={styles.previewBox}>
+                            <span
+                                className={`${styles.previewUrl} ${usernameAvailable ? 'text-green-600' : usernameAvailable === false ? 'text-red-500' : ''
+                                    }`}
+                            >
+                                https://{profile.username}.myeasypage.com
+                            </span>
+                            <span className={styles.previewNote}>
+                                {checkingUsername
+                                    ? 'Checking availability...'
+                                    : usernameAvailable === null
+                                        ? 'Enter a unique name using letters, numbers or hyphens'
+                                        : usernameAvailable
+                                            ? 'Username is available'
+                                            : 'Username is taken'}
+                            </span>
+                        </div>
+                    )}
                 </div>
             </div>
 

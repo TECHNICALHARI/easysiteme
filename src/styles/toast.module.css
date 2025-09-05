@@ -20,11 +20,15 @@
 }
 
 .success {
-  background: #16a34a; /* green-600 */
+  background: #16a34a;
 }
 
 .error {
-  background: #dc2626; /* red-600 */
+  background: #dc2626;
+}
+
+.info {
+  background: #2563eb;
 }
 
 @keyframes slideIn {
@@ -32,6 +36,7 @@
     opacity: 0;
     transform: translateX(100%);
   }
+
   to {
     opacity: 1;
     transform: translateX(0);
