@@ -187,7 +187,7 @@ export default function ServiceFormModal({
 
         <input
           className="input"
-          placeholder="CTA Button Label"
+          placeholder='CTA Button Label (e.g., "Book Now", "Buy Service")'
           value={ctaLabel}
           onChange={e => setCtaLabel(e.target.value)}
           maxLength={40}
@@ -195,7 +195,7 @@ export default function ServiceFormModal({
 
         <input
           className="input"
-          placeholder="CTA Button Link"
+          placeholder='CTA Button Link (e.g., "https://wa.me/91XXXXXXXXXX" or "https://example.com")'
           value={ctaLink}
           onChange={e => setCtaLink(e.target.value)}
         />
