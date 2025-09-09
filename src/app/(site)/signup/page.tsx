@@ -4,6 +4,7 @@ import { useState } from 'react';
 import styles from '@/styles/main.module.css';
 import SignupForm from '@/lib/frontend/main/auth/SignupForm';
 import { useToast } from '@/lib/frontend/common/ToastProvider';
+import { formatPhoneToE164 } from '@/lib/frontend/utils/common';
 
 export default function SignupPage() {
   const { showToast } = useToast();
@@ -12,6 +13,7 @@ export default function SignupPage() {
     subdomain: '',
     email: '',
     mobile: '',
+    countryCode: '+91',
     password: '',
     showPass: false,
     emailVerified: false,
@@ -28,12 +30,16 @@ export default function SignupPage() {
     if (!name) return setSubdomainAvailable(null);
     setCheckingSubdomain(true);
     try {
-      // 🔗 Replace with your real API
-      // const res = await fetch(`/api/check-subdomain?subdomain=${encodeURIComponent(name)}`);
-      // const data = await res.json();
-      // setSubdomainAvailable(data.available);
-
-      setSubdomainAvailable(true); // demo
+      const res = await fetch(`/api/check-subdomain?subdomain=${encodeURIComponent(name)}`, {
+        method: 'GET',
+        headers: { Accept: 'application/json' },
+      });
+      const json = await res.json();
+      if (json?.success && typeof json.data?.available !== 'undefined') {
+        setSubdomainAvailable(Boolean(json.data.available));
+      } else {
+        setSubdomainAvailable(null);
+      }
     } catch {
       setSubdomainAvailable(null);
     } finally {
@@ -44,19 +50,30 @@ export default function SignupPage() {
   const handleSubmit = async () => {
     setLoading(true);
     try {
+      const mobileE164 = formatPhoneToE164(formData.mobile);
+
+      const payload: any = {
+        subdomain: formData.subdomain,
+        password: formData.password,
+      };
+      if (formData.email) payload.email = formData.email;
+      if (mobileE164) {
+        payload.mobile = mobileE164;
+        payload.countryCode = formData.countryCode;
+      }
+
       const res = await fetch('/api/signup', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData),
+        body: JSON.stringify(payload),
       });
       const data = await res.json();
-      if (data.success) {
+      if (data?.success) {
         showToast('Signup successful! Redirecting...', 'success');
         setTimeout(() => {
-          window.location.href = '/dashboard';
         }, 1200);
       } else {
-        showToast(data.message || 'Signup failed', 'error');
+        showToast(data?.message || 'Signup failed', 'error');
       }
     } catch {
       showToast('Something went wrong. Try again later.', 'error');

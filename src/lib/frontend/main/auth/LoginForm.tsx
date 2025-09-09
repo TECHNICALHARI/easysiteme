@@ -1,3 +1,4 @@
+// lib/frontend/main/auth/LoginForm.tsx
 'use client';
 
 import {
@@ -13,6 +14,8 @@ import {
 import styles from '@/styles/main.module.css';
 import Link from 'next/link';
 import OTPInput from 'react-otp-input';
+import PhoneInput from 'react-phone-input-2';
+import 'react-phone-input-2/lib/style.css';
 
 type Props = {
   formData: AuthFormData;
@@ -31,14 +34,10 @@ export default function LoginForm({
   loading,
   errors,
 }: Props) {
-  const togglePassword = () =>
-    setFormData({ ...formData, showPass: !formData.showPass });
+  const togglePassword = () => setFormData({ ...formData, showPass: !formData.showPass });
 
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  const mobileRegex = /^[0-9]{8,15}$/;
-
   const emailValid = formData.email && emailRegex.test(formData.email);
-  const mobileValid = formData.mobile && mobileRegex.test(formData.mobile);
 
   return (
     <form
@@ -105,25 +104,22 @@ export default function LoginForm({
 
       {formData.loginWith === 'mobile' && (
         <>
-          <div className="inputGroup relative">
-            <Phone className="input-icon" size={18} />
-            <input
-              name="mobile"
-              className="input inputWithIcon pr-8"
-              placeholder="Mobile number"
-              type="tel"
-              value={formData.mobile}
-              disabled={formData.useOtp && formData.otpSent}
-              onChange={(e) =>
-                setFormData({ ...formData, mobile: e.target.value.replace(/[^0-9]/g, '') })
-              }
-            />
-            {formData.mobile &&
-              (mobileValid ? (
-                <Check size={18} className="absolute right-2 top-1/2 -translate-y-1/2 text-green-600" />
-              ) : (
-                <X size={18} className="absolute right-2 top-1/2 -translate-y-1/2 text-red-500" />
-              ))}
+          <div className="inputGroup relative flex gap-2 items-center">
+            <div className="flex-1 relative">
+              <Phone className="input-icon" size={18} />
+              <PhoneInput
+                country="in"
+                value={formData.mobile}
+                onChange={(val: string, data: any) => {
+                  const dial = data?.dialCode ? `+${data.dialCode}` : formData.countryCode || '+91';
+                  setFormData({ ...formData, mobile: val, countryCode: dial });
+                }}
+                inputProps={{ name: 'mobile', required: false }}
+                containerClass="w-full"
+                inputClass="input w-full"
+                specialLabel=""
+              />
+            </div>
           </div>
           {errors.mobile && <p className="text-red-500 text-sm mb-2">{errors.mobile}</p>}
         </>
@@ -161,7 +157,7 @@ export default function LoginForm({
               numInputs={6}
               inputType="tel"
               containerStyle={{ gap: '0.6rem', justifyContent: 'center' }}
-              renderInput={(props) => <input {...props} className="input otpInput" name='emailOtp' />}
+              renderInput={(props) => <input {...props} className="input otpInput" name='otp' />}
             />
           </div>
         </div>
