@@ -1,4 +1,4 @@
-import { Site } from "@/lib/backend/models/Site.model";
+import { Site } from "@/lib/backend/models/Admin.model";
 
 export const StatsService = {
   async get(ownerId: string) {

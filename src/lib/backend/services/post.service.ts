@@ -1,53 +1,59 @@
+import { Post, IPostDoc } from "../models/Post.model";
 import mongoose from "mongoose";
-import { Post } from "@/lib/backend/models/Post.model";
+import {
+  CreatePostInput,
+  UpdatePostInput,
+  PostInput,
+} from "../validators/post.schema";
 
-export const PostService = {
-  async list(ownerId: string) {
-    return Post.find({ owner: new mongoose.Types.ObjectId(ownerId) })
-      .sort({ createdAt: -1 })
-      .lean()
-      .exec();
-  },
-
-  async get(ownerId: string, idOrSlug: string) {
-    const q: any = { owner: new mongoose.Types.ObjectId(ownerId) };
-    const byPostId = await Post.findOne({ ...q, postId: idOrSlug })
-      .lean()
-      .exec();
-    if (byPostId) return byPostId;
-    const bySlug = await Post.findOne({ ...q, slug: idOrSlug })
-      .lean()
-      .exec();
-    return bySlug;
-  },
-
-  async create(ownerId: string, payload: any) {
-    const docPayload: any = {
+export class PostService {
+  async create(ownerId: string, data: CreatePostInput): Promise<IPostDoc> {
+    const doc = await Post.create({
+      ...data,
       owner: new mongoose.Types.ObjectId(ownerId),
-      ...payload,
-    };
-    if (!docPayload.postId) {
-      docPayload.postId = `post-${Date.now()}-${Math.floor(
-        Math.random() * 10000
-      )}`;
-    }
-    const doc = await Post.create(docPayload);
+    });
     return doc;
-  },
+  }
 
-  async update(ownerId: string, postId: string, payload: any) {
+  async update(
+    ownerId: string,
+    postId: string,
+    data: UpdatePostInput
+  ): Promise<IPostDoc | null> {
     const doc = await Post.findOneAndUpdate(
-      { owner: new mongoose.Types.ObjectId(ownerId), postId },
-      { $set: payload },
+      { owner: ownerId, postId },
+      { $set: data },
       { new: true }
     ).exec();
     return doc;
-  },
+  }
 
-  async remove(ownerId: string, postId: string) {
-    return Post.findOneAndDelete({
-      owner: new mongoose.Types.ObjectId(ownerId),
-      postId,
-    }).exec();
-  },
-};
+  async delete(ownerId: string, postId: string): Promise<boolean> {
+    const res = await Post.findOneAndDelete({ owner: ownerId, postId }).exec();
+    return !!res;
+  }
+
+  async getById(ownerId: string, postId: string): Promise<IPostDoc | null> {
+    return Post.findOne({ owner: ownerId, postId }).lean().exec();
+  }
+
+  async getBySlug(ownerId: string, slug: string): Promise<IPostDoc | null> {
+    return Post.findOne({ owner: ownerId, slug }).lean().exec();
+  }
+
+  async list(ownerId: string): Promise<IPostDoc[]> {
+    return Post.find({ owner: ownerId }).sort({ createdAt: -1 }).lean().exec();
+  }
+
+  async togglePublish(
+    ownerId: string,
+    postId: string,
+    publish: boolean
+  ): Promise<IPostDoc | null> {
+    return Post.findOneAndUpdate(
+      { owner: ownerId, postId },
+      { $set: { published: publish } },
+      { new: true }
+    ).exec();
+  }
+}

@@ -1,49 +1,29 @@
-import mongoose, { Schema, Model, Document, Types } from "mongoose";
+import mongoose, { Schema, Document, Model } from "mongoose";
+import { PostInput } from "../validators/post.schema";
 
-export interface IPost {
+export interface IPostDoc extends Omit<PostInput, "postId">, Document {
   postId: string;
-  title: string;
-  slug: string;
-  description?: string;
-  content?: string;
-  thumbnail?: string;
-  seoTitle?: string;
-  seoDescription?: string;
-  tags?: string[];
-  published?: boolean;
-  meta?: Record<string, any>;
-  [k: string]: any;
-}
-
-export interface IPostDoc extends IPost, Document {
-  owner: Types.ObjectId;
-  createdAt?: Date;
-  updatedAt?: Date;
+  owner: mongoose.Types.ObjectId;
 }
 
 const PostSchema = new Schema<IPostDoc>(
   {
-    owner: {
-      type: Schema.Types.ObjectId,
-      ref: "User",
-      required: true,
-      index: true,
-    },
-    postId: { type: String, required: true, index: true, unique: true },
+    owner: { type: Schema.Types.ObjectId, ref: "User", required: true },
+    postId: { type: String, required: true },
     title: { type: String, required: true },
-    slug: { type: String, required: true, index: true },
-    description: { type: String },
-    content: { type: String },
-    thumbnail: { type: String },
-    seoTitle: { type: String },
-    seoDescription: { type: String },
-    tags: { type: [String], default: [] },
+    slug: { type: String, required: true },
+    description: { type: String, required: true },
+    content: { type: String, required: true },
+    thumbnail: { type: String, default: "" },
+    seoTitle: { type: String, default: "" },
+    seoDescription: { type: String, default: "" },
+    tags: [{ type: String }],
     published: { type: Boolean, default: false },
-    meta: { type: Schema.Types.Mixed, default: {} },
   },
   { timestamps: true }
 );
 
+PostSchema.index({ owner: 1, slug: 1 }, { unique: true });
+
 export const Post: Model<IPostDoc> =
-  (mongoose.models.Post as Model<IPostDoc>) ||
-  mongoose.model<IPostDoc>("Post", PostSchema);
+  mongoose.models.Post || mongoose.model<IPostDoc>("Post", PostSchema);

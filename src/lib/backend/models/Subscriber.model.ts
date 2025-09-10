@@ -1,32 +1,33 @@
-import mongoose, { Schema, Model, Document, Types } from "mongoose";
+import mongoose, { Schema, Document, Model, Types } from "mongoose";
 
-export interface ISubscriber {
-  email?: string;
+export type Subscriber = {
+  site: Types.ObjectId | string;
+  email: string;
   name?: string;
-  status?: "active" | "unsubscribed" | "bounced" | "pending";
+  status?: "active" | "unsubscribed";
   subscribedOn?: Date;
-  metadata?: Record<string, any>;
-}
+  meta?: Record<string, any>;
+};
 
-export interface ISubscriberDoc extends ISubscriber, Document {
-  owner: Types.ObjectId;
+export interface ISubscriberDoc extends Subscriber, Document {
+  _id: Types.ObjectId;
   createdAt?: Date;
   updatedAt?: Date;
 }
 
 const SubscriberSchema = new Schema<ISubscriberDoc>(
   {
-    owner: {
+    site: {
       type: Schema.Types.ObjectId,
-      ref: "User",
+      ref: "Site",
       required: true,
       index: true,
     },
-    email: { type: String, index: true },
-    name: { type: String },
+    email: { type: String, required: true, index: true },
+    name: String,
     status: { type: String, default: "active" },
     subscribedOn: { type: Date, default: () => new Date() },
-    metadata: { type: Schema.Types.Mixed, default: {} },
+    meta: { type: Schema.Types.Mixed, default: {} },
   },
   { timestamps: true }
 );

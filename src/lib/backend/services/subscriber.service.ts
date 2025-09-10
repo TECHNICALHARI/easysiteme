@@ -1,36 +1,27 @@
 import { Subscriber } from "@/lib/backend/models/Subscriber.model";
 
 export const SubscriberService = {
-  async list(ownerId: string, limit = 100, skip = 0) {
-    const data = await Subscriber.find({ owner: ownerId })
-      .sort({ subscribedOn: -1 })
-      .skip(skip)
-      .limit(limit)
-      .lean()
-      .exec();
-    const total = await Subscriber.countDocuments({ owner: ownerId }).exec();
-    return { data, total };
+  async listBySite(siteId: string, opts?: { limit?: number; skip?: number }) {
+    const q = Subscriber.find({ site: siteId }).sort({ subscribedOn: -1 });
+    if (opts?.limit) q.limit(opts.limit);
+    if (opts?.skip) q.skip(opts.skip);
+    return q.lean().exec();
   },
 
-  async add(ownerId: string, payload: any) {
-    const exists = await Subscriber.findOne({
-      owner: ownerId,
-      email: payload.email,
-    }).exec();
-    if (exists) {
-      exists.status = payload.status ?? exists.status;
-      exists.metadata = { ...exists.metadata, ...(payload.metadata ?? {}) };
-      await exists.save();
-      return exists;
-    }
-    const doc = await Subscriber.create({ owner: ownerId, ...payload });
+  async create(siteId: string, payload: any) {
+    const doc = await Subscriber.create({ site: siteId, ...payload });
     return doc;
   },
 
-  async remove(ownerId: string, idOrEmail: string) {
-    return Subscriber.findOneAndDelete({
-      owner: ownerId,
-      $or: [{ _id: idOrEmail }, { email: idOrEmail }],
-    }).exec();
+  async update(id: string, data: any) {
+    return Subscriber.findByIdAndUpdate(
+      id,
+      { $set: data },
+      { new: true }
+    ).exec();
+  },
+
+  async remove(id: string) {
+    return Subscriber.findByIdAndDelete(id).exec();
   },
 };
