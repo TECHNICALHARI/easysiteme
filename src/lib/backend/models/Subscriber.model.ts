@@ -1,37 +1,37 @@
-import mongoose, { Schema, Document, Model, Types } from "mongoose";
+import mongoose, { Schema, Document } from "mongoose";
 
-export type Subscriber = {
-  site: Types.ObjectId | string;
+export interface ISubscriber {
+  siteId: mongoose.Types.ObjectId;
   email: string;
-  name?: string;
-  status?: "active" | "unsubscribed";
-  subscribedOn?: Date;
-  meta?: Record<string, any>;
-};
-
-export interface ISubscriberDoc extends Subscriber, Document {
-  _id: Types.ObjectId;
-  createdAt?: Date;
-  updatedAt?: Date;
+  status: "Active" | "Unsubscribed";
+  subscribedOn: Date;
+  unsubscribedOn?: Date;
 }
+
+export interface ISubscriberDoc extends ISubscriber, Document {}
 
 const SubscriberSchema = new Schema<ISubscriberDoc>(
   {
-    site: {
+    siteId: {
       type: Schema.Types.ObjectId,
       ref: "Site",
       required: true,
       index: true,
     },
-    email: { type: String, required: true, index: true },
-    name: String,
-    status: { type: String, default: "active" },
-    subscribedOn: { type: Date, default: () => new Date() },
-    meta: { type: Schema.Types.Mixed, default: {} },
+    email: { type: String, required: true, lowercase: true, trim: true },
+    status: {
+      type: String,
+      enum: ["Active", "Unsubscribed"],
+      default: "Active",
+    },
+    subscribedOn: { type: Date, default: Date.now },
+    unsubscribedOn: { type: Date },
   },
   { timestamps: true }
 );
 
-export const Subscriber: Model<ISubscriberDoc> =
-  (mongoose.models.Subscriber as Model<ISubscriberDoc>) ||
+SubscriberSchema.index({ siteId: 1, email: 1 }, { unique: true });
+
+export const Subscriber =
+  mongoose.models.Subscriber ||
   mongoose.model<ISubscriberDoc>("Subscriber", SubscriberSchema);

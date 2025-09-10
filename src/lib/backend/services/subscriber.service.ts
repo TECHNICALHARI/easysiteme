@@ -1,27 +1,55 @@
-import { Subscriber } from "@/lib/backend/models/Subscriber.model";
+import { Subscriber, ISubscriberDoc } from "../models/Subscriber.model";
+import {
+  SubscribeInput,
+  UpdateSubscriberInput,
+} from "../validators/subscriber.schema";
+import mongoose from "mongoose";
 
-export const SubscriberService = {
-  async listBySite(siteId: string, opts?: { limit?: number; skip?: number }) {
-    const q = Subscriber.find({ site: siteId }).sort({ subscribedOn: -1 });
-    if (opts?.limit) q.limit(opts.limit);
-    if (opts?.skip) q.skip(opts.skip);
-    return q.lean().exec();
-  },
+export class SubscriberService {
+  async addSubscriber(data: SubscribeInput): Promise<ISubscriberDoc> {
+    const siteId = new mongoose.Types.ObjectId(data.siteId);
+    const doc = await Subscriber.findOneAndUpdate(
+      { siteId, email: data.email },
+      { $setOnInsert: { status: "Active", subscribedOn: new Date() } },
+      { new: true, upsert: true }
+    ).exec();
+    return doc!;
+  }
 
-  async create(siteId: string, payload: any) {
-    const doc = await Subscriber.create({ site: siteId, ...payload });
-    return doc;
-  },
-
-  async update(id: string, data: any) {
-    return Subscriber.findByIdAndUpdate(
-      id,
-      { $set: data },
+  async updateStatus(
+    siteId: string,
+    email: string,
+    data: UpdateSubscriberInput
+  ) {
+    const doc = await Subscriber.findOneAndUpdate(
+      { siteId: new mongoose.Types.ObjectId(siteId), email },
+      {
+        $set: {
+          status: data.status,
+          unsubscribedOn: data.status === "Unsubscribed" ? new Date() : null,
+        },
+      },
       { new: true }
     ).exec();
-  },
+    return doc;
+  }
 
-  async remove(id: string) {
-    return Subscriber.findByIdAndDelete(id).exec();
-  },
-};
+  async listSubscribers(siteId: string): Promise<ISubscriberDoc[]> {
+    return Subscriber.find({ siteId: new mongoose.Types.ObjectId(siteId) })
+      .sort({ subscribedOn: -1 })
+      .exec(); // return ISubscriberDoc[]
+  }
+
+  async stats(siteId: string) {
+    const total = await Subscriber.countDocuments({ siteId });
+    const active = await Subscriber.countDocuments({
+      siteId,
+      status: "Active",
+    });
+    const unsubscribed = await Subscriber.countDocuments({
+      siteId,
+      status: "Unsubscribed",
+    });
+    return { total, active, unsubscribed };
+  }
+}

@@ -3,7 +3,6 @@ import mongoose from "mongoose";
 import {
   CreatePostInput,
   UpdatePostInput,
-  PostInput,
 } from "../validators/post.schema";
 
 export class PostService {

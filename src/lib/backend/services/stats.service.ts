@@ -1,27 +1,73 @@
-import { Site } from "@/lib/backend/models/Admin.model";
+import { Stat, IStatDoc } from "../models/Stats.model";
+import mongoose from "mongoose";
+import {
+  TrackLinkInput,
+  TrackTrafficInput,
+  ContactSubmitInput,
+} from "../validators/stats.schema";
 
-export const StatsService = {
-  async get(ownerId: string) {
-    const s = await Site.findOne({ owner: ownerId }).lean().exec();
-    return s?.form?.stats ?? {};
-  },
+export class StatService {
+  async trackLink(data: TrackLinkInput): Promise<IStatDoc> {
+    return Stat.create({
+      siteId: new mongoose.Types.ObjectId(data.siteId),
+      type: "click",
+      url: data.url,
+      title: data.title,
+    });
+  }
 
-  async record(ownerId: string, key: string, payload: any) {
-    const path = `form.stats.${key}`;
-    await Site.findOneAndUpdate(
-      { owner: ownerId },
-      { $push: { [path]: payload } },
-      { upsert: true }
-    ).exec();
-    return true;
-  },
+  async trackTraffic(data: TrackTrafficInput): Promise<IStatDoc> {
+    return Stat.create({
+      siteId: new mongoose.Types.ObjectId(data.siteId),
+      type: "traffic",
+      source: data.source,
+    });
+  }
 
-  async set(ownerId: string, statsObj: any) {
-    await Site.findOneAndUpdate(
-      { owner: ownerId },
-      { $set: { "form.stats": statsObj } },
-      { upsert: true }
-    ).exec();
-    return true;
-  },
-};
+  async contactSubmit(data: ContactSubmitInput): Promise<IStatDoc> {
+    return Stat.create({
+      siteId: new mongoose.Types.ObjectId(data.siteId),
+      type: "contact",
+      name: data.name,
+      email: data.email,
+      message: data.message,
+    });
+  }
+
+  async getStats(siteId: string) {
+    const totalViews = await Stat.countDocuments({ siteId, type: "traffic" });
+    const totalClicks = await Stat.countDocuments({ siteId, type: "click" });
+
+    const trafficSources = await Stat.aggregate([
+      {
+        $match: {
+          siteId: new mongoose.Types.ObjectId(siteId),
+          type: "traffic",
+        },
+      },
+      { $group: { _id: "$source", value: { $sum: 1 } } },
+    ]);
+
+    const topLinks = await Stat.aggregate([
+      {
+        $match: { siteId: new mongoose.Types.ObjectId(siteId), type: "click" },
+      },
+      { $group: { _id: "$url", clicks: { $sum: 1 } } },
+      { $sort: { clicks: -1 } },
+      { $limit: 10 },
+    ]);
+
+    const contactSubmissions = await Stat.find({ siteId, type: "contact" })
+      .sort({ createdAt: -1 })
+      .lean()
+      .exec();
+
+    return {
+      totalViews,
+      totalClicks,
+      trafficSources,
+      topLinks,
+      contactSubmissions,
+    };
+  }
+}
