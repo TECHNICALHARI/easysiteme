@@ -1,29 +1,38 @@
-import mongoose, { Schema, Document, Model } from "mongoose";
-import { PostInput } from "../validators/post.schema";
+import mongoose, { Document, Schema } from "mongoose";
 
-export interface IPostDoc extends Omit<PostInput, "postId">, Document {
+export interface IPost {
   postId: string;
   owner: mongoose.Types.ObjectId;
+  title: string;
+  slug: string;
+  description: string;
+  content: string;
+  thumbnail?: string;
+  seoTitle?: string;
+  seoDescription?: string;
+  tags: string[];
+  published: boolean;
 }
+
+export type IPostDoc = IPost & Document;
 
 const PostSchema = new Schema<IPostDoc>(
   {
-    owner: { type: Schema.Types.ObjectId, ref: "User", required: true },
-    postId: { type: String, required: true },
+    postId: { type: String, required: true, index: true, unique: true },
+    owner: { type: Schema.Types.ObjectId, ref: "Admin", required: true },
     title: { type: String, required: true },
-    slug: { type: String, required: true },
+    slug: { type: String, required: true, index: true },
     description: { type: String, required: true },
     content: { type: String, required: true },
     thumbnail: { type: String, default: "" },
     seoTitle: { type: String, default: "" },
     seoDescription: { type: String, default: "" },
-    tags: [{ type: String }],
+    tags: { type: [String], default: [] },
     published: { type: Boolean, default: false },
   },
   { timestamps: true }
 );
 
-PostSchema.index({ owner: 1, slug: 1 }, { unique: true });
-
-export const Post: Model<IPostDoc> =
-  mongoose.models.Post || mongoose.model<IPostDoc>("Post", PostSchema);
+export const Post =
+  (mongoose.models && (mongoose.models.Post as mongoose.Model<IPostDoc>)) ||
+  mongoose.model<IPostDoc>("Post", PostSchema);

@@ -7,6 +7,8 @@ import Container from './Container';
 import Logo from '../../common/Logo';
 import ShareModal from '@/lib/frontend/singlepage/components/ShareModal';
 import { useAdminForm } from '@/lib/frontend/admin/context/AdminFormContext';
+import { useToast } from '@/lib/frontend/common/ToastProvider';
+import { publishAdminForm } from '../../api/services';
 
 function getPublicUrl(username?: string, customDomain?: string) {
   if (!username && !customDomain) return '';
@@ -17,14 +19,20 @@ function getPublicUrl(username?: string, customDomain?: string) {
 export default function AdminHeader() {
   const { form } = useAdminForm();
   const [openShare, setOpenShare] = useState(false);
+  const { showToast } = useToast();
 
   const publicUrl = useMemo(
     () => getPublicUrl(form?.profile?.username, form?.settings?.customDomain),
     [form?.profile?.username, form?.settings?.customDomain]
   );
 
-  const handlePublish = () => {
-    console.log('Publishing all changes...');
+  const handlePublish = async () => {
+    try {
+      const res = await publishAdminForm(form);
+      showToast(res.message || 'Published', 'success');
+    } catch (err: any) {
+      showToast(err?.message || 'Publish failed', 'error');
+    }
   };
 
   const handleShare = async () => {

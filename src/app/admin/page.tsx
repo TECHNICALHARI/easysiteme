@@ -3,14 +3,12 @@
 import { useState } from 'react';
 import { Eye, X } from 'lucide-react';
 import styles from '@/styles/admin.module.css';
-import { useAutoSave } from '@/lib/frontend/hooks/useAutoSave';
 import MobilePreview from '@/lib/frontend/admin/components/MobilePreview';
 import AllTabs from '@/lib/frontend/admin/components/AllTabs';
 import { useAdminForm } from '@/lib/frontend/admin/context/AdminFormContext';
 
 export default function Dashboard() {
-  const { form, setForm } = useAdminForm();
-  useAutoSave(form);
+  const { form } = useAdminForm();
 
   const [showPreview, setShowPreview] = useState(false);
 

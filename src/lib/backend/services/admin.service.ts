@@ -28,7 +28,23 @@ function deepMerge<T extends Record<string, any>>(
   return out as T;
 }
 
-const DEFAULT_FORM = formSchema.parse({});
+function buildDefaultForm() {
+  return formSchema.parse({
+    profile: {},
+    design: {},
+    seo: {},
+    settings: {},
+    socials: {},
+    subscriberSettings: {
+      subscriberSettings: {},
+      SubscriberList: {},
+    },
+    stats: {},
+    previewMode: false,
+  });
+}
+
+const DEFAULT_FORM = buildDefaultForm();
 
 export class AdminService {
   async getForm(ownerId: string): Promise<FormInput> {

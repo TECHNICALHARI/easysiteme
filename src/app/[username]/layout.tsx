@@ -2,10 +2,10 @@ import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "@/styles/globals.css";
 import type { FormData } from "@/lib/frontend/types/form";
-import { getUserPageService } from "@/lib/frontend/api/services";
 import { UserPageProvider } from "@/lib/frontend/singlepage/context/UserPageProvider";
 import { notFound } from "next/navigation";
 import dummyFormData from "@/lib/frontend/utils/dummyForm";
+import { getUserPage } from "@/lib/frontend/api/services";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -15,23 +15,22 @@ const inter = Inter({
 
 type LayoutProps = {
   children: React.ReactNode;
-  params: Promise<{ username: string }>;
+  params: { username: string };
 };
 
 async function fetchUserPage(username: string): Promise<FormData | null> {
   try {
-    const res = await getUserPageService(username, {
-      next: { revalidate: 60 },
-    });
+    const res = await getUserPage(username);
     return res.success ? (res.data as FormData) : null;
   } catch {
-    // return null;
     return dummyFormData;
   }
 }
 
-export async function generateMetadata(props: LayoutProps): Promise<Metadata> {
-  const { username } = await props.params;
+export async function generateMetadata({
+  params,
+}: LayoutProps): Promise<Metadata> {
+  const { username } = params;
   const data = await fetchUserPage(username);
 
   if (!data) {
@@ -41,7 +40,6 @@ export async function generateMetadata(props: LayoutProps): Promise<Metadata> {
       robots: { index: false, follow: false },
     };
   }
-
 
   const seo = data.seo ?? {};
   const profile = data.profile ?? {};
@@ -75,8 +73,11 @@ export async function generateMetadata(props: LayoutProps): Promise<Metadata> {
   };
 }
 
-export default async function UserLayout(props: LayoutProps) {
-  const { username } = await props.params;
+export default async function UserLayout({
+  children,
+  params,
+}: LayoutProps) {
+  const { username } = params;
   const data = await fetchUserPage(username);
 
   if (!data) {
@@ -86,7 +87,7 @@ export default async function UserLayout(props: LayoutProps) {
   return (
     <html lang="en">
       <body className={`${inter.variable} antialiased`}>
-        <UserPageProvider data={data}>{props.children}</UserPageProvider>
+        <UserPageProvider data={data}>{children}</UserPageProvider>
       </body>
     </html>
   );

@@ -10,6 +10,7 @@ import { usePreviewBus } from '@/lib/frontend/hooks/usePreviewBus';
 import { loadDraft, useLocalDraft } from '@/lib/frontend/hooks/useLocalDraft';
 import PreviewFab from './PreviewFab';
 import { PlanType } from '@/config/PLAN_FEATURES';
+import { getAdminForm } from '../../api/services';
 
 const EMPTY_FORM: FormData = {
   profile: {
@@ -77,7 +78,7 @@ function mergeForm(
     ...base,
     ...apiData,
     ...draft,
-    profile: { ...base.profile, ...apiData?.profile, ...draft?.profile },
+    profile: { ...base.profile, ...apiData?.profile, ...draft?.profile,  },
     design: { ...base.design, ...apiData?.design, ...draft?.design },
     seo: { ...base.seo, ...apiData?.seo, ...draft?.seo },
     settings: { ...base.settings, ...apiData?.settings, ...draft?.settings },
@@ -135,21 +136,13 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     (async () => {
       try {
         setIsLoading(true);
-        const res = await fetch('/api/admin/form', {
-          method: 'GET',
-          credentials: 'include',
-          signal: ac.signal,
-          headers: { Accept: 'application/json' },
-        });
-        if (res.ok) {
-          const json = await res.json();
-          const payload = json?.data ?? json;
-          if (payload && typeof payload === 'object') {
-            if (payload.plan) setPlan(payload.plan as PlanType);
-            setServerData(payload);
-            const draft = loadDraft();
-            setForm((prev) => mergeForm(prev, payload, draft));
-          }
+        const res = await getAdminForm();
+        if (res && res.data) {
+          const payload = res.data;
+          if (payload.plan) setPlan(payload.plan as PlanType);
+          setServerData(payload);
+          const draft = loadDraft();
+          setForm((prev) => mergeForm(prev, payload, draft));
         }
       } catch {
       } finally {
