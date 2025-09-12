@@ -6,7 +6,6 @@ import StarterKit from '@tiptap/starter-kit';
 import Heading from '@tiptap/extension-heading';
 import Placeholder from '@tiptap/extension-placeholder';
 import Image from '@tiptap/extension-image';
-
 import {
   Bold,
   Italic,
@@ -19,6 +18,7 @@ import {
   Heading2,
   Text,
 } from 'lucide-react';
+import { useToast } from '@/lib/frontend/common/ToastProvider';
 
 type Props = {
   value: string;
@@ -28,14 +28,18 @@ type Props = {
   disable?: boolean;
 };
 
+const MAX_FILE_SIZE = 1.5 * 1024 * 1024;
+
 export default function RichTextEditor({
   value,
   onChange,
   placeholder = 'Write something...',
   className = '',
-  disable = false
+  disable = false,
 }: Props) {
+  const { showToast } = useToast();
   const fileInputRef = useRef<HTMLInputElement | null>(null);
+
   const editor = useEditor({
     extensions: [
       StarterKit,
@@ -60,39 +64,60 @@ export default function RichTextEditor({
   });
 
   useEffect(() => {
-    if (editor) {
-      editor.setEditable(!disable);
-    }
+    if (editor) editor.setEditable(!disable);
   }, [disable, editor]);
-
 
   useEffect(() => {
     if (editor && value !== editor.getHTML()) {
-      editor.commands.setContent(value);
+      editor.commands.setContent(value, false);
     }
-  }, [value]);
+  }, [value, editor]);
 
   const insertImage = (url: string) => {
     editor?.chain().focus().setImage({ src: url }).run();
+    onChange(editor?.getHTML() ?? '');
   };
 
-  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-
-    const reader = new FileReader();
-    reader.onload = () => {
-      if (reader.result && typeof reader.result === 'string') {
-        insertImage(reader.result);
-      }
-    };
-    reader.readAsDataURL(file);
+    if (!file.type.startsWith('image/')) {
+      showToast('Only images are allowed', 'error');
+      return;
+    }
+    if (file.size > MAX_FILE_SIZE) {
+      showToast('Image is too large (max 1.5 MB)', 'error');
+      return;
+    }
+    try {
+      const fd = new FormData();
+      fd.append('file', file);
+      const res = await fetch('/api/uploads/image', {
+        method: 'POST',
+        body: fd,
+        credentials: 'include',
+      });
+      if (!res.ok) throw new Error('Image upload failed');
+      const json = await res.json();
+      const url = json?.data?.url ?? json?.url ?? '';
+      if (!url) throw new Error('No URL returned');
+      insertImage(url);
+      showToast('Image uploaded', 'success');
+    } catch (err: any) {
+      console.error('rt image upload error', err);
+      showToast(err?.message || 'Failed to upload image', 'error');
+    } finally {
+      if (fileInputRef.current) fileInputRef.current.value = '';
+    }
   };
 
   if (!editor) return null;
 
   return (
-    <div className={`border rounded-md ${disable ? 'bg-gray-100 opacity-70 cursor-not-allowed' : 'bg-white'}`}>
+    <div
+      className={`border rounded-md ${disable ? 'bg-gray-100 opacity-70 cursor-not-allowed' : 'bg-white'
+        }`}
+    >
       {/* Toolbar */}
       <div className="flex flex-wrap gap-2 border-b p-2 items-center">
         <button
@@ -127,8 +152,6 @@ export default function RichTextEditor({
         >
           <ListOrdered size={16} />
         </button>
-
-        {/* Headings */}
         <button
           type="button"
           title="Heading 1"
@@ -154,7 +177,6 @@ export default function RichTextEditor({
           <Text size={16} />
         </button>
 
-        {/* Image upload */}
         <button
           type="button"
           title="Upload Image"
@@ -171,7 +193,6 @@ export default function RichTextEditor({
           onChange={handleFileUpload}
         />
 
-        {/* Undo / Redo */}
         <button onClick={() => editor.chain().focus().undo().run()} className="p-1 px-2 rounded" title="Undo">
           <Undo2 size={16} />
         </button>
@@ -180,8 +201,7 @@ export default function RichTextEditor({
         </button>
       </div>
 
-      {/* Editor Content */}
-      <div className="prose prose-sm max-w-none">
+      <div className="prose prose-sm max-w-none p-3">
         <EditorContent editor={editor} />
       </div>
     </div>

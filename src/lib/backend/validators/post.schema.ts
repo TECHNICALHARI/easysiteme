@@ -1,5 +1,21 @@
 import { z } from "zod";
 
+const DATA_URI_REGEX = /^data:(image\/[a-zA-Z+-.]+);base64,[A-Za-z0-9+/=\s]+$/;
+
+function isHttpUrl(v: unknown) {
+  if (typeof v !== "string") return false;
+  try {
+    const u = new URL(v);
+    return u.protocol === "http:" || u.protocol === "https:";
+  } catch {
+    return false;
+  }
+}
+
+function isDataUri(v: unknown) {
+  return typeof v === "string" && DATA_URI_REGEX.test(v);
+}
+
 export const basePostSchema = z.object({
   postId: z.string().uuid().optional(),
   title: z.string().min(1, "Title is required"),
@@ -7,28 +23,23 @@ export const basePostSchema = z.object({
   description: z.string().min(1, "Description is required"),
   content: z.string().min(1, "Content is required"),
   thumbnail: z
-    .string()
+    .union([z.string(), z.undefined(), z.null()])
     .optional()
-    .or(z.literal(""))
     .refine(
       (v) =>
-        v === "" ||
         v === undefined ||
-        (() => {
-          try {
-            if (!v) return true;
-            new URL(v);
-            return true;
-          } catch {
-            return false;
-          }
-        })(),
-      { message: "Thumbnail must be a valid URL or empty" }
+        v === null ||
+        v === "" ||
+        isHttpUrl(v) ||
+        isDataUri(v),
+      {
+        message: "Thumbnail must be a valid URL, data URI, or empty",
+      }
     ),
   seoTitle: z.string().max(60).optional().default(""),
   seoDescription: z.string().max(160).optional().default(""),
   tags: z.array(z.string()).optional().default([]),
-  published: z.boolean().default(false),
+  published: z.boolean().optional().default(false),
 });
 
 export const createPostSchema = basePostSchema.extend({

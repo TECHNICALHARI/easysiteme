@@ -1,8 +1,8 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { JSX, useEffect, useState } from 'react';
 import { useRouter, useParams } from 'next/navigation';
-import { Post } from '@/lib/frontend/types/form';
+import type { Post } from '@/lib/frontend/types/form';
 import { useAdminForm } from '@/lib/frontend/admin/context/AdminFormContext';
 import PostForm from '@/lib/frontend/admin/components/posts/PostForm';
 import styles from '@/styles/admin.module.css';
@@ -11,7 +11,7 @@ import NoData from '@/lib/frontend/common/NoData';
 import { getPost, updatePost } from '@/lib/frontend/api/services';
 import { useToast } from '@/lib/frontend/common/ToastProvider';
 
-export default function EditPostPage() {
+export default function EditPostPage(): JSX.Element {
   const router = useRouter();
   const params = useParams();
   const { form, setForm } = useAdminForm();
@@ -32,16 +32,14 @@ export default function EditPostPage() {
       setIsLoading(true);
       setFetchError(null);
       try {
-        const localPost = form.posts?.posts?.find((p) => p.id === postId);
+        const localPost = form.posts?.posts?.find((p) => (p.postId ?? p.id) === postId);
         if (localPost) {
           if (mounted) setPostData(localPost);
           setIsLoading(false);
           return;
         }
         const res = await getPost(postId);
-        if (!res || !res.success) {
-          throw new Error(res?.message || 'Failed to fetch post');
-        }
+        if (!res || !res.success) throw new Error(res?.message || 'Failed to fetch post');
         const fetched = res.data?.post ?? null;
         if (!fetched) {
           if (mounted) {
@@ -52,11 +50,13 @@ export default function EditPostPage() {
         } else {
           const normalized: Post = {
             id: fetched.postId ?? fetched.id ?? postId,
+            postId: fetched.postId ?? fetched.id ?? postId,
             title: fetched.title ?? '',
             slug: fetched.slug ?? '',
             description: fetched.description ?? '',
             content: fetched.content ?? '',
             thumbnail: fetched.thumbnail ?? '',
+            thumbnailPublicId: fetched.thumbnailPublicId ?? '',
             seoTitle: fetched.seoTitle ?? '',
             seoDescription: fetched.seoDescription ?? '',
             tags: fetched.tags ?? [],
@@ -100,31 +100,21 @@ export default function EditPostPage() {
     setIsSaving(true);
     showToast('Saving post...', 'info');
     try {
-      const payload = {
-        postId: postData.id,
-        title: postData.title,
-        slug: postData.slug,
-        description: postData.description,
-        content: postData.content,
-        thumbnail: postData.thumbnail || '',
-        seoTitle: postData.seoTitle || '',
-        seoDescription: postData.seoDescription || '',
-        tags: postData.tags || [],
-        published: Boolean(postData.published),
-      };
-      const res = await updatePost(postData.id, payload);
+      const res = await updatePost(postData.postId ?? postData.id, postData);
       if (!res || !res.success) throw new Error(res?.message || 'Failed to update');
-      const updated = res.data?.post ?? payload;
+      const updated = res.data?.post ?? postData;
       setForm((prev) => {
         const posts = prev.posts?.posts ?? [];
-        const idx = posts.findIndex((p) => p.id === postId);
+        const idx = posts.findIndex((p) => (p.postId ?? p.id) === postId);
         const normalizedUpdated: Post = {
           id: updated.postId ?? updated.id ?? postId,
+          postId: updated.postId ?? updated.id ?? postId,
           title: updated.title ?? '',
           slug: updated.slug ?? '',
           description: updated.description ?? '',
           content: updated.content ?? '',
           thumbnail: updated.thumbnail ?? '',
+          thumbnailPublicId: updated.thumbnailPublicId ?? '',
           seoTitle: updated.seoTitle ?? '',
           seoDescription: updated.seoDescription ?? '',
           tags: updated.tags ?? [],
@@ -134,7 +124,7 @@ export default function EditPostPage() {
         if (idx === -1) {
           newPosts = [...posts, normalizedUpdated];
         } else {
-          newPosts = posts.map((p) => (p.id === postId ? normalizedUpdated : p));
+          newPosts = posts.map((p) => ((p.postId ?? p.id) === postId ? normalizedUpdated : p));
         }
         return { ...prev, posts: { ...prev.posts, posts: newPosts } };
       });
@@ -151,18 +141,21 @@ export default function EditPostPage() {
     }
   };
 
-  if (isLoading) {
-    return <div className="p-4 text-gray-500">Loading post...</div>;
-  }
-
+  if (isLoading) return <div className="p-4 text-gray-500">Loading post...</div>;
   if (!postData) {
-    return <NoData showGoBackButton={true} title="Post Not Found" description={fetchError ?? "We couldn’t locate this post."} />;
+    return (
+      <NoData
+        showGoBackButton={true}
+        title="Post Not Found"
+        description={fetchError ?? 'We couldn’t locate this post.'}
+      />
+    );
   }
 
   return (
     <div className={styles.addEditFormContainer}>
       <GoBackButton />
-      <h2 className={"section-title"}>Edit Your Post</h2>
+      <h2 className="section-title">Edit Your Post</h2>
       <div className={styles.sectionMain}>
         <PostForm
           postData={postData}

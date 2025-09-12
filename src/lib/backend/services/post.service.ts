@@ -1,20 +1,29 @@
+// src/lib/backend/services/post.service.ts
 import mongoose, { PipelineStage } from "mongoose";
 import { Post } from "../models/Post.model";
 import { CreatePostInput, UpdatePostInput } from "../validators/post.schema";
+import { replaceBase64Images } from "../utils/image-helper";
+import { appConfig } from "../config";
 
+/**
+ * Keep your class implementation. Expose a singleton instance and wrapper functions
+ * so route files can import named functions like listPosts/createPost/etc.
+ */
 export class PostService {
   async create(ownerId: string, data: CreatePostInput) {
+    const processed = await replaceBase64Images(data, ["thumbnail"]);
     const doc = await Post.create({
-      ...data,
+      ...processed,
       owner: new mongoose.Types.ObjectId(ownerId),
     });
     return doc.toObject ? doc.toObject() : doc;
   }
 
   async update(ownerId: string, postId: string, data: UpdatePostInput) {
+    const processed = await replaceBase64Images(data, ["thumbnail"]);
     const doc = await Post.findOneAndUpdate(
       { owner: new mongoose.Types.ObjectId(ownerId), postId },
-      { $set: data },
+      { $set: processed },
       { new: true }
     ).exec();
     return doc ? (doc.toObject ? doc.toObject() : doc) : null;
@@ -153,7 +162,34 @@ export class PostService {
       },
       { $project: { adminDoc: 0, userDoc: 0, __v: 0 } },
     ];
-    const res = await Post.aggregate(pipeline).exec();
-    return res;
+    return Post.aggregate(pipeline).exec();
   }
 }
+
+/**
+ * Export a singleton and convenient named functions so route code can import
+ * functions like `createPost` rather than dealing with the class.
+ */
+const instance = new PostService();
+
+export const createPost = (ownerId: string, data: CreatePostInput) =>
+  instance.create(ownerId, data);
+export const updatePost = (
+  ownerId: string,
+  postId: string,
+  data: UpdatePostInput
+) => instance.update(ownerId, postId, data);
+export const deletePost = (ownerId: string, postId: string) =>
+  instance.delete(ownerId, postId);
+export const togglePublishPost = (
+  ownerId: string,
+  postId: string,
+  publish: boolean
+) => instance.togglePublish(ownerId, postId, publish);
+export const listPosts = (ownerId: string) => instance.list(ownerId);
+export const getPostById = (ownerId: string, postId: string) =>
+  instance.getById(ownerId, postId);
+export const getPostBySlug = (ownerId: string, slug: string) =>
+  instance.getBySlug(ownerId, slug);
+
+export default instance;

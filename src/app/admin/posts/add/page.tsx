@@ -2,7 +2,7 @@
 
 import { useRouter } from 'next/navigation';
 import { useAdminForm } from '@/lib/frontend/admin/context/AdminFormContext';
-import { useState } from 'react';
+import { JSX, useState } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 import PostForm from '@/lib/frontend/admin/components/posts/PostForm';
 import LockedOverlay from '@/lib/frontend/admin/layout/LockedOverlay';
@@ -14,14 +14,16 @@ import type { Post } from '@/lib/frontend/types/form';
 import { useToast } from '@/lib/frontend/common/ToastProvider';
 
 function normalizePost(raw: any): Post {
-    const id = raw?.postId ?? raw?.id ?? uuidv4();
+    const postId = raw?.postId ?? raw?.id ?? uuidv4();
     return {
-        id,
+        id: postId,
+        postId,
         title: raw?.title ?? '',
         slug: raw?.slug ?? '',
         description: raw?.description ?? '',
         content: raw?.content ?? '',
         thumbnail: raw?.thumbnail ?? '',
+        thumbnailPublicId: raw?.thumbnailPublicId ?? '',
         seoTitle: raw?.seoTitle ?? '',
         seoDescription: raw?.seoDescription ?? '',
         tags: Array.isArray(raw?.tags) ? raw.tags : [],
@@ -29,13 +31,14 @@ function normalizePost(raw: any): Post {
     };
 }
 
-export default function AddPostPage() {
+export default function AddPostPage(): JSX.Element {
     const router = useRouter();
     const { form, setForm, plan } = useAdminForm();
     const { showToast } = useToast();
 
     const [postData, setPostData] = useState<Post>({
         id: uuidv4(),
+        postId: uuidv4(),
         title: '',
         slug: '',
         description: '',
@@ -46,13 +49,13 @@ export default function AddPostPage() {
         tags: [],
         published: false,
     });
+
     const [errors, setErrors] = useState<Record<string, string>>({});
     const [showErrors, setShowErrors] = useState(false);
 
     const limits = PLAN_FEATURES[plan];
     const postsLimitReached = (form?.posts?.posts?.length || 0) >= limits.posts;
     const isPostsEnabled = limits.posts > 0;
-    const showPostLimitNotice = isPostsEnabled && postsLimitReached;
 
     const validate = () => {
         const errs: Record<string, string> = {};
@@ -71,10 +74,9 @@ export default function AddPostPage() {
             return;
         }
         try {
-            const payload = { ...postData, postId: postData.id };
-            const res = await createPost(payload);
+            const res = await createPost(postData);
             const returned = res?.data?.post ?? res?.data ?? null;
-            const created = returned ? normalizePost(returned) : normalizePost(payload);
+            const created = returned ? normalizePost(returned) : normalizePost(postData);
             setForm((prev) => ({
                 ...prev,
                 posts: {
@@ -84,8 +86,8 @@ export default function AddPostPage() {
             }));
             showToast('Post created successfully!', 'success');
             router.push('/admin?tab=Posts');
-        } catch {
-            showToast('Failed to create post. Try again.', 'error');
+        } catch (err: any) {
+            showToast(err?.message || 'Failed to create post. Try again.', 'error');
             setShowErrors(true);
         }
     };
@@ -95,7 +97,11 @@ export default function AddPostPage() {
             <GoBackButton />
             <h2 className="section-title">Create a New Post</h2>
             <div className={styles.sectionMain}>
-                <LockedOverlay enabled={isPostsEnabled && !postsLimitReached} limitReached={showPostLimitNotice} mode="notice">
+                <LockedOverlay
+                    enabled={isPostsEnabled && !postsLimitReached}
+                    limitReached={postsLimitReached}
+                    mode="notice"
+                >
                     <PostForm
                         postData={postData}
                         setPostData={setPostData}

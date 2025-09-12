@@ -2,60 +2,70 @@
     position: fixed;
     inset: 0;
     z-index: 9999;
-    background: rgba(0, 0, 0, 0.45);
-    backdrop-filter: blur(6px);
+    background: rgba(17, 17, 17, 0.55);
+    backdrop-filter: blur(8px);
     display: flex;
     align-items: center;
     justify-content: center;
-    animation: fadeIn 0.2s ease-in-out;
+    animation: fadeIn 0.25s ease-in-out;
 }
 
 .customModal {
-    background-color: white;
+    background: var(--color-bg);
     width: 100%;
     max-width: 720px;
-    border-radius: 1.5rem;
+    border-radius: 1.25rem;
     position: relative;
-    box-shadow: 0 25px 60px rgba(0, 0, 0, 0.1);
-    animation: popIn 0.2s ease-out;
-    scrollbar-width: none;
-    -ms-overflow-style: none;
-}
-
-.modalBody {
-    max-height: 90vh;
-    overflow-y: auto;
-    padding: 1.5rem;
-}
-.noPadding{
-    padding-top: 0;
-}
-.customModal::-webkit-scrollbar {
-    display: none;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+    animation: popIn 0.25s ease-out;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
 }
 
 .modalHeader {
     display: flex;
     justify-content: space-between;
-    gap: 2rem;
+    gap: 1.25rem;
     align-items: center;
-    padding: 1.5rem 2rem;
+    padding: 1.25rem 1.5rem;
     border-bottom: 1px solid var(--color-muted);
 }
-.modalHeader h3{
-    font-size: 1rem;
+
+.modalHeader h3 {
+    font-size: 1.05rem;
     font-weight: 600;
+    color: var(--color-text);
 }
+
 .modalCloseBtn {
     background: none;
     border: none;
-    color: var(--color-text);
+    color: var(--color-text-muted);
+    font-size: 1.25rem;
     cursor: pointer;
-    transition: color 0.2s;
+    transition: color 0.2s ease;
 }
 
 .modalCloseBtn:hover {
     color: var(--color-brand);
+}
+
+.modalBody {
+    max-height: 85vh;
+    overflow-y: auto;
+    padding: 1.5rem;
+    font-size: 0.95rem;
+    color: var(--color-text);
+    line-height: 1.55;
+}
+
+.noPadding {
+    padding-top: 0;
+}
+
+.customModal::-webkit-scrollbar {
+    display: none;
 }
 
 @keyframes fadeIn {
@@ -82,7 +92,151 @@
 
 @media (max-width: 640px) {
     .customModal {
-        padding: 1.5rem 1rem;
         max-width: 95vw;
+    }
+}
+
+/* confirm modal start */
+
+
+.pmOverlay {
+    position: fixed;
+    inset: 0;
+    z-index: 10000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(17, 17, 17, 0.55);
+    backdrop-filter: blur(8px);
+    animation: fadeIn 0.25s ease-in-out;
+}
+
+.pmCard {
+    background: var(--color-bg);
+    border-radius: 1.25rem;
+    width: 100%;
+    max-width: 520px;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+    animation: popIn 0.25s ease-out;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.pmHeader {
+    padding: 1.25rem 1.5rem;
+    border-bottom: 1px solid var(--color-muted);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.pmTitle {
+    font-size: 1.05rem;
+    font-weight: 600;
+    color: var(--color-text);
+}
+
+.pmClose {
+    background: none;
+    border: none;
+    font-size: 1.25rem;
+    cursor: pointer;
+    color: var(--color-text-muted);
+    transition: color 0.2s ease;
+}
+
+.pmClose:hover {
+    color: var(--color-brand);
+}
+
+.pmBody {
+    padding: 2rem 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 1.25rem;
+}
+
+.pmIconWrap {
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.pmTexts {
+    flex: 1;
+}
+
+.pmMessage {
+    font-size: 0.95rem;
+    line-height: 1.5;
+    color: var(--color-text-muted);
+}
+
+.pmFooter {
+    padding: 1rem 1.5rem;
+    border-top: 1px solid var(--color-muted);
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.75rem;
+}
+
+.pmBtn {
+    font-family: var(--font-base);
+    font-size: 0.9rem;
+    font-weight: 500;
+    padding: 0.55rem 1.25rem;
+    border-radius: 0.75rem;
+    transition: all 0.2s ease;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.4rem;
+    cursor: pointer;
+}
+
+.pmBtn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.pmBtnGhost {
+    background: transparent;
+    border: 1px solid var(--color-muted);
+    color: var(--color-text);
+}
+
+.pmBtnGhost:hover:not(:disabled) {
+    background: var(--color-muted);
+}
+
+.pmBtnDanger {
+    background: var(--color-brand);
+    border: 1px solid var(--color-brand);
+    color: #fff;
+}
+
+.pmBtnDanger:hover:not(:disabled) {
+    background: var(--color-brand-dark);
+    border-color: var(--color-brand-dark);
+}
+
+.pmSpinner {
+    border: 2px solid transparent;
+    border-top: 2px solid #fff;
+    border-radius: 50%;
+    width: 16px;
+    height: 16px;
+    animation: spin 0.75s linear infinite;
+}
+
+.pmBtnLabel {
+    display: inline-block;
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
     }
 }

@@ -1,6 +1,6 @@
 'use client';
 
-import { FC } from 'react';
+import React, { FC } from 'react';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import {
@@ -13,14 +13,7 @@ import {
 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import styles from '@/styles/post.module.css';
-
-interface Post {
-  id: string;
-  title: string;
-  description: string;
-  thumbnail: string;
-  published: boolean;
-}
+import type { Post } from '@/lib/frontend/types/form';
 
 interface Props {
   id: string;
@@ -34,37 +27,38 @@ const SortablePost: FC<Props> = ({ id, post, onEdit, onDelete, onTogglePublish }
   const router = useRouter();
   const { attributes, listeners, setNodeRef, transform, transition } = useSortable({ id });
 
-  const style = {
+  const style: React.CSSProperties = {
     transform: CSS.Transform.toString(transform),
-    transition,
+    transition: transition || undefined,
   };
 
   const shortDesc =
-    post.description.length > 120
-      ? `${post.description.slice(0, 120)}...`
-      : post.description;
+    (post.description || '').length > 120
+      ? `${(post.description || '').slice(0, 120)}...`
+      : (post.description || '');
+
+  const viewId = post.postId ?? post.id;
 
   return (
     <div ref={setNodeRef} style={style} className={styles.sortablePost_card}>
       <div className={styles.sortablePost_inner}>
-        <div className={"flex items-start gap-3"}>
+        <div className="flex items-start gap-3">
           <GripVertical size={18} className="cursor-move text-muted" {...listeners} {...attributes} />
-          {
-            post.thumbnail &&
+          {post.thumbnail && (
             <img
               src={post.thumbnail}
               alt={post.title}
               className={styles.sortablePost_image}
             />
-          }
+          )}
         </div>
         <div className={styles.sortablePost_content}>
           <p className={styles.sortablePost_title}>{post.title}</p>
           <p className={styles.sortablePost_description}>
             {shortDesc}
-            {post.description.length > 120 && (
+            {(post.description || '').length > 120 && (
               <button
-                onClick={() => router.push(`/admin/posts/${post.id}`)}
+                onClick={() => router.push(`/admin/posts/${viewId}`)}
                 className={styles.sortablePost_readMore}
               >
                 Read more
@@ -72,19 +66,13 @@ const SortablePost: FC<Props> = ({ id, post, onEdit, onDelete, onTogglePublish }
             )}
           </p>
           <div className={styles.sortablePost_status}>
-            <span
-              className={
-                post.published
-                  ? styles.sortablePost_statusPublished
-                  : styles.sortablePost_statusDraft
-              }
-            >
+            <span className={post.published ? styles.sortablePost_statusPublished : styles.sortablePost_statusDraft}>
               {post.published ? 'Published' : 'Draft'}
             </span>
           </div>
 
           <div className={styles.sortablePost_actions}>
-            <button onClick={() => router.push(`/admin/posts/${post.id}`)} className={styles.sortablePost_btn}>
+            <button onClick={() => router.push(`/admin/posts/${viewId}`)} className={styles.sortablePost_btn}>
               <ExternalLink size={14} />
               View
             </button>

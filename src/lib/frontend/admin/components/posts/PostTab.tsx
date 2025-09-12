@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import React, { JSX, useEffect, useRef, useState } from 'react';
 import {
   DndContext,
   closestCenter,
@@ -23,69 +23,66 @@ import SortablePost from './SortablePost';
 import { PLAN_FEATURES } from '@/config/PLAN_FEATURES';
 import { useAdminForm } from '@/lib/frontend/admin/context/AdminFormContext';
 import { listPosts, deletePost, togglePublishPost } from '@/lib/frontend/api/services';
+import { useToast } from '@/lib/frontend/common/ToastProvider';
+import type { Post as PostType } from '@/lib/frontend/types/form';
+import Loader from '@/lib/frontend/common/Loader';
+import ConfirmModal from '@/lib/frontend/common/ConfirmModal';
 
-const Section = ({ title, sub, right, children }: {
-  title?: React.ReactNode;
-  sub?: string;
-  right?: React.ReactNode;
-  children: React.ReactNode;
-}) => (
-  <div className={styles.sectionMain}>
-    {(title || right) && (
-      <div className={styles.SecHeadAndBtn}>
-        {title && <h4 className={styles.sectionLabel}>{title}</h4>}
-        {right}
-      </div>
-    )}
-    {sub && <p className="text-sm text-muted mb-2">{sub}</p>}
-    {children}
-  </div>
-);
-
-function normalizePost(raw: any) {
-  const id = (raw?.postId as string) ?? (raw?.id as string) ?? '';
+function normalizePost(raw: any): PostType {
+  const postId = (raw?.postId as string) ?? (raw?.id as string) ?? '';
   return {
-    id,
-    title: raw.title ?? '',
-    slug: raw.slug ?? '',
-    description: raw.description ?? '',
-    content: raw.content ?? '',
-    thumbnail: raw.thumbnail ?? '',
-    seoTitle: raw.seoTitle ?? '',
-    seoDescription: raw.seoDescription ?? '',
-    tags: Array.isArray(raw.tags) ? raw.tags : [],
-    published: Boolean(raw.published),
-    ...raw,
+    id: postId,
+    postId: raw?.postId ?? raw?.id ?? undefined,
+    title: String(raw?.title ?? ''),
+    slug: String(raw?.slug ?? ''),
+    description: String(raw?.description ?? ''),
+    content: String(raw?.content ?? ''),
+    thumbnail: String(raw?.thumbnail ?? ''),
+    thumbnailPublicId: raw?.thumbnailPublicId ?? raw?.thumbnail_public_id ?? '',
+    seoTitle: String(raw?.seoTitle ?? ''),
+    seoDescription: String(raw?.seoDescription ?? ''),
+    tags: Array.isArray(raw?.tags) ? raw.tags : [],
+    published: Boolean(raw?.published),
   };
 }
 
-export default function PostTab() {
+export default function PostTab(): JSX.Element {
   const router = useRouter();
   const { form, setForm, plan } = useAdminForm();
+  const { showToast } = useToast();
   const [loading, setLoading] = useState(false);
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const [deleteIndex, setDeleteIndex] = useState<number | null>(null);
+  const mountedRef = useRef(true);
 
-  const posts = form?.posts?.posts || [];
+  const posts: PostType[] = form?.posts?.posts ?? [];
   const limits = PLAN_FEATURES[plan];
   const isPostsEnabled = limits.posts > 0;
-  const postsLimitReached = posts.length >= limits.posts;
+  const postsLimitReached = (posts?.length || 0) >= limits.posts;
+
+  async function fetchPosts() {
+    if (!mountedRef.current) return;
+    try {
+      setLoading(true);
+      const res = await listPosts();
+      const rawPosts = res?.data?.posts ?? res?.data ?? [];
+      const normalized = Array.isArray(rawPosts) ? rawPosts.map(normalizePost) : [];
+      if (!mountedRef.current) return;
+      setForm((prev) => ({ ...prev, posts: { posts: normalized } }));
+    } catch (err: any) {
+      showToast(err?.message || 'Failed to load posts', 'error');
+    } finally {
+      if (mountedRef.current) setLoading(false);
+    }
+  }
 
   useEffect(() => {
-    let mounted = true;
-    (async () => {
-      try {
-        setLoading(true);
-        const res = await listPosts();
-        if (!mounted) return;
-        const rawPosts = res?.data?.posts ?? [];
-        const normalized = rawPosts.map(normalizePost);
-        setForm((prev) => ({ ...prev, posts: { posts: normalized } }));
-      } catch {
-      } finally {
-        if (mounted) setLoading(false);
-      }
-    })();
-    return () => { mounted = false; };
-  }, [setForm]);
+    mountedRef.current = true;
+    fetchPosts();
+    return () => {
+      mountedRef.current = false;
+    };
+  }, []);
 
   const sensors = useSensors(
     useSensor(PointerSensor),
@@ -95,40 +92,45 @@ export default function PostTab() {
   const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
     if (!active?.id || !over?.id || active.id === over.id) return;
-    const oldIndex = posts.findIndex((p) => p.id === active.id);
-    const newIndex = posts.findIndex((p) => p.id === over.id);
+    const oldIndex = posts.findIndex((p) => (p.postId ?? p.id) === active.id);
+    const newIndex = posts.findIndex((p) => (p.postId ?? p.id) === over.id);
     if (oldIndex === -1 || newIndex === -1) return;
     const reordered = arrayMove(posts, oldIndex, newIndex);
     setForm((prev) => ({ ...prev, posts: { ...prev.posts, posts: reordered } }));
   };
 
-  const handleDelete = async (index: number) => {
-    const post = posts[index];
+  const handleDelete = async () => {
+    if (deleteIndex === null) return;
+    const post = posts[deleteIndex];
     if (!post) return;
+    const id = post.postId ?? post.id;
     try {
-      await deletePost(post.id);
-      const updated = posts.filter((_, i) => i !== index);
-      setForm((prev) => ({ ...prev, posts: { ...prev.posts, posts: updated } }));
-    } catch {}
+      setLoading(true);
+      await deletePost(id);
+      await fetchPosts();
+      showToast('Post deleted', 'success');
+    } catch (err: any) {
+      showToast(err?.message || 'Failed to delete post', 'error');
+    } finally {
+      if (mountedRef.current) setLoading(false);
+      setConfirmOpen(false);
+      setDeleteIndex(null);
+    }
   };
 
   const handleTogglePublish = async (index: number) => {
-    const copy = [...posts];
-    const p = copy[index];
+    const p = posts[index];
     if (!p) return;
+    const id = p.postId ?? p.id;
     try {
-      const res = await togglePublishPost(p.id, !p.published);
-      const returned = res?.data?.post;
-      if (returned) {
-        const normalized = normalizePost(returned);
-        copy[index] = { ...copy[index], ...normalized };
-      } else {
-        copy[index] = { ...copy[index], published: !copy[index].published };
-      }
-      setForm((prev) => ({ ...prev, posts: { ...prev.posts, posts: copy } }));
-    } catch {
-      copy[index] = { ...copy[index], published: !copy[index].published };
-      setForm((prev) => ({ ...prev, posts: { ...prev.posts, posts: copy } }));
+      setLoading(true);
+      await togglePublishPost(id, !p.published);
+      await fetchPosts();
+      showToast(!p.published ? 'Post published' : 'Post unpublished', 'success');
+    } catch (err: any) {
+      showToast(err?.message || 'Failed to change publish state', 'error');
+    } finally {
+      if (mountedRef.current) setLoading(false);
     }
   };
 
@@ -143,33 +145,30 @@ export default function PostTab() {
         </p>
       </div>
 
-      <Section
-        title={<>Posts <span className="badge-pro">Pro</span></>}
-        right={
-          <button
-            className="btn-primary"
-            disabled={postsLimitReached}
-            onClick={() => router.push('/admin/posts/add')}
-          >
-            + Add Post
-          </button>
-        }
-        sub="Create blog posts, updates, and long-form content that lives on your personal site."
-      >
+      <div className={styles.sectionMain}>
+        <div className={styles.SecHeadAndBtn}>
+          <h4 className={styles.sectionLabel}>Posts <span className="badge-pro">Pro</span></h4>
+          <div>
+            <button className="btn-primary" disabled={postsLimitReached} onClick={() => router.push('/admin/posts/add')}>
+              + Add Post
+            </button>
+          </div>
+        </div>
+
         <LockedOverlay enabled={isPostsEnabled && !postsLimitReached} limitReached={postsLimitReached} mode="notice">
           {loading ? (
-            <p>Loading posts...</p>
+            <Loader />
           ) : posts.length > 0 ? (
             <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
-              <SortableContext items={posts.map((p) => p.id)} strategy={verticalListSortingStrategy}>
+              <SortableContext items={posts.map((p) => p.postId ?? p.id)} strategy={verticalListSortingStrategy}>
                 <div className="grid gap-3">
                   {posts.map((post, index) => (
                     <SortablePost
-                      key={post.id}
-                      id={post.id}
+                      key={post.postId ?? post.id}
+                      id={post.postId ?? post.id}
                       post={post}
-                      onEdit={() => router.push(`/admin/posts/${post.id}/edit`)}
-                      onDelete={() => handleDelete(index)}
+                      onEdit={() => router.push(`/admin/posts/${post.postId ?? post.id}/edit`)}
+                      onDelete={() => { setConfirmOpen(true); setDeleteIndex(index); }}
                       onTogglePublish={() => handleTogglePublish(index)}
                     />
                   ))}
@@ -180,7 +179,18 @@ export default function PostTab() {
             <p className="text-sm text-muted">No posts yet. Start by adding your first one!</p>
           )}
         </LockedOverlay>
-      </Section>
+      </div>
+
+      <ConfirmModal
+        open={confirmOpen}
+        onClose={() => setConfirmOpen(false)}
+        onConfirm={handleDelete}
+        title="Delete Post?"
+        message="Are you sure you want to delete this post? This action cannot be undone."
+        confirmLabel="Delete"
+        cancelLabel="Cancel"
+        loading={loading}
+      />
     </div>
   );
 }

@@ -126,11 +126,13 @@ export interface ProfileTabData extends ProfileInfo, ContactInfo, Resume {
 
 export interface Post {
   id: string;
+  postId?: string;
   title: string;
   slug: string;
   description: string;
   content: string;
   thumbnail: string;
+  thumbnailPublicId?: string;
   seoTitle: string;
   seoDescription: string;
   tags: string[];
@@ -201,7 +203,6 @@ export interface FormData {
   posts: PostsTabData;
   subscriberSettings: SubscriberDataTypes;
   stats?: Stats;
-  // plan: 'free' | 'pro' | 'premium';
 }
 
 export type ReorderableProfileKeys =

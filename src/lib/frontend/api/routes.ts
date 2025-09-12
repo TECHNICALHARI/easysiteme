@@ -20,4 +20,7 @@ export const SUBSCRIBE_PUBLIC = "/public/subscribe";
 export const CHECK_SUBDOMAIN = (subdomain: string) =>
   `/check-subdomain?subdomain=${encodeURIComponent(subdomain)}`;
 
-export const USER_PAGE = (username: string) => `/pages/${username}`;
+export const USER_PAGE = (username: string) => `/pages/${encodeURIComponent(username)}`;
+
+export const UPLOAD_IMAGE = "/uploads/image";
+export const DELETE_IMAGE = "/uploads/delete";
