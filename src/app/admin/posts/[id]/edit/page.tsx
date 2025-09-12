@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter, useParams } from 'next/navigation';
-
 import { Post } from '@/lib/frontend/types/form';
 import { useAdminForm } from '@/lib/frontend/admin/context/AdminFormContext';
 import PostForm from '@/lib/frontend/admin/components/posts/PostForm';
@@ -10,11 +9,13 @@ import styles from '@/styles/admin.module.css';
 import GoBackButton from '@/lib/frontend/common/GoBackButton';
 import NoData from '@/lib/frontend/common/NoData';
 import { getPost, updatePost } from '@/lib/frontend/api/services';
+import { useToast } from '@/lib/frontend/common/ToastProvider';
 
 export default function EditPostPage() {
   const router = useRouter();
   const params = useParams();
   const { form, setForm } = useAdminForm();
+  const { showToast } = useToast();
 
   const postId = params?.id as string;
   const [postData, setPostData] = useState<Post | null>(null);
@@ -37,7 +38,6 @@ export default function EditPostPage() {
           setIsLoading(false);
           return;
         }
-
         const res = await getPost(postId);
         if (!res || !res.success) {
           throw new Error(res?.message || 'Failed to fetch post');
@@ -47,6 +47,7 @@ export default function EditPostPage() {
           if (mounted) {
             setPostData(null);
             setFetchError('Post not found');
+            showToast('Post not found', 'error');
           }
         } else {
           const normalized: Post = {
@@ -65,36 +66,39 @@ export default function EditPostPage() {
         }
       } catch (err: any) {
         console.error('fetch post error', err);
-        if (mounted) setFetchError(err?.message ?? 'Failed to load post');
+        if (mounted) {
+          const msg = err?.message ?? 'Failed to load post';
+          setFetchError(msg);
+          showToast(msg, 'error');
+        }
       } finally {
         if (mounted) setIsLoading(false);
       }
     })();
-
     return () => {
       mounted = false;
     };
-  }, [form.posts?.posts, postId]);
+  }, [form.posts?.posts, postId, showToast]);
 
   const validatePost = (): boolean => {
     if (!postData) return false;
-
     const newErrors: Record<string, string> = {};
     if (!postData.title?.trim()) newErrors.title = 'Title is required';
     if (!postData.description?.trim()) newErrors.description = 'Description is required';
     if (!postData.content?.trim()) newErrors.content = 'Content is required';
-
     setErrors(newErrors);
     setShowErrors(Object.keys(newErrors).length > 0);
-
+    if (Object.keys(newErrors).length > 0) {
+      showToast('Please fix validation errors', 'error');
+    }
     return Object.keys(newErrors).length === 0;
   };
 
   const handleUpdate = async () => {
     if (!postData) return;
     if (!validatePost()) return;
-
     setIsSaving(true);
+    showToast('Saving post...', 'info');
     try {
       const payload = {
         postId: postData.id,
@@ -108,13 +112,9 @@ export default function EditPostPage() {
         tags: postData.tags || [],
         published: Boolean(postData.published),
       };
-
       const res = await updatePost(postData.id, payload);
       if (!res || !res.success) throw new Error(res?.message || 'Failed to update');
-
       const updated = res.data?.post ?? payload;
-
-      // Update local admin form (replace or append)
       setForm((prev) => {
         const posts = prev.posts?.posts ?? [];
         const idx = posts.findIndex((p) => p.id === postId);
@@ -138,12 +138,14 @@ export default function EditPostPage() {
         }
         return { ...prev, posts: { ...prev.posts, posts: newPosts } };
       });
-
+      showToast('Post updated successfully!', 'success');
       router.push('/admin?tab=Posts');
     } catch (err: any) {
       console.error('update post error', err);
+      const msg = err?.message ?? 'Failed to save post';
       setShowErrors(true);
-      setErrors((prev) => ({ ...prev, _global: err?.message || 'Failed to save post' }));
+      setErrors((prev) => ({ ...prev, _global: msg }));
+      showToast(msg, 'error');
     } finally {
       setIsSaving(false);
     }

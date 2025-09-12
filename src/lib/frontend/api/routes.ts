@@ -6,8 +6,8 @@ export const ADMIN_FORM = "/admin/form";
 export const PUBLISH_FORM = "/admin/form";
 
 export const POSTS = "/admin/posts";
-export const POST = (id: string) => `/admin/posts/${id}`;
-export const POST_PUBLISH = (id: string) => `/admin/posts/${id}/publish`;
+export const POST = (id: string) => `/admin/posts?postId=${encodeURIComponent(id)}`;
+export const POST_PUBLISH = (id: string) => `/admin/posts?postId=${encodeURIComponent(id)}&action=publish`;
 
 export const SUBSCRIBERS = "/admin/subscribers";
 

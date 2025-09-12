@@ -74,20 +74,23 @@ export async function getPost(id: string) {
 }
 
 export async function updatePost(id: string, data: any) {
-  return apiFetch<any>(POST(id), {
+  const payload = { ...data, postId: id };
+  return apiFetch<any>(POSTS, {
     method: "PUT",
-    body: JSON.stringify(data),
+    body: JSON.stringify(payload),
   });
 }
 
 export async function deletePost(id: string) {
-  return apiFetch<any>(POST(id), { method: "DELETE" });
+  const url = `${POSTS}?postId=${encodeURIComponent(id)}`;
+  return apiFetch<any>(url, { method: "DELETE" });
 }
 
 export async function togglePublishPost(id: string, publish: boolean) {
-  return apiFetch<any>(POST_PUBLISH(id), {
-    method: "POST",
-    body: JSON.stringify({ publish }),
+  const payload = { postId: id, published: Boolean(publish) };
+  return apiFetch<any>(POSTS, {
+    method: "PUT",
+    body: JSON.stringify(payload),
   });
 }
 
