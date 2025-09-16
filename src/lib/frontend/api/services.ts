@@ -10,6 +10,8 @@ import {
   SUBMIT_CONTACT,
   USER_PAGE,
   CHECK_SUBDOMAIN,
+  UPLOAD_IMAGE,
+  DELETE_IMAGE,
 } from "./routes";
 
 export interface ApiResponse<T = any> {
@@ -33,7 +35,10 @@ const handleApiError = async (res: Response) => {
   throw new Error(errorMessage);
 };
 
-async function apiFetch<T>(url: string, options: FetchOptions = {}): Promise<ApiResponse<T>> {
+async function apiFetch<T>(
+  url: string,
+  options: FetchOptions = {}
+): Promise<ApiResponse<T>> {
   const { body, headers: providedHeaders = {}, method = "GET" } = options;
 
   const headers: Record<string, string> = { ...providedHeaders };
@@ -102,7 +107,9 @@ export async function togglePublishPost(postId: string, publish: boolean) {
 }
 
 export async function listSubscribers(siteId?: string) {
-  const url = siteId ? `${SUBSCRIBERS}?siteId=${encodeURIComponent(siteId)}` : SUBSCRIBERS;
+  const url = siteId
+    ? `${SUBSCRIBERS}?siteId=${encodeURIComponent(siteId)}`
+    : SUBSCRIBERS;
   return apiFetch<any>(url, { method: "GET" });
 }
 
@@ -128,4 +135,22 @@ export async function checkSubdomain(subdomain: string) {
 
 export async function getUserPage(username: string) {
   return apiFetch<any>(USER_PAGE(username), { method: "GET" });
+}
+
+export async function uploadImageApi(file: File, prevPublicId?: string) {
+  const fd = new FormData();
+  fd.append("file", file);
+  if (prevPublicId) fd.append("prevPublicId", prevPublicId);
+
+  const res = await apiFetch<any>(UPLOAD_IMAGE, { method: "POST", body: fd });
+  const payload = res?.data ?? res ?? {};
+  const url = payload?.url ?? payload?.secure_url ?? "";
+  const publicId =
+    payload?.publicId ?? payload?.public_id ?? payload?.publicId ?? "";
+  return { url, publicId };
+}
+
+export async function deleteImageApi(publicId: string) {
+  await apiFetch<any>(DELETE_IMAGE, { method: "POST", body: { publicId } });
+  return true;
 }

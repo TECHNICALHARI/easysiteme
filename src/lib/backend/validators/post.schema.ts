@@ -40,6 +40,7 @@ export const basePostSchema = z.object({
   seoDescription: z.string().max(160).optional().default(""),
   tags: z.array(z.string()).optional().default([]),
   published: z.boolean().optional().default(false),
+  thumbnailPublicId: z.string().optional(),
 });
 
 export const createPostSchema = basePostSchema.extend({

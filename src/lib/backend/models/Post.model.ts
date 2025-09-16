@@ -8,6 +8,7 @@ export interface IPost {
   description: string;
   content: string;
   thumbnail?: string;
+  thumbnailPublicId?: string;
   seoTitle?: string;
   seoDescription?: string;
   tags: string[];
@@ -25,6 +26,7 @@ const PostSchema = new Schema<IPostDoc>(
     description: { type: String, required: true },
     content: { type: String, required: true },
     thumbnail: { type: String, default: "" },
+    thumbnailPublicId: { type: String, default: "" },
     seoTitle: { type: String, default: "" },
     seoDescription: { type: String, default: "" },
     tags: { type: [String], default: [] },

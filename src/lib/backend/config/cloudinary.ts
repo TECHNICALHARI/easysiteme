@@ -1,3 +1,4 @@
+// src/lib/backend/config/cloudinary.ts
 import { v2 as cloudinary } from "cloudinary";
 import streamifier from "streamifier";
 import { appConfig } from "@/lib/backend/config";
@@ -23,7 +24,12 @@ export type UploadOptions = {
 export async function uploadImageToCloudinary(
   payload: string | Buffer,
   opts: UploadOptions = {}
-) {
+): Promise<{
+  secure_url: string;
+  url: string;
+  public_id: string;
+  [key: string]: any;
+}> {
   if (typeof payload === "string" && isDataUri(payload)) {
     return cloudinary.uploader.upload(payload, {
       folder: opts.folder,
@@ -35,7 +41,7 @@ export async function uploadImageToCloudinary(
   }
 
   if (Buffer.isBuffer(payload)) {
-    return new Promise<any>((resolve, reject) => {
+    return new Promise((resolve, reject) => {
       const uploadStream = cloudinary.uploader.upload_stream(
         {
           folder: opts.folder,
@@ -46,7 +52,7 @@ export async function uploadImageToCloudinary(
         },
         (error, result) => {
           if (error) return reject(error);
-          resolve(result);
+          resolve(result as any);
         }
       );
       streamifier.createReadStream(payload).pipe(uploadStream);
@@ -58,8 +64,8 @@ export async function uploadImageToCloudinary(
 
 export async function destroyImageFromCloudinary(
   publicId: string,
-  resource_type = "image"
-) {
+  resource_type: "image" | "auto" | "raw" | "video" = "image"
+): Promise<any> {
   if (!publicId) return { result: "not_found" };
   return cloudinary.uploader.destroy(publicId, { resource_type });
 }

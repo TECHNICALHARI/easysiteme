@@ -1,10 +1,10 @@
 'use client';
 
-import { JSX, useEffect, useMemo } from 'react';
+import { JSX, useEffect, useMemo, useRef } from 'react';
 import styles from '@/styles/post.module.css';
 import { Trash2 } from 'lucide-react';
 import RichTextEditor from '@/lib/frontend/common/RichTextEditor';
-import ImageUpload from './ImageUpload';
+import ImageUpload, { ImageUploadRef } from './ImageUpload';
 import { slugify } from '@/lib/frontend/utils/slugify';
 import type { Post } from '@/lib/frontend/types/form';
 import Accordion from '@/lib/frontend/common/Accordion';
@@ -21,6 +21,8 @@ interface Props {
   slugManuallyEdited: boolean;
   setSlugManuallyEdited: React.Dispatch<React.SetStateAction<boolean>>;
   allPosts: Post[];
+  pendingRef?: React.MutableRefObject<any>;
+  setIsDirty?: (v: boolean) => void;
 }
 
 const MAX_TAGS = 10;
@@ -38,8 +40,11 @@ export default function PostForm({
   slugManuallyEdited,
   setSlugManuallyEdited,
   allPosts,
+  pendingRef,
+  setIsDirty,
 }: Props): JSX.Element {
   const { showToast } = useToast();
+  const imageUploadRef = useRef<ImageUploadRef | null>(null);
 
   useEffect(() => {
     if (!slugManuallyEdited) {
@@ -51,12 +56,17 @@ export default function PostForm({
     }
   }, [postData.title, slugManuallyEdited, setPostData]);
 
+  const markDirty = () => {
+    if (setIsDirty) setIsDirty(true);
+  };
+
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
     let newValue = value;
     if (name === 'seoTitle') newValue = value.slice(0, MAX_SEO_TITLE);
     if (name === 'seoDescription') newValue = value.slice(0, MAX_SEO_DESCRIPTION);
     setPostData((prev) => ({ ...prev, [name]: newValue } as Post));
+    markDirty();
   };
 
   const handleAddTag = (e: React.KeyboardEvent<HTMLInputElement>) => {
@@ -66,12 +76,14 @@ export default function PostForm({
       if (val && !postData.tags.includes(val) && postData.tags.length < MAX_TAGS) {
         setPostData((prev) => ({ ...prev, tags: [...prev.tags, val] }));
         e.currentTarget.value = '';
+        markDirty();
       }
     }
   };
 
   const handleRemoveTag = (index: number) => {
     setPostData((prev) => ({ ...prev, tags: prev.tags.filter((_, i) => i !== index) }));
+    markDirty();
   };
 
   const isValid = useMemo(() => {
@@ -85,36 +97,44 @@ export default function PostForm({
   }, [allPosts, postData.tags]);
 
   const handleThumbnailSelect = async (file: File) => {
-    try {
-      const fd = new FormData();
-      fd.append('file', file);
-      fd.append('existingPublicId', postData.thumbnailPublicId ?? '');
-      const res = await fetch('/api/uploads/image', {
-        method: 'POST',
-        body: fd,
-        credentials: 'include',
-      });
-      if (!res.ok) throw new Error('Thumbnail upload failed');
-      const json = await res.json();
-      const url = json?.data?.url ?? json?.url ?? '';
-      const publicId = json?.data?.public_id ?? '';
-      if (!url) throw new Error('No URL returned');
-      setPostData((prev) => ({
-        ...prev,
-        thumbnail: url,
-        thumbnailPublicId: publicId,
-      }));
-      showToast('Thumbnail uploaded', 'success');
-    } catch (err: any) {
-      console.error('thumbnail upload error', err);
-      showToast(err?.message || 'Failed to upload thumbnail', 'error');
+    if (pendingRef) {
+      pendingRef.current.thumbnailFile = file;
+      pendingRef.current.thumbnailRemoved = false;
     }
+    const tmp = URL.createObjectURL(file);
+    setPostData((prev) => ({ ...prev, thumbnail: tmp, thumbnailPublicId: prev.thumbnailPublicId }));
+    showToast('Thumbnail ready (will be uploaded on save)', 'info');
+    markDirty();
+  };
+
+  const handleThumbnailRemove = () => {
+    if (pendingRef) {
+      pendingRef.current.thumbnailFile = null;
+      pendingRef.current.thumbnailRemoved = true;
+      if (!pendingRef.current.thumbnailPrevPublicId && postData.thumbnailPublicId) {
+        pendingRef.current.thumbnailPrevPublicId = postData.thumbnailPublicId;
+      }
+    }
+    try {
+      if (postData.thumbnail && postData.thumbnail.startsWith('blob:')) {
+        URL.revokeObjectURL(postData.thumbnail);
+      }
+    } catch {}
+    setPostData((prev) => ({ ...prev, thumbnail: '', thumbnailPublicId: '' }));
+    imageUploadRef.current?.reset();
+    showToast('Thumbnail removed (server will be updated on save)', 'info');
+    markDirty();
+  };
+
+  const handleLocalEditorImage = (file: File, tmpUrl: string) => {
+    if (!pendingRef) return;
+    pendingRef.current.editorFiles.set(tmpUrl, file);
+    markDirty();
   };
 
   return (
     <form>
       <div className="grid gap-4 mb-6">
-        {/* Title */}
         <div>
           <h3 className={styles.labelText}>
             Title <span className="text-red-500">*</span>
@@ -131,7 +151,6 @@ export default function PostForm({
           {showErrors && errors.title && <p className="errorText">{errors.title}</p>}
         </div>
 
-        {/* Slug */}
         <div>
           <h3 className={styles.labelText}>Slug</h3>
           <input
@@ -144,12 +163,12 @@ export default function PostForm({
               const newSlug = e.target.value;
               setPostData((prev) => ({ ...prev, slug: newSlug }));
               setSlugManuallyEdited(newSlug.trim() !== '');
+              markDirty();
             }}
             disabled={disableFields}
           />
         </div>
 
-        {/* Description */}
         <div>
           <h3 className={styles.labelText}>
             Description <span className="text-red-500">*</span>
@@ -166,60 +185,50 @@ export default function PostForm({
           {showErrors && errors.description && <p className="errorText">{errors.description}</p>}
         </div>
 
-        {/* Thumbnail */}
         <div>
           <h3 className={styles.labelText}>Thumbnail</h3>
           {postData.thumbnail ? (
             <div className={styles.thumbPreview}>
               <img src={postData.thumbnail} alt="Thumbnail" className={styles.thumbImage} />
-              <button
-                onClick={() =>
-                  setPostData((prev) => ({
-                    ...prev,
-                    thumbnail: '',
-                    thumbnailPublicId: '',
-                  }))
-                }
-                className={styles.removeBtn}
-                type="button"
-              >
+              <button onClick={handleThumbnailRemove} className={styles.removeBtn} type="button">
                 <Trash2 size={14} />
               </button>
             </div>
           ) : (
-            <ImageUpload
-              onSelect={handleThumbnailSelect}
-              disabled={disableFields}
-            />
+            <ImageUpload ref={imageUploadRef} onSelect={handleThumbnailSelect} disabled={disableFields} />
           )}
         </div>
 
-        {/* Content */}
         <div>
           <h3 className={styles.labelText}>
             Content <span className="text-red-500">*</span>
           </h3>
           <RichTextEditor
             value={postData.content}
-            onChange={(val) => setPostData((prev) => ({ ...prev, content: val }))}
+            onChange={(val) => {
+              setPostData((prev) => ({ ...prev, content: val }));
+              markDirty();
+            }}
             placeholder="Write your blog content here..."
             disable={disableFields}
+            onLocalImageSelect={handleLocalEditorImage}
           />
           {showErrors && errors.content && <p className="errorText">{errors.content}</p>}
         </div>
 
-        {/* Draft Toggle */}
         <h3 className="flex items-center gap-2 mt-2">
           <input
             type="checkbox"
             disabled={disableFields}
             checked={!postData.published}
-            onChange={() => setPostData((prev) => ({ ...prev, published: !prev.published }))}
+            onChange={() => {
+              setPostData((prev) => ({ ...prev, published: !prev.published }));
+              markDirty();
+            }}
           />
           <span className="text-sm">Save as Draft</span>
         </h3>
 
-        {/* SEO + Tags */}
         <Accordion title="SEO & Tags" defaultOpen={false}>
           <div className="grid gap-3">
             <div>
@@ -268,11 +277,7 @@ export default function PostForm({
                   {postData.tags.map((tag, i) => (
                     <div key={i} className="bg-gray-100 px-3 py-1 rounded-full text-sm flex items-center">
                       {tag}
-                      <button
-                        onClick={() => handleRemoveTag(i)}
-                        className="ml-2 hover:text-red-600"
-                        type="button"
-                      >
+                      <button onClick={() => handleRemoveTag(i)} className="ml-2 hover:text-red-600" type="button">
                         <Trash2 size={12} />
                       </button>
                     </div>
@@ -288,12 +293,10 @@ export default function PostForm({
                         type="button"
                         key={i}
                         className="bg-gray-200 hover:bg-gray-300 px-3 py-1 rounded-full text-sm"
-                        onClick={() =>
-                          setPostData((prev) => ({
-                            ...prev,
-                            tags: [...prev.tags, tag],
-                          }))
-                        }
+                        onClick={() => {
+                          setPostData((prev) => ({ ...prev, tags: [...prev.tags, tag] }));
+                          markDirty();
+                        }}
                       >
                         {tag}
                       </button>
@@ -305,7 +308,6 @@ export default function PostForm({
           </div>
         </Accordion>
 
-        {/* Save Button */}
         <div className="flex justify-end mt-4">
           <button
             className="btn-primary"

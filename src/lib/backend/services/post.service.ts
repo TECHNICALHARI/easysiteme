@@ -1,17 +1,35 @@
-// src/lib/backend/services/post.service.ts
 import mongoose, { PipelineStage } from "mongoose";
 import { Post } from "../models/Post.model";
 import { CreatePostInput, UpdatePostInput } from "../validators/post.schema";
 import { replaceBase64Images } from "../utils/image-helper";
-import { appConfig } from "../config";
 
-/**
- * Keep your class implementation. Expose a singleton instance and wrapper functions
- * so route files can import named functions like listPosts/createPost/etc.
- */
+function extractCloudinaryPublicIdFromUrl(
+  url: string | undefined | null
+): string | null {
+  if (!url) return null;
+  try {
+    const u = new URL(url);
+    const parts = u.pathname.split("/").filter(Boolean);
+    const uploadIdx = parts.findIndex((p) => p === "upload");
+    if (uploadIdx === -1) return null;
+    const afterUpload = parts.slice(uploadIdx + 1).join("/");
+    const withoutVersion = afterUpload.replace(/^v\d+\//, "");
+    const withoutExt = withoutVersion.replace(/\.[a-zA-Z0-9]+$/, "");
+    return withoutExt || null;
+  } catch {
+    return null;
+  }
+}
+
 export class PostService {
   async create(ownerId: string, data: CreatePostInput) {
-    const processed = await replaceBase64Images(data, ["thumbnail"]);
+    const processed = await replaceBase64Images(data as any, ["thumbnail"]);
+   console.log(processed, 'processed');
+    if (!processed.thumbnailPublicId) {
+      const extracted = extractCloudinaryPublicIdFromUrl(processed.thumbnail);
+      if (extracted) processed.thumbnailPublicId = extracted;
+    }
+ 
     const doc = await Post.create({
       ...processed,
       owner: new mongoose.Types.ObjectId(ownerId),
@@ -20,7 +38,13 @@ export class PostService {
   }
 
   async update(ownerId: string, postId: string, data: UpdatePostInput) {
-    const processed = await replaceBase64Images(data, ["thumbnail"]);
+    const processed = await replaceBase64Images(data as any, ["thumbnail"]);
+
+    if (!processed.thumbnailPublicId) {
+      const extracted = extractCloudinaryPublicIdFromUrl(processed.thumbnail);
+      if (extracted) processed.thumbnailPublicId = extracted;
+    }
+
     const doc = await Post.findOneAndUpdate(
       { owner: new mongoose.Types.ObjectId(ownerId), postId },
       { $set: processed },
@@ -166,10 +190,6 @@ export class PostService {
   }
 }
 
-/**
- * Export a singleton and convenient named functions so route code can import
- * functions like `createPost` rather than dealing with the class.
- */
 const instance = new PostService();
 
 export const createPost = (ownerId: string, data: CreatePostInput) =>
