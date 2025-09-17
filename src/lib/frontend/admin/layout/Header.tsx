@@ -9,6 +9,7 @@ import ShareModal from '@/lib/frontend/singlepage/components/ShareModal';
 import { useAdminForm } from '@/lib/frontend/admin/context/AdminFormContext';
 import { useToast } from '@/lib/frontend/common/ToastProvider';
 import { publishAdminForm } from '../../api/services';
+import Link from 'next/link';
 
 function getPublicUrl(username?: string, customDomain?: string) {
   if (!username && !customDomain) return '';
@@ -53,9 +54,9 @@ export default function AdminHeader() {
     <header className={styles.header}>
       <Container>
         <div className={styles.headerContent}>
-          <div className={styles.logo}>
+          <Link href="/admin" className={styles.logo} aria-label="myeasypage admin home">
             <Logo />
-          </div>
+          </Link>
 
           <div className={styles.headerRight}>
             <button
