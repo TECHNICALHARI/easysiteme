@@ -5,6 +5,7 @@ import styles from '@/styles/main.module.css';
 import SignupForm from '@/lib/frontend/main/auth/SignupForm';
 import { useToast } from '@/lib/frontend/common/ToastProvider';
 import { formatPhoneToE164 } from '@/lib/frontend/utils/common';
+import { signupApi, checkSubdomain as checkSubdomainApi } from '@/lib/frontend/api/services';
 
 export default function SignupPage() {
   const { showToast } = useToast();
@@ -30,13 +31,9 @@ export default function SignupPage() {
     if (!name) return setSubdomainAvailable(null);
     setCheckingSubdomain(true);
     try {
-      const res = await fetch(`/api/check-subdomain?subdomain=${encodeURIComponent(name)}`, {
-        method: 'GET',
-        headers: { Accept: 'application/json' },
-      });
-      const json = await res.json();
-      if (json?.success && typeof json.data?.available !== 'undefined') {
-        setSubdomainAvailable(Boolean(json.data.available));
+      const res = await checkSubdomainApi(name);
+      if (res?.success && typeof res.data?.available !== 'undefined') {
+        setSubdomainAvailable(Boolean(res.data.available));
       } else {
         setSubdomainAvailable(null);
       }
@@ -51,7 +48,6 @@ export default function SignupPage() {
     setLoading(true);
     try {
       const mobileE164 = formatPhoneToE164(formData.mobile);
-
       const payload: any = {
         subdomain: formData.subdomain,
         password: formData.password,
@@ -61,22 +57,17 @@ export default function SignupPage() {
         payload.mobile = mobileE164;
         payload.countryCode = formData.countryCode;
       }
-
-      const res = await fetch('/api/signup', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
-      });
-      const data = await res.json();
-      if (data?.success) {
+      const res = await signupApi(payload);
+      if (res?.success) {
         showToast('Signup successful! Redirecting...', 'success');
         setTimeout(() => {
+          window.location.href = '/login';
         }, 1200);
       } else {
-        showToast(data?.message || 'Signup failed', 'error');
+        showToast(res?.message || 'Signup failed', 'error');
       }
-    } catch {
-      showToast('Something went wrong. Try again later.', 'error');
+    } catch (error: any) {
+      showToast(error.message || 'Something went wrong. Try again later.', 'error');
     } finally {
       setLoading(false);
     }

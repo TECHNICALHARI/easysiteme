@@ -5,6 +5,7 @@ import styles from '@/styles/main.module.css';
 import LoginForm from '@/lib/frontend/main/auth/LoginForm';
 import { useToast } from '@/lib/frontend/common/ToastProvider';
 import { formatPhoneToE164 } from '@/lib/frontend/utils/common';
+import { loginApi, sendOtpApi } from '@/lib/frontend/api/services';
 
 export default function LoginPage() {
   const { showToast } = useToast();
@@ -52,17 +53,13 @@ export default function LoginPage() {
       if (useOtp || otpSent) payload.otp = otp;
       else payload.password = password;
 
-      const res = await fetch('/api/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
-      });
-
-      const result = await res.json();
+      const result = await loginApi(payload);
       if (result?.success) {
         showToast('Login successful! Redirecting...', 'success');
         setTimeout(() => {
-          window.location.href = '/admin';
+          const params = new URLSearchParams(window.location.search);
+          const next = params.get('next') || '/admin';
+          window.location.href = next;
         }, 900);
       } else {
         showToast(result?.message || 'Login failed', 'error');
@@ -93,20 +90,15 @@ export default function LoginPage() {
         payload.purpose = 'signup_phone';
       }
 
-      const res = await fetch('/api/send-otp', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
-      });
-      const json = await res.json();
+      const json = await sendOtpApi(payload);
       if (json?.success) {
         showToast('OTP sent successfully.', 'success');
         setFormData((p) => ({ ...p, useOtp: true, otpSent: true }));
       } else {
         showToast(json?.message || 'Failed to send OTP.', 'error');
       }
-    } catch {
-      showToast('Something went wrong. Please try again.', 'error');
+    } catch (error: any) {
+      showToast(error.message || 'Something went wrong. Please try again.', 'error');
     } finally {
       setLoading(false);
     }

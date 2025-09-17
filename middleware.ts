@@ -1,24 +1,40 @@
-// middleware.ts
 import { NextRequest, NextResponse } from "next/server";
 
+const COOKIE_NAME = process.env.COOKIE_NAME || "myeasypage_auth";
 const RESERVED = ["www", "admin", "superadmin", "api"];
-const BASE_DOMAIN = "myeasypage.com";
+const BASE_DOMAIN = process.env.BASE_DOMAIN || "myeasypage.com";
+
+function hasAuthCookie(req: NextRequest) {
+  return Boolean(req.cookies.get(COOKIE_NAME)?.value);
+}
 
 export function middleware(req: NextRequest) {
-  const host = req.headers.get("host") || "";
   const url = req.nextUrl.clone();
+  const pathname = url.pathname;
 
-  const cleanHost = host.replace(/:\d+$/, ""); // remove port if exists
+  if (
+    pathname.startsWith("/_next") ||
+    pathname === "/favicon.ico" ||
+    pathname.startsWith("/static") ||
+    pathname.startsWith("/api")
+  ) {
+    return NextResponse.next();
+  }
+
+  const hostHeader = req.headers.get("host") || "";
+  const cleanHost = hostHeader.replace(/:\d+$/, "");
   const parts = cleanHost.split(".");
 
-  // 1. If it's a custom domain (not *.myeasypage.com)
-  if (!cleanHost.endsWith(BASE_DOMAIN)) {
+  if (
+    !cleanHost.includes("localhost") &&
+    !cleanHost.endsWith(BASE_DOMAIN) &&
+    parts.length >= 2
+  ) {
     url.pathname = `/custom/${cleanHost}${url.pathname}`;
     return NextResponse.rewrite(url);
   }
 
-  // 2. Subdomain (username.myeasypage.com)
-  if (parts.length === 3) {
+  if (parts.length >= 3) {
     const subdomain = parts[0].toLowerCase();
     if (!RESERVED.includes(subdomain)) {
       url.pathname = `/${subdomain}${url.pathname}`;
@@ -26,7 +42,21 @@ export function middleware(req: NextRequest) {
     }
   }
 
-  // 3. Base domain (myeasypage.com) → Promotion / Marketing site
+  const isAdminPath = pathname.startsWith("/admin");
+  const isSuperAdminPath = pathname.startsWith("/superadmin");
+
+  if (isAdminPath || isSuperAdminPath) {
+    if (hasAuthCookie(req)) {
+      return NextResponse.next();
+    }
+    const loginUrl = new URL("/login", req.url);
+    loginUrl.searchParams.set(
+      "next",
+      req.nextUrl.pathname + req.nextUrl.search
+    );
+    return NextResponse.redirect(loginUrl);
+  }
+
   return NextResponse.next();
 }
 

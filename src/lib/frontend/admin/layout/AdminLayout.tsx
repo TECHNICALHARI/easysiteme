@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import AdminHeader from '@/lib/frontend/admin/layout/Header';
 import Container from '@/lib/frontend/admin/layout/Container';
 import { AdminFormContext } from '@/lib/frontend/admin/context/AdminFormContext';
@@ -11,6 +11,7 @@ import { loadDraft, useLocalDraft } from '@/lib/frontend/hooks/useLocalDraft';
 import PreviewFab from './PreviewFab';
 import { PlanType } from '@/config/PLAN_FEATURES';
 import { getAdminForm } from '../../api/services';
+import Loader from '../../common/Loader';
 
 const EMPTY_FORM: FormData = {
   profile: {
@@ -78,7 +79,7 @@ function mergeForm(
     ...base,
     ...apiData,
     ...draft,
-    profile: { ...base.profile, ...apiData?.profile, ...draft?.profile,  },
+    profile: { ...base.profile, ...apiData?.profile, ...draft?.profile },
     design: { ...base.design, ...apiData?.design, ...draft?.design },
     seo: { ...base.seo, ...apiData?.seo, ...draft?.seo },
     settings: { ...base.settings, ...apiData?.settings, ...draft?.settings },
@@ -106,6 +107,7 @@ function mergeForm(
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname() || '';
+  const router = useRouter();
   const path = pathname.replace(/\/+$/, '');
   const isPreviewRoute = useMemo(() => /(?:^|\/)admin\/preview(?:\/|$)/.test(path), [path]);
 
@@ -143,23 +145,29 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           setServerData(payload);
           const draft = loadDraft();
           setForm((prev) => mergeForm(prev, payload, draft));
+          setBootstrapped(true);
         }
-      } catch {
+      } catch (err: any) {
+        const next = window.location.pathname + window.location.search;
+        router.push(`/login?next=${encodeURIComponent(next)}`);
       } finally {
         setIsLoading(false);
-        setBootstrapped(true);
       }
     })();
 
     return () => ac.abort();
-  }, [isPreviewRoute]);
+  }, [isPreviewRoute, router]);
 
   useLocalDraft(form, true, serverData);
   usePreviewBus(form, plan);
 
   return (
     <AdminFormContext.Provider value={{ form, setForm, plan, isLoading, bootstrapped }}>
-      {isPreviewRoute ? (
+      {isLoading || !bootstrapped ? (
+        <div className="flex items-center justify-center min-h-screen">
+          <Loader />
+        </div>
+      ) : isPreviewRoute ? (
         <>{children}</>
       ) : (
         <>

@@ -2,7 +2,6 @@ import {
   ADMIN_FORM,
   PUBLISH_FORM,
   POSTS,
-  POST,
   SUBSCRIBERS,
   SUBSCRIBE_PUBLIC,
   TRACK_LINK,
@@ -12,6 +11,10 @@ import {
   CHECK_SUBDOMAIN,
   UPLOAD_IMAGE,
   DELETE_IMAGE,
+  SIGNUP,
+  LOGIN,
+  SEND_OTP,
+  VERIFY_OTP,
 } from "./routes";
 
 export interface ApiResponse<T = any> {
@@ -24,6 +27,7 @@ type FetchOptions = {
   method?: string;
   headers?: Record<string, string>;
   body?: any;
+  authRequired?: boolean;
 };
 
 const handleApiError = async (res: Response) => {
@@ -39,10 +43,13 @@ async function apiFetch<T>(
   url: string,
   options: FetchOptions = {}
 ): Promise<ApiResponse<T>> {
-  const { body, headers: providedHeaders = {}, method = "GET" } = options;
-
+  const {
+    body,
+    headers: providedHeaders = {},
+    method = "GET",
+    authRequired = true,
+  } = options;
   const headers: Record<string, string> = { ...providedHeaders };
-
   let finalBody: BodyInit | undefined;
   if (body !== undefined) {
     if (body instanceof FormData) {
@@ -55,19 +62,55 @@ async function apiFetch<T>(
       headers["Content-Type"] = headers["Content-Type"] ?? "application/json";
     }
   }
-
   const res = await fetch(`/api${url}`, {
     method,
     headers,
     body: finalBody,
     credentials: "include",
   });
-
+  if (res.status === 401 && authRequired) {
+    if (typeof window !== "undefined") {
+      const next = window.location.pathname + window.location.search;
+      window.location.href = `/login?next=${encodeURIComponent(next)}`;
+      throw new Error("Unauthorized");
+    }
+    throw new Error("Unauthorized");
+  }
   if (!res.ok) {
     await handleApiError(res);
   }
-
   return res.json();
+}
+
+export function signupApi(data: any) {
+  return apiFetch<any>(SIGNUP, {
+    method: "POST",
+    body: data,
+    authRequired: false,
+  });
+}
+
+export function loginApi(data: any) {
+  return apiFetch<any>(LOGIN, {
+    method: "POST",
+    body: data,
+    authRequired: false,
+  });
+}
+export function sendOtpApi(data: any) {
+  return apiFetch<any>(SEND_OTP, {
+    method: "POST",
+    body: data,
+    authRequired: false,
+  });
+}
+
+export function verifyOtpApi(data: any) {
+  return apiFetch<any>(VERIFY_OTP, {
+    method: "POST",
+    body: data,
+    authRequired: false,
+  });
 }
 
 export async function getAdminForm() {
@@ -114,7 +157,11 @@ export async function listSubscribers(siteId?: string) {
 }
 
 export async function subscribePublic(data: any) {
-  return apiFetch<any>(SUBSCRIBE_PUBLIC, { method: "POST", body: data });
+  return apiFetch<any>(SUBSCRIBE_PUBLIC, {
+    method: "POST",
+    body: data,
+    authRequired: false,
+  });
 }
 
 export async function trackLink(data: any) {
@@ -126,22 +173,31 @@ export async function trackTraffic(data: any) {
 }
 
 export async function submitContact(data: any) {
-  return apiFetch<any>(SUBMIT_CONTACT, { method: "POST", body: data });
+  return apiFetch<any>(SUBMIT_CONTACT, {
+    method: "POST",
+    body: data,
+    authRequired: false,
+  });
 }
 
 export async function checkSubdomain(subdomain: string) {
-  return apiFetch<any>(CHECK_SUBDOMAIN(subdomain), { method: "GET" });
+  return apiFetch<any>(CHECK_SUBDOMAIN(subdomain), {
+    method: "GET",
+    authRequired: false,
+  });
 }
 
 export async function getUserPage(username: string) {
-  return apiFetch<any>(USER_PAGE(username), { method: "GET" });
+  return apiFetch<any>(USER_PAGE(username), {
+    method: "GET",
+    authRequired: false,
+  });
 }
 
 export async function uploadImageApi(file: File, prevPublicId?: string) {
   const fd = new FormData();
   fd.append("file", file);
   if (prevPublicId) fd.append("prevPublicId", prevPublicId);
-
   const res = await apiFetch<any>(UPLOAD_IMAGE, { method: "POST", body: fd });
   const payload = res?.data ?? res ?? {};
   const url = payload?.url ?? payload?.secure_url ?? "";

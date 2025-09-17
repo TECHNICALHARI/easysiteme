@@ -20,6 +20,7 @@ import 'react-phone-input-2/lib/style.css';
 import { debounceCheckDomain, validateSubdomain } from '../../utils/checkdomain';
 import { useToast } from '@/lib/frontend/common/ToastProvider';
 import { formatPhoneToE164 } from '../../utils/common';
+import { sendOtpApi, verifyOtpApi } from '@/lib/frontend/api/services';
 
 type Props = {
     formData: AuthSignupData;
@@ -55,19 +56,17 @@ export default function SignupForm({
     const [mobileResendLeft, setMobileResendLeft] = useState(0);
 
     useEffect(() => {
-        let t: any;
         if (emailResendLeft > 0) {
-            t = setTimeout(() => setEmailResendLeft((s) => Math.max(0, s - 1)), 1000);
+            const t = setTimeout(() => setEmailResendLeft((s) => Math.max(0, s - 1)), 1000);
+            return () => clearTimeout(t);
         }
-        return () => clearTimeout(t);
     }, [emailResendLeft]);
 
     useEffect(() => {
-        let t: any;
         if (mobileResendLeft > 0) {
-            t = setTimeout(() => setMobileResendLeft((s) => Math.max(0, s - 1)), 1000);
+            const t = setTimeout(() => setMobileResendLeft((s) => Math.max(0, s - 1)), 1000);
+            return () => clearTimeout(t);
         }
-        return () => clearTimeout(t);
     }, [mobileResendLeft]);
 
     const togglePassword = () =>
@@ -81,63 +80,43 @@ export default function SignupForm({
         if (!error && cleanVal) debounceCheckDomain(cleanVal, checkSubdomain, 500);
     };
 
-    async function sendOtpApi(identifier: string, purpose: string) {
-        try {
-            const res = await fetch('/api/send-otp', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ identifier, purpose }),
-            });
-            const json = await res.json();
-            return json;
-        } catch {
-            return { success: false, message: 'Network error' };
-        }
-    }
-
-    async function verifyOtpApi(identifier: string, code: string, purpose: string) {
-        try {
-            const res = await fetch('/api/verify-otp', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ identifier, code, purpose }),
-            });
-            const json = await res.json();
-            return json;
-        } catch {
-            return { success: false, message: 'Network error' };
-        }
-    }
-
     const handleEmailVerifyClick = async () => {
         if (!formData.email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
             showToast('Enter a valid email first', 'error');
             return;
         }
         setEmailSending(true);
-        const identifier = formData.email.trim();
-        const r = await sendOtpApi(identifier, 'signup_email');
-        setEmailSending(false);
-        if (r?.success) {
-            showToast('OTP sent to email', 'success');
-            setShowEmailOtpBox(true);
-            setEmailResendLeft(RESEND_COOLDOWN);
-        } else {
-            showToast(r?.message || 'Failed to send email OTP', 'error');
+        try {
+            const r = await sendOtpApi({ target: formData.email.trim(), purpose: 'signup_email' });
+            if (r?.success) {
+                showToast('OTP sent to email', 'success');
+                setShowEmailOtpBox(true);
+                setEmailResendLeft(RESEND_COOLDOWN);
+            } else {
+                showToast(r?.message || 'Failed to send email OTP', 'error');
+            }
+        } catch (error: any) {
+            showToast(error.message || 'Something went wrong. Try again later.', 'error');
+        } finally {
+            setEmailSending(false);
         }
     };
 
     const handleResendEmail = async () => {
         if (emailResendLeft > 0) return;
         setEmailSending(true);
-        const identifier = formData.email?.trim();
-        const r = await sendOtpApi(identifier!, 'signup_email');
-        setEmailSending(false);
-        if (r?.success) {
-            showToast('OTP resent to email', 'success');
-            setEmailResendLeft(RESEND_COOLDOWN);
-        } else {
-            showToast(r?.message || 'Failed to resend', 'error');
+        try {
+            const r = await sendOtpApi({ target: formData.email.trim(), purpose: 'signup_email' });
+            if (r?.success) {
+                showToast('OTP resent to email', 'success');
+                setEmailResendLeft(RESEND_COOLDOWN);
+            } else {
+                showToast(r?.message || 'Failed to resend', 'error');
+            }
+        } catch (error: any) {
+            showToast(error.message || 'Something went wrong. Try again later.', 'error');
+        } finally {
+            setEmailSending(false);
         }
     };
 
@@ -147,15 +126,19 @@ export default function SignupForm({
             return;
         }
         setEmailVerifying(true);
-        const identifier = formData.email!.trim();
-        const r = await verifyOtpApi(identifier, formData.emailOtp, 'verify_email');
-        setEmailVerifying(false);
-        if (r?.success) {
-            showToast('Email verified', 'success');
-            setFormData({ ...formData, emailVerified: true });
-            setShowEmailOtpBox(false);
-        } else {
-            showToast(r?.message || 'Invalid OTP', 'error');
+        try {
+            const r = await verifyOtpApi({ target: formData.email.trim(), code: formData.emailOtp, purpose: 'verify_email' });
+            if (r?.success) {
+                showToast('Email verified', 'success');
+                setFormData({ ...formData, emailVerified: true });
+                setShowEmailOtpBox(false);
+            } else {
+                showToast(r?.message || 'Invalid OTP', 'error');
+            }
+        } catch (error: any) {
+            showToast(error.message || 'Something went wrong. Try again later.', 'error');
+        } finally {
+            setEmailVerifying(false);
         }
     };
 
@@ -165,37 +148,39 @@ export default function SignupForm({
             return;
         }
         setMobileSending(true);
-        const identifier = formatPhoneToE164(formData.mobile);
-        const r = await sendOtpApi(identifier!, 'signup_phone');
-        setMobileSending(false);
-        if (r?.success) {
-            showToast('OTP sent to mobile', 'success');
-            setShowMobileOtpBox(true);
-            setMobileResendLeft(RESEND_COOLDOWN);
-        } else {
-            const hint =
-                r?.data?.errors?.providerError?.message
-                    ? ` — ${r.data.errors.providerError.message}`
-                    : '';
-            showToast(r?.message ? `${r.message}${hint}` : 'Failed to send mobile OTP', 'error');
+        try {
+            const identifier = formatPhoneToE164(formData.mobile);
+            const r = await sendOtpApi({ target: identifier, purpose: 'signup_phone' });
+            if (r?.success) {
+                showToast('OTP sent to mobile', 'success');
+                setShowMobileOtpBox(true);
+                setMobileResendLeft(RESEND_COOLDOWN);
+            } else {
+                showToast(r?.message || 'Failed to send mobile OTP', 'error');
+            }
+        } catch (error: any) {
+            showToast(error.message || 'Something went wrong. Try again later.', 'error');
+        } finally {
+            setMobileSending(false);
         }
     };
 
     const handleResendMobile = async () => {
         if (mobileResendLeft > 0) return;
         setMobileSending(true);
-        const identifier = formatPhoneToE164(formData.mobile);
-        const r = await sendOtpApi(identifier!, 'signup_phone');
-        setMobileSending(false);
-        if (r?.success) {
-            showToast('OTP resent to mobile', 'success');
-            setMobileResendLeft(RESEND_COOLDOWN);
-        } else {
-            const hint =
-                r?.data?.errors?.providerError?.message
-                    ? ` — ${r.data.errors.providerError.message}`
-                    : '';
-            showToast(r?.message ? `${r.message}${hint}` : 'Failed to resend mobile OTP', 'error');
+        try {
+            const identifier = formatPhoneToE164(formData.mobile);
+            const r = await sendOtpApi({ target: identifier, purpose: 'signup_phone' });
+            if (r?.success) {
+                showToast('OTP resent to mobile', 'success');
+                setMobileResendLeft(RESEND_COOLDOWN);
+            } else {
+                showToast(r?.message || 'Failed to resend mobile OTP', 'error');
+            }
+        } catch (error: any) {
+            showToast(error.message || 'Something went wrong. Try again later.', 'error');
+        } finally {
+            setMobileSending(false);
         }
     };
 
@@ -205,15 +190,20 @@ export default function SignupForm({
             return;
         }
         setMobileVerifying(true);
-        const identifier = formatPhoneToE164(formData.mobile);
-        const r = await verifyOtpApi(identifier!, formData.mobileOtp, 'verify_phone');
-        setMobileVerifying(false);
-        if (r?.success) {
-            showToast('Mobile verified', 'success');
-            setFormData({ ...formData, mobileVerified: true });
-            setShowMobileOtpBox(false);
-        } else {
-            showToast(r?.message || 'Invalid OTP', 'error');
+        try {
+            const identifier = formatPhoneToE164(formData.mobile);
+            const r = await verifyOtpApi({ target: identifier, code: formData.mobileOtp, purpose: 'verify_phone' });
+            if (r?.success) {
+                showToast( r.message || 'Mobile verified', 'success');
+                setFormData({ ...formData, mobileVerified: true });
+                setShowMobileOtpBox(false);
+            } else {
+                showToast(r?.message || 'Invalid OTP', 'error');
+            }
+        } catch (error: any) {
+            showToast(error.message || 'Something went wrong. Try again later.', 'error');
+        } finally {
+            setMobileVerifying(false);
         }
     };
 
