@@ -6,6 +6,7 @@ import {
   updatePost,
   deletePost,
   togglePublishPost,
+  getPostById,
 } from "@/lib/backend/services/post.service";
 import { successResponse, errorResponse } from "@/lib/backend/utils/response";
 
@@ -13,6 +14,14 @@ export async function GET(req: NextRequest) {
   try {
     const user = await getAuthUserFromCookie(req);
     if (!user) return errorResponse("Unauthorized", 401, req);
+
+    const { searchParams } = new URL(req.url);
+    const postId = searchParams.get("postId");
+    if (postId) {
+      const post = await getPostById(user.id, postId);
+      if (!post) return errorResponse("Post not found", 404, req);
+      return successResponse({ post }, "Fetched post", 200, req);
+    }
 
     const posts = await listPosts(user.id);
     return successResponse({ posts }, "Fetched posts", 200, req);

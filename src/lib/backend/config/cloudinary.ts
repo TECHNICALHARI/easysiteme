@@ -1,4 +1,3 @@
-// src/lib/backend/config/cloudinary.ts
 import { v2 as cloudinary } from "cloudinary";
 import streamifier from "streamifier";
 import { appConfig } from "@/lib/backend/config";
