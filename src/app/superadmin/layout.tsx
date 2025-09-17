@@ -13,7 +13,7 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "OnePage | SaaS Builder",
+  title: "myeasypage | SaaS Builder",
   description: "Create beautiful personal and business websites in seconds.",
 };
 

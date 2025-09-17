@@ -83,7 +83,7 @@ export default function DomainSetupModal({
           <Info size={20} className="mt-1" />
           <span>
             To connect your domain, add a <strong>CNAME</strong> record pointing to{' '}
-            <code>cname.easysiteme.com</code>. Or use an <strong>A record</strong> pointing to your
+            <code>cname.myeasypage.com</code>. Or use an <strong>A record</strong> pointing to your
             server IP. <br />
             DNS changes may take a few hours to propagate.
           </span>

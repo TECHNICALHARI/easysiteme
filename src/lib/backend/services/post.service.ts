@@ -24,7 +24,6 @@ function extractCloudinaryPublicIdFromUrl(
 export class PostService {
   async create(ownerId: string, data: CreatePostInput) {
     const processed = await replaceBase64Images(data as any, ["thumbnail"]);
-   console.log(processed, 'processed');
     if (!processed.thumbnailPublicId) {
       const extracted = extractCloudinaryPublicIdFromUrl(processed.thumbnail);
       if (extracted) processed.thumbnailPublicId = extracted;

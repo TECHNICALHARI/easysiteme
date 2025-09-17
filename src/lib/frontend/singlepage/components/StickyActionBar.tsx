@@ -8,7 +8,7 @@ import type { FormData, Link as LinkType } from '@/lib/frontend/types/form';
 import ThemeTogglePreview from '../layout/ThemeTogglePreview';
 
 function useProfileUrl(username?: string, customDomain?: string) {
-    if (typeof window === 'undefined') return 'https://onepage.app';
+    if (typeof window === 'undefined') return 'https://myeasypage.app';
     const origin = window.location.origin;
     if (customDomain) return `https://${customDomain}`;
     if (username) return `${origin}/${username}`;
@@ -57,8 +57,8 @@ export default function StickyActionBar({ form }: { form: FormData }) {
         try {
             if (navigator.share) {
                 await navigator.share({
-                    title: 'Check out my OnePage',
-                    text: 'Here is my OnePage link:',
+                    title: 'Check out my myeasypage',
+                    text: 'Here is my myeasypage link:',
                     url,
                 });
             } else {

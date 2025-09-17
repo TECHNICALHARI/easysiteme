@@ -28,9 +28,7 @@ export async function POST(req: NextRequest) {
     if (!user) return errorResponse("Unauthorized", 401, req);
 
     const body = await req.json();
-    console.log("Received form data:", body);
     const parsed = formSchema.partial().safeParse(body);
-    console.log("Parsed form data:", parsed);
     if (!parsed.success) {
       return errorResponse(parsed.error, 422, req);
     }

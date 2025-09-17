@@ -18,7 +18,7 @@ export default function SuperAdminSidebar() {
 
   return (
     <aside className={styles.sidebar}>
-      <h1 className={styles.logo}>OnePage Admin</h1>
+      <h1 className={styles.logo}>myeasypage Admin</h1>
       <nav className={styles.nav}>
         {navLinks.map(({ href, label }) => (
           <Link

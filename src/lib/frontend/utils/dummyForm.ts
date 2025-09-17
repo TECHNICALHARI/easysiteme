@@ -14,7 +14,7 @@ const dummyFormData: FormData = {
             <p>I specialize in <em>Next.js</em>, <em>MongoDB</em>, and building clean, scalable SaaS products for creators, businesses, and startups.</p>
             <ul>
               <li>✅ Freelancer & indie hacker</li>
-              <li>🚀 Building OnePage SaaS</li>
+              <li>🚀 Building myeasypage SaaS</li>
               <li>💡 Love UI/UX + animations</li>
             </ul>`,
     headers: [{ id: "1", title: "Connect with Me" }],
@@ -69,7 +69,7 @@ const dummyFormData: FormData = {
         id: "2",
         name: "Sara Smith",
         message:
-          "The OnePage setup saved me days of work — looks amazing on mobile!",
+          "The myeasypage setup saved me days of work — looks amazing on mobile!",
         avatar:
           "https://gratisography.com/wp-content/uploads/2024/11/gratisography-augmented-reality-800x525.jpg",
       },
@@ -95,7 +95,7 @@ const dummyFormData: FormData = {
       },
       {
         id: "3",
-        question: "Is OnePage mobile optimized?",
+        question: "Is myeasypage mobile optimized?",
         answer: "Absolutely. Your page looks amazing on every device.",
       },
       {
@@ -139,7 +139,7 @@ const dummyFormData: FormData = {
         id: "1",
         title: "Demo Day Talk",
         url: "https://www.youtube.com/embed/dQw4w9WgXcQ",
-        description: "My 5-min startup pitch for OnePage on IndieHackers.",
+        description: "My 5-min startup pitch for myeasypage on IndieHackers.",
         ctaLabel: "Watch Now",
         ctaLink: "https://youtube.com",
       },
@@ -167,7 +167,7 @@ const dummyFormData: FormData = {
   seo: {
     metaTitle: "Hariom Panday | Full Stack Dev",
     metaDescription:
-      "Explore Hariom’s OnePage bio, portfolio, services and blog.",
+      "Explore Hariom’s myeasypage bio, portfolio, services and blog.",
   },
   settings: {
     nsfwWarning: false,
@@ -184,13 +184,13 @@ const dummyFormData: FormData = {
     posts: [
       {
         id: "1",
-        title: "Launching My OnePage SaaS",
-        slug: "launching-onepage-saas",
+        title: "Launching My myeasypage SaaS",
+        slug: "launching-myeasypage-saas",
         description: "Behind the scenes of building a micro-SaaS in public.",
         content: "",
         thumbnail:
           "https://gratisography.com/wp-content/uploads/2024/11/gratisography-augmented-reality-800x525.jpg",
-        seoTitle: "Launching OnePage",
+        seoTitle: "Launching myeasypage",
         seoDescription: "How I built and launched a full SaaS in weeks.",
         tags: ["launch", "saas", "buildinpublic"],
         published: true,

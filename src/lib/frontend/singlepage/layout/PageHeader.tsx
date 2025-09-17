@@ -10,7 +10,7 @@ import ShareModal from '../components/ShareModal';
 
 function useProfileUrl(username?: string, customDomain?: string) {
   const origin =
-    typeof window !== 'undefined' ? window.location.origin : 'https://onepage.app';
+    typeof window !== 'undefined' ? window.location.origin : 'https://myeasypage.app';
   if (customDomain) return `https://${customDomain}`;
   if (username) return `${origin}/${username}`;
   return origin;

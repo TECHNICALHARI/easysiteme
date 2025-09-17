@@ -4,8 +4,8 @@ import { useEffect, useRef } from 'react';
 import type { FormData } from '@/lib/frontend/types/form';
 import { PlanType } from '@/config/PLAN_FEATURES';
 
-const CACHE_KEY = 'onepage:preview:last';
-const BUS_NAME = 'onepage:preview';
+const CACHE_KEY = 'myeasypage:preview:last';
+const BUS_NAME = 'myeasypage:preview';
 
 let sharedChannel: BroadcastChannel | null = null;
 function getChannel(): BroadcastChannel | null {
@@ -25,7 +25,7 @@ function postAllTargets(payload: any) {
 }
 
 type PreviewUpdate = {
-  type: 'onepage:preview:update';
+  type: 'myeasypage:preview:update';
   payload: {
     form: FormData;
     plan: PlanType;
@@ -48,7 +48,7 @@ export function usePreviewBus(form: FormData, plan: PlanType) {
     lastPlan.current = plan;
 
     const message: PreviewUpdate = {
-      type: 'onepage:preview:update',
+      type: 'myeasypage:preview:update',
       payload: { form, plan, previewMode: true as const },
     };
 
@@ -57,6 +57,6 @@ export function usePreviewBus(form: FormData, plan: PlanType) {
   }, [form, plan]);
 
   useEffect(() => {
-    postAllTargets({ type: 'onepage:preview:ping' });
+    postAllTargets({ type: 'myeasypage:preview:ping' });
   }, []);
 }

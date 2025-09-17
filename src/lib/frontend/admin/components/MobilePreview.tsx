@@ -20,13 +20,13 @@ export default function MobilePreview({ form }: Props) {
 
     const send = () => {
       iframe.contentWindow?.postMessage(
-        { type: 'onepage:preview:update', payload: form },
+        { type: 'myeasypage:preview:update', payload: form },
         '*',
       );
     };
 
     const onReady = (ev: MessageEvent) => {
-      if (ev.source === iframe.contentWindow && ev.data?.type === 'onepage:preview:ready') {
+      if (ev.source === iframe.contentWindow && ev.data?.type === 'myeasypage:preview:ready') {
         send();
       }
     };

@@ -2,8 +2,8 @@
 
 import type { FormData } from '@/lib/frontend/types/form';
 
-const BUS_NAME = 'onepage:preview';
-const CACHE_KEY = 'onepage:preview:last';
+const BUS_NAME = 'myeasypage:preview';
+const CACHE_KEY = 'myeasypage:preview:last';
 
 let sharedChannel: BroadcastChannel | null = null;
 function getChannel(): BroadcastChannel | null {
@@ -19,10 +19,10 @@ function getChannel(): BroadcastChannel | null {
 function syncPreviewPayload(form: FormData) {
   const payload = { ...form, previewMode: true };
   try { localStorage.setItem(CACHE_KEY, JSON.stringify(payload)); } catch {}
-  try { getChannel()?.postMessage({ type: 'onepage:preview:update', payload: form }); } catch {}
-  try { window.parent?.postMessage({ type: 'onepage:preview:update', payload: form }, '*'); } catch {}
-  try { window.opener?.postMessage({ type: 'onepage:preview:update', payload: form }, '*'); } catch {}
-  try { window.postMessage({ type: 'onepage:preview:update', payload: form }, '*'); } catch {}
+  try { getChannel()?.postMessage({ type: 'myeasypage:preview:update', payload: form }); } catch {}
+  try { window.parent?.postMessage({ type: 'myeasypage:preview:update', payload: form }, '*'); } catch {}
+  try { window.opener?.postMessage({ type: 'myeasypage:preview:update', payload: form }, '*'); } catch {}
+  try { window.postMessage({ type: 'myeasypage:preview:update', payload: form }, '*'); } catch {}
 }
 
 export function openPreviewInNewTab(form: FormData) {
@@ -30,13 +30,13 @@ export function openPreviewInNewTab(form: FormData) {
   const w = window.open('/admin/preview', '_blank', 'noopener');
   // immediately broadcast + cache
   syncPreviewPayload(form);
-  try { w?.postMessage({ type: 'onepage:preview:update', payload: form }, '*'); } catch {}
+  try { w?.postMessage({ type: 'myeasypage:preview:update', payload: form }, '*'); } catch {}
 }
 
 export function pingPreview() {
-  try { window.parent?.postMessage({ type: 'onepage:preview:ping' }, '*'); } catch {}
-  try { window.opener?.postMessage({ type: 'onepage:preview:ping' }, '*'); } catch {}
-  try { window.postMessage({ type: 'onepage:preview:ping' }, '*'); } catch {}
+  try { window.parent?.postMessage({ type: 'myeasypage:preview:ping' }, '*'); } catch {}
+  try { window.opener?.postMessage({ type: 'myeasypage:preview:ping' }, '*'); } catch {}
+  try { window.postMessage({ type: 'myeasypage:preview:ping' }, '*'); } catch {}
 }
 
 export function usePreviewHotkey(form: FormData) {

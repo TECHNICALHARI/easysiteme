@@ -4,7 +4,7 @@ import { useEffect, useRef } from 'react';
 import type { FormData } from '@/lib/frontend/types/form';
 
 const DRAFT_VERSION = 'v3';
-const KEY = `onepage:form:draft:${DRAFT_VERSION}`;
+const KEY = `myeasypage:form:draft:${DRAFT_VERSION}`;
 
 const EDITABLE_KEYS: (keyof FormData)[] = [
   'profile',

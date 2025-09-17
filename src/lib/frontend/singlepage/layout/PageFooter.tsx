@@ -10,7 +10,7 @@ const PageFooter = ({ form }: { form: FormData }) => {
       <div className={styles.footerContent}>
         {showBranding ? (
           <p>
-            Made with <a href="https://onepage.site" target="_blank" rel="noopener noreferrer" className="text-[var(--color-brand)] font-semibold">OnePage</a>
+            Made with <a href="https://myeasypage.site" target="_blank" rel="noopener noreferrer" className="text-[var(--color-brand)] font-semibold">myeasypage</a>
           </p>
         ) : (
           <p>&copy; {new Date().getFullYear()} {form.profile?.fullName || 'Your Name'}</p>

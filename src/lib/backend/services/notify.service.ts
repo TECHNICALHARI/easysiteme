@@ -18,7 +18,6 @@ if (
   appConfig.TWILIO_AUTH_TOKEN
 ) {
   try {
-    console.log(appConfig.TWILIO_ACCOUNT_SID, appConfig.TWILIO_AUTH_TOKEN);
     twilioClient = new Twilio(
       appConfig.TWILIO_ACCOUNT_SID,
       appConfig.TWILIO_AUTH_TOKEN

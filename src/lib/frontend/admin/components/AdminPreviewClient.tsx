@@ -11,8 +11,8 @@ import themeStyles from '@/styles/theme.module.css';
 import previewStyles from '@/styles/preview.module.css';
 import PreviewSkeleton from '@/lib/frontend/singlepage/components/PreviewSkeleton';
 
-const CACHE_KEY = 'onepage:preview:last';
-const BUS_NAME = 'onepage:preview';
+const CACHE_KEY = 'myeasypage:preview:last';
+const BUS_NAME = 'myeasypage:preview';
 
 const hasAnyData = (f?: FormData | null) =>
   !!f &&
@@ -31,11 +31,11 @@ export default function AdminPreviewClient() {
   useEffect(() => {
     const onWin = (ev: MessageEvent) => {
       const msg = ev.data;
-      if (msg?.type === 'onepage:preview:update' && msg.payload) {
+      if (msg?.type === 'myeasypage:preview:update' && msg.payload) {
         setIncoming({ ...(msg.payload as FormData), previewMode: true });
       }
-      if (msg?.type === 'onepage:preview:ping') {
-        window.postMessage({ type: 'onepage:preview:ready' }, '*');
+      if (msg?.type === 'myeasypage:preview:ping') {
+        window.postMessage({ type: 'myeasypage:preview:ready' }, '*');
       }
     };
     window.addEventListener('message', onWin);
@@ -44,7 +44,7 @@ export default function AdminPreviewClient() {
     try {
       ch = new BroadcastChannel(BUS_NAME);
       const onBus = (e: MessageEvent) => {
-        if (e.data?.type === 'onepage:preview:update' && e.data.payload) {
+        if (e.data?.type === 'myeasypage:preview:update' && e.data.payload) {
           setIncoming({ ...(e.data.payload as FormData), previewMode: true });
         }
       };
@@ -60,8 +60,8 @@ export default function AdminPreviewClient() {
       } catch {}
 
       // announce ready
-      try { window.parent?.postMessage({ type: 'onepage:preview:ready' }, '*'); } catch {}
-      try { window.opener?.postMessage({ type: 'onepage:preview:ready' }, '*'); } catch {}
+      try { window.parent?.postMessage({ type: 'myeasypage:preview:ready' }, '*'); } catch {}
+      try { window.opener?.postMessage({ type: 'myeasypage:preview:ready' }, '*'); } catch {}
 
       return () => {
         window.removeEventListener('message', onWin);
