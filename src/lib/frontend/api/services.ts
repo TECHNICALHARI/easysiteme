@@ -15,6 +15,7 @@ import {
   LOGIN,
   SEND_OTP,
   VERIFY_OTP,
+  CONTACT,
 } from "./routes";
 
 export interface ApiResponse<T = any> {
@@ -209,4 +210,19 @@ export async function uploadImageApi(file: File, prevPublicId?: string) {
 export async function deleteImageApi(publicId: string) {
   await apiFetch<any>(DELETE_IMAGE, { method: "POST", body: { publicId } });
   return true;
+}
+
+export async function ContactUsApi(data: any) {
+  return apiFetch<any>(CONTACT, {
+    method: "POST",
+    body: data,
+    authRequired: false,
+  });
+}
+
+export async function listContacts(page: number = 1, limit: number = 20) {
+  const url = `${CONTACT}?page=${encodeURIComponent(
+    page
+  )}&limit=${encodeURIComponent(limit)}`;
+  return apiFetch<any>(url, { method: "GET" });
 }

@@ -3,10 +3,13 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
 import styles from '@/styles/main.module.css';
+import { ContactUsApi } from '@/lib/frontend/api/services';
+import { useToast } from '../../common/ToastProvider';
 
 export default function ContactSection() {
   const [form, setForm] = useState({ name: '', email: '', message: '' });
   const [busy, setBusy] = useState(false);
+  const { showToast } = useToast();
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     setForm({ ...form, [e.target.name]: e.target.value });
@@ -17,11 +20,15 @@ export default function ContactSection() {
     if (!form.name || !form.email || !form.message) return;
     setBusy(true);
     try {
-      await new Promise((r) => setTimeout(r, 500));
-      alert('Thanks! We’ll get back to you shortly.');
-      setForm({ name: '', email: '', message: '' });
-    } catch {
-      alert('Something went wrong. Please try again.');
+      const res = await ContactUsApi(form);
+      if (res?.success) {
+        showToast(res?.message || 'Message received successfully', 'success');
+        setForm({ name: '', email: '', message: '' });
+      } else {
+        showToast(res?.message || 'Something went wrong. Please try again.', 'error');
+      }
+    } catch (err: any) {
+      showToast(err?.message || 'Something went wrong. Please try again.', 'error');
     } finally {
       setBusy(false);
     }

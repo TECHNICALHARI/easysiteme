@@ -5,6 +5,7 @@ import { AuthService } from "@/lib/backend/services/auth.service";
 import { VerificationModel } from "@/lib/backend/models/Verification.model";
 import { signupSchema } from "@/lib/backend/validators/auth.schema";
 import { successResponse, errorResponse } from "@/lib/backend/utils/response";
+import { enforceRateLimit } from "@/lib/backend/utils/rateLimitHelper";
 
 export async function POST(req: NextRequest) {
   try {
@@ -17,6 +18,14 @@ export async function POST(req: NextRequest) {
         req
       );
     }
+
+    const limiter = await enforceRateLimit(
+      "SIGNUP",
+      body.email ?? body.mobile ?? "unknown",
+      req,
+      "Too many signup attempts. Try later."
+    );
+    if (limiter) return limiter;
 
     await connectDb();
     const payload = parsed.data;

@@ -28,3 +28,4 @@ export const USER_PAGE = (username: string) =>
 
 export const UPLOAD_IMAGE = "/uploads/image";
 export const DELETE_IMAGE = "/uploads/delete";
+export const CONTACT = "/contact";

@@ -4,6 +4,7 @@ import { OtpService } from "@/lib/backend/services/otp.service";
 import { NotifyService } from "@/lib/backend/services/notify.service";
 import { successResponse, errorResponse } from "@/lib/backend/utils/response";
 import { sendOtpSchema } from "@/lib/backend/validators/auth.schema";
+import { enforceRateLimit } from "@/lib/backend/utils/rateLimitHelper";
 
 export async function POST(req: NextRequest) {
   try {
@@ -27,11 +28,15 @@ export async function POST(req: NextRequest) {
       ? "mobile"
       : "email";
 
-    await connectDb();
+    const limiter = await enforceRateLimit(
+      "OTP",
+      String(target),
+      req,
+      "Too many OTP requests. Try later."
+    );
+    if (limiter) return limiter;
 
-    const allowed = await OtpService.canSendOtp(target);
-    if (!allowed)
-      return errorResponse("Too many OTP requests. Try later.", 429, req);
+    await connectDb();
 
     const otpDoc = await OtpService.createOtp(target, channel);
 

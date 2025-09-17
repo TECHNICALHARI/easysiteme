@@ -7,22 +7,12 @@ function genCode() {
 }
 
 export const OtpService = {
-  async canSendOtp(identifier: string) {
-    const windowAgo = new Date(
-      Date.now() - OTP_RATE.WINDOW_MINUTES * 60 * 1000
-    );
-    const count = await OtpModel.countDocuments({
-      identifier,
-      createdAt: { $gte: windowAgo },
-    });
-    return count < OTP_RATE.MAX_PER_WINDOW;
-  },
-
   async createOtp(identifier: string, channel: "email" | "mobile" | "reset") {
     const code = genCode();
     const expiresAt = new Date(
       Date.now() + OTP_RATE.OTP_TTL_MINUTES * 60 * 1000
     );
+
     const otpDoc = await OtpModel.create({
       identifier,
       code,
@@ -31,10 +21,12 @@ export const OtpService = {
       attempts: 0,
       consumed: false,
     });
+
     const ttlSeconds = Math.max(
       0,
       Math.floor((expiresAt.getTime() - Date.now()) / 1000)
     );
+
     return {
       id: (otpDoc._id as Types.ObjectId).toString(),
       code: otpDoc.code,
@@ -60,6 +52,7 @@ export const OtpService = {
     const otp = await OtpModel.findOne({ identifier, channel, consumed: false })
       .sort({ createdAt: -1 })
       .exec();
+
     if (!otp) return { ok: false, reason: "not_found" };
 
     if (otp.expiresAt.getTime() <= now) {
@@ -97,16 +90,6 @@ export const OtpService = {
     }
 
     return { ok: false, reason: "invalid_code" };
-  },
-
-  async sendOtpIfAllowed(
-    identifier: string,
-    channel: "email" | "mobile" | "reset"
-  ) {
-    const allowed = await this.canSendOtp(identifier);
-    if (!allowed) return { ok: false, reason: "rate_limited" };
-    const otp = await this.createOtp(identifier, channel);
-    return { ok: true, otp };
   },
 
   async cleanupExpired() {

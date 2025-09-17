@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import '@/styles/superadmin.module.css';
 import '@/styles/globals.css';
+import { ToastProvider } from '@/lib/frontend/common/ToastProvider';
 
 
 const inter = Inter({
@@ -27,7 +28,9 @@ export default function RootLayout({
         <div className="flex h-screen overflow-hidden">
           <SuperAdminSidebar />
           <main className="flex-1 overflow-y-auto p-6 bg-muted">
-            {children}
+            <ToastProvider>
+              {children}
+            </ToastProvider>
           </main>
         </div>
       </body>
