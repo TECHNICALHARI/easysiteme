@@ -601,6 +601,7 @@
     grid-template-columns: 1fr;
   }
 }
+
 [data-theme='light'] .hero {
   background: linear-gradient(135deg, #241f5c 0%, #2f2a78 32%, #3f37b2 64%, #4f46e5 100%);
   color: #ffffff;
@@ -1985,6 +1986,10 @@
 [data-theme='dark'] .authPage {
   background: radial-gradient(1000px 420px at 20% -10%, rgba(139, 92, 246, .24), transparent 60%),
     linear-gradient(180deg, #0c0c14, #0a0a0f 70%);
+}
+
+.changePasswordAdmin {
+  background: none !important;
 }
 
 .authBox {

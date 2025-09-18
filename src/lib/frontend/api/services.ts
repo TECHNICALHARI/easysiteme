@@ -16,6 +16,7 @@ import {
   SEND_OTP,
   VERIFY_OTP,
   CONTACT,
+  CHANGE_PASSWORD,
 } from "./routes";
 
 export interface ApiResponse<T = any> {
@@ -225,4 +226,12 @@ export async function listContacts(page: number = 1, limit: number = 20) {
     page
   )}&limit=${encodeURIComponent(limit)}`;
   return apiFetch<any>(url, { method: "GET" });
+}
+
+export async function ChangePasswordApi(data: any) {
+  return apiFetch<any>(CHANGE_PASSWORD, {
+    method: "POST",
+    body: data,
+    authRequired: false,
+  });
 }

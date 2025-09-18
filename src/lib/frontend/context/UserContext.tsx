@@ -5,7 +5,6 @@ import { useRouter } from "next/navigation";
 export type UserPublic = {
     id: string | null;
     subdomain?: string | null;
-    username?: string | null;
     email: string | null;
     mobile: string | null;
     countryCode: string | null;
@@ -23,16 +22,13 @@ type UserContextValue = {
     error: Error | null;
     refresh: (opts?: { force?: boolean }) => Promise<void>;
     logout: (opts?: { callServer?: boolean; redirectTo?: string | null; noRedirect?: boolean }) => Promise<void>;
+    setUserDirectly: (u: UserPublic | null) => void;
 };
 
 const UserContext = createContext<UserContextValue | undefined>(undefined);
 
-const DEFAULT_POLL_MS = 10 * 60 * 1000;
 const CLIENT_EVENT_KEY = "myeasypage:auth:event";
 const CLIENT_PREFIX = "myeasypage:";
-const BASE_BACKOFF = 2000;
-const MAX_BACKOFF = 5 * 60 * 1000;
-
 function clearClientPrefixed(prefix = CLIENT_PREFIX) {
     try {
         const keys: string[] = [];
@@ -42,10 +38,10 @@ function clearClientPrefixed(prefix = CLIENT_PREFIX) {
             if (k.startsWith(prefix)) keys.push(k);
         }
         keys.forEach((k) => localStorage.removeItem(k));
-    } catch (e) { }
+    } catch { }
 }
 
-export function UserProvider({ children, pollInterval = DEFAULT_POLL_MS }: { children: React.ReactNode; pollInterval?: number }) {
+export function UserProvider({ children }: { children: React.ReactNode }) {
     const router = useRouter();
     const [user, setUser] = useState<UserPublic | null>(null);
     const [isBootstrapped, setIsBootstrapped] = useState(false);
@@ -54,15 +50,12 @@ export function UserProvider({ children, pollInterval = DEFAULT_POLL_MS }: { chi
     const cacheRef = useRef<{ user?: UserPublic; etag?: string; ts?: number }>({});
     const refreshPromiseRef = useRef<Promise<void> | null>(null);
     const bcRef = useRef<BroadcastChannel | null>(null);
-    const visibleRef = useRef<boolean>(true);
-    const failureCountRef = useRef<number>(0);
-    const stopPollRef = useRef<boolean>(false);
 
     const broadcast = (msg: any) => {
         try {
             if (bcRef.current) bcRef.current.postMessage(msg);
             else localStorage.setItem(CLIENT_EVENT_KEY, JSON.stringify({ t: Date.now(), ...msg }));
-        } catch (e) { }
+        } catch { }
     };
 
     const handleUnauthorized = () => {
@@ -110,9 +103,7 @@ export function UserProvider({ children, pollInterval = DEFAULT_POLL_MS }: { chi
                 } else {
                     if (cacheRef.current.user) setUser(cacheRef.current.user);
                 }
-                failureCountRef.current = 0;
             } catch (err: any) {
-                failureCountRef.current = Math.min(10, failureCountRef.current + 1);
                 setError(err);
             } finally {
                 setIsRefreshing(false);
@@ -124,12 +115,19 @@ export function UserProvider({ children, pollInterval = DEFAULT_POLL_MS }: { chi
         return p;
     };
 
+    const setUserDirectly = (u: UserPublic | null) => {
+        cacheRef.current = { user: u ?? undefined, etag: undefined, ts: Date.now() };
+        setUser(u);
+        setIsBootstrapped(true);
+        broadcast({ type: "auth:refresh", user: u ?? null, etag: null });
+    };
+
     const logout = async (opts?: { callServer?: boolean; redirectTo?: string | null; noRedirect?: boolean }) => {
         const callServer = typeof opts?.callServer === "undefined" ? true : Boolean(opts?.callServer);
         if (callServer) {
             try {
                 await fetch("/api/auth/logout", { method: "POST", credentials: "include" });
-            } catch (e) { }
+            } catch { }
         }
         setUser(null);
         cacheRef.current = {};
@@ -159,7 +157,7 @@ export function UserProvider({ children, pollInterval = DEFAULT_POLL_MS }: { chi
                     setUser(msg.user ?? null);
                 }
             };
-        } catch (e) {
+        } catch {
             bcRef.current = null;
             const onStorage = (ev: StorageEvent) => {
                 if (ev.key !== CLIENT_EVENT_KEY) return;
@@ -175,21 +173,12 @@ export function UserProvider({ children, pollInterval = DEFAULT_POLL_MS }: { chi
                         cacheRef.current = { user: v.user ?? undefined, etag: v.etag ?? undefined, ts: Date.now() };
                         setUser(v.user ?? null);
                     }
-                } catch (e) { }
+                } catch { }
             };
             window.addEventListener("storage", onStorage);
             return () => window.removeEventListener("storage", onStorage);
         }
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
-
-    useEffect(() => {
-        const onVis = () => {
-            visibleRef.current = !document.hidden;
-        };
-        document.addEventListener("visibilitychange", onVis);
-        return () => document.removeEventListener("visibilitychange", onVis);
-    }, []);
+    }, [router]);
 
     useEffect(() => {
         const cached = cacheRef.current;
@@ -203,35 +192,7 @@ export function UserProvider({ children, pollInterval = DEFAULT_POLL_MS }: { chi
                 } catch { }
             })();
         }
-        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
-
-    useEffect(() => {
-        stopPollRef.current = false;
-        let cancelled = false;
-        (async () => {
-            while (!cancelled && !stopPollRef.current) {
-                try {
-                    if (!visibleRef.current) {
-                        await new Promise((r) => setTimeout(r, 30 * 1000));
-                        continue;
-                    }
-                    await fetchOnce({ etag: cacheRef.current.etag });
-                    failureCountRef.current = 0;
-                    await new Promise((r) => setTimeout(r, pollInterval));
-                } catch (err) {
-                    failureCountRef.current = Math.min(10, failureCountRef.current + 1);
-                    const backoff = Math.min(MAX_BACKOFF, BASE_BACKOFF * 2 ** (failureCountRef.current - 1));
-                    await new Promise((r) => setTimeout(r, backoff + Math.floor(Math.random() * 500)));
-                }
-            }
-        })();
-        return () => {
-            cancelled = true;
-            stopPollRef.current = true;
-        };
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [pollInterval]);
 
     const ctx: UserContextValue = {
         user,
@@ -240,6 +201,7 @@ export function UserProvider({ children, pollInterval = DEFAULT_POLL_MS }: { chi
         error,
         refresh,
         logout,
+        setUserDirectly,
     };
 
     return <UserContext.Provider value={ctx}>{children}</UserContext.Provider>;

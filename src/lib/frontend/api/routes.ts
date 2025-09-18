@@ -2,6 +2,7 @@ export const SIGNUP = "/signup";
 export const LOGIN = "/login";
 export const SEND_OTP = "/send-otp";
 export const VERIFY_OTP = "/verify-otp";
+export const CHANGE_PASSWORD = "/auth/change-password";
 
 export const ADMIN_FORM = "/admin/form";
 export const PUBLISH_FORM = "/admin/form";
