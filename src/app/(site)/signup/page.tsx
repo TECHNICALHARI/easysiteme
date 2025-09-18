@@ -6,6 +6,7 @@ import SignupForm from '@/lib/frontend/main/auth/SignupForm';
 import { useToast } from '@/lib/frontend/common/ToastProvider';
 import { formatPhoneToE164 } from '@/lib/frontend/utils/common';
 import { signupApi, checkSubdomain as checkSubdomainApi } from '@/lib/frontend/api/services';
+import { useRouter } from 'next/navigation';
 
 export default function SignupPage() {
   const { showToast } = useToast();
@@ -26,6 +27,7 @@ export default function SignupPage() {
   const [checkingSubdomain, setCheckingSubdomain] = useState(false);
   const [subdomainAvailable, setSubdomainAvailable] = useState<null | boolean>(null);
   const [loading, setLoading] = useState(false);
+  const router = useRouter();
 
   const checkSubdomain = async (name: string) => {
     if (!name) return setSubdomainAvailable(null);
@@ -61,8 +63,10 @@ export default function SignupPage() {
       if (res?.success) {
         showToast('Signup successful! Redirecting...', 'success');
         setTimeout(() => {
-          window.location.href = '/login';
-        }, 1200);
+          const params = new URLSearchParams(window.location.search);
+          const next = params.get('next') || '/admin';
+          // router.push(next);
+        }, 900);
       } else {
         showToast(res?.message || 'Signup failed', 'error');
       }

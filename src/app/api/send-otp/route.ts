@@ -1,3 +1,4 @@
+// src/app/api/send-otp/route.ts
 import { NextRequest } from "next/server";
 import { connectDb } from "@/lib/backend/config/db";
 import { OtpService } from "@/lib/backend/services/otp.service";
@@ -5,6 +6,8 @@ import { NotifyService } from "@/lib/backend/services/notify.service";
 import { successResponse, errorResponse } from "@/lib/backend/utils/response";
 import { sendOtpSchema } from "@/lib/backend/validators/auth.schema";
 import { enforceRateLimit } from "@/lib/backend/utils/rateLimitHelper";
+import { limitForOtp } from "@/lib/backend/utils/rateLimiter";
+import { UserService } from "@/lib/backend/services/user.service";
 
 export async function POST(req: NextRequest) {
   try {
@@ -28,6 +31,34 @@ export async function POST(req: NextRequest) {
       ? "mobile"
       : "email";
 
+    await connectDb();
+
+    let userVerified = false;
+    try {
+      if (channel === "email") {
+        const u = await UserService.findByEmail(target);
+        if (u && u.emailVerified) userVerified = true;
+      } else {
+        const u = await UserService.findByMobile(target);
+        if (u && u.mobileVerified) userVerified = true;
+      }
+    } catch (e) {
+      userVerified = userVerified || false;
+    }
+
+    if (userVerified) {
+      const prettyTarget =
+        channel === "email" ? "email address" : "phone number";
+      return errorResponse(
+        {
+          message: `This ${prettyTarget} is already verified on an account — no OTP needed.`,
+          data: { verified: true, channel, source: "user" },
+        },
+        409,
+        req
+      );
+    }
+
     const limiter = await enforceRateLimit(
       "OTP",
       String(target),
@@ -36,7 +67,7 @@ export async function POST(req: NextRequest) {
     );
     if (limiter) return limiter;
 
-    await connectDb();
+    const rate = await limitForOtp(String(target));
 
     const otpDoc = await OtpService.createOtp(target, channel);
 
@@ -54,6 +85,7 @@ export async function POST(req: NextRequest) {
             provider: delivered.provider ?? "unknown",
             error: delivered.error ?? null,
             raw: delivered.raw ?? null,
+            rate,
           },
         },
         502,
@@ -62,7 +94,7 @@ export async function POST(req: NextRequest) {
     }
 
     return successResponse(
-      { sent: true, ttlSeconds: otpDoc.ttlSeconds },
+      { sent: true, ttlSeconds: otpDoc.ttlSeconds, rate },
       "OTP sent",
       200,
       req
@@ -71,6 +103,8 @@ export async function POST(req: NextRequest) {
     console.error("send-otp error:", err);
     if (err instanceof SyntaxError)
       return errorResponse("Invalid JSON body", 400, req);
+    if (String(err).includes("OTP rate limit exceeded"))
+      return errorResponse("Too many OTP requests. Try later.", 429, req);
     return errorResponse("Internal server error", 500, req);
   }
 }

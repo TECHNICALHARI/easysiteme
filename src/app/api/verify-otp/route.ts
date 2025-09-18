@@ -4,6 +4,7 @@ import { OtpService } from "@/lib/backend/services/otp.service";
 import { VerificationModel } from "@/lib/backend/models/Verification.model";
 import { successResponse, errorResponse } from "@/lib/backend/utils/response";
 import { verifyOtpSchema } from "@/lib/backend/validators/auth.schema";
+import { enforceRateLimit } from "@/lib/backend/utils/rateLimitHelper";
 
 export async function POST(req: NextRequest) {
   try {
@@ -24,6 +25,25 @@ export async function POST(req: NextRequest) {
     }
 
     const { target, code, purpose } = parsed.data;
+
+    const ipHeader =
+      req.headers.get("x-forwarded-for") ?? req.headers.get("x-real-ip") ?? "";
+    const ip = ipHeader.split(",")[0].trim() || "unknown";
+    const ipLimiter = await enforceRateLimit(
+      "GLOBAL",
+      ip,
+      req,
+      "Too many requests from this IP"
+    );
+    if (ipLimiter) return ipLimiter;
+
+    const otpLimiter = await enforceRateLimit(
+      "OTP",
+      String(target),
+      req,
+      "Too many OTP verify attempts. Try later."
+    );
+    if (otpLimiter) return otpLimiter;
 
     await connectDb();
 

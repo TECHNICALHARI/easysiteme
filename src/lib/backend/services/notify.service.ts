@@ -1,11 +1,10 @@
-import nodemailer from "nodemailer";
 import { Twilio } from "twilio";
 import { appConfig } from "@/lib/backend/config";
 
 type SendResultOk = { ok: true };
 type SendResultErr = {
   ok: false;
-  provider: "twilio" | "smtp" | "none";
+  provider: "twilio" | "resend" | "none";
   error: string;
   raw?: any;
 };
@@ -22,31 +21,161 @@ if (
       appConfig.TWILIO_ACCOUNT_SID,
       appConfig.TWILIO_AUTH_TOKEN
     );
-  } catch (e) {
+  } catch {
     twilioClient = null;
   }
 }
 
-let mailTransport: ReturnType<typeof nodemailer.createTransport> | null = null;
-if (appConfig.SMTP_HOST && appConfig.SMTP_USER && appConfig.SMTP_PASS) {
-  try {
-    mailTransport = nodemailer.createTransport({
-      host: appConfig.SMTP_HOST,
-      port: Number(appConfig.SMTP_PORT || 587),
-      secure: Number(appConfig.SMTP_PORT || 587) === 465,
-      auth: {
-        user: appConfig.SMTP_USER,
-        pass: appConfig.SMTP_PASS,
-      },
-    });
-  } catch (e) {
-    mailTransport = null;
-  }
+function renderOtpEmailHtml({
+  code,
+  ttlMinutes = 10,
+  appName = "myeasypage",
+  logoUrl = "https://carenavigator.akosmd.in/static/media/sidebarlogo.b5ea315f1aebbe35829a.png",
+  supportUrl = "https://myeasypage.com/#contact",
+}: {
+  code: string;
+  ttlMinutes?: number;
+  appName?: string;
+  logoUrl?: string;
+  supportUrl?: string;
+}): string {
+  const prettyApp = escapeHtml(appName);
+  const prettyYear = new Date().getFullYear();
+  const codeEsc = escapeHtml(code);
+  const expiresText = `${ttlMinutes} minute${ttlMinutes === 1 ? "" : "s"}`;
+
+  return `<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+  </head>
+  <body style="margin:0;padding:0;background:#f9fafb;font-family:Inter,Arial,sans-serif;">
+    <table width="100%" cellpadding="0" cellspacing="0" style="padding:24px 12px;">
+      <tr>
+        <td align="center">
+          <table width="100%" style="max-width:520px;background:#ffffff;border-radius:12px;box-shadow:0 6px 20px rgba(0,0,0,0.06);padding:32px;">
+            
+            <tr>
+              <td align="center" style="padding-bottom:20px;">
+                <img src="${escapeHtml(
+                  logoUrl
+                )}" alt="${prettyApp}" style="height:40px;object-fit:contain;" />
+              </td>
+            </tr>
+
+            <tr>
+              <td align="center" style="font-size:18px;font-weight:600;color:#111827;padding-bottom:16px;">
+                ${prettyApp} Verification Code
+              </td>
+            </tr>
+
+            <tr>
+              <td align="center" style="padding:16px;">
+                <div style="display:inline-block;padding:18px 28px;border:2px dashed #e5e7eb;border-radius:10px;background:#f9fafb;">
+                  <span style="font-family:monospace;font-size:28px;font-weight:700;letter-spacing:6px;color:#111827;">
+                    ${codeEsc}
+                  </span>
+                </div>
+              </td>
+            </tr>
+
+            <tr>
+              <td align="center" style="font-size:14px;color:#6b7280;padding-top:16px;">
+                This code will expire in <strong style="color:#111827;">${escapeHtml(
+                  expiresText
+                )}</strong>.
+              </td>
+            </tr>
+
+            <tr>
+              <td align="center" style="font-size:13px;color:#9ca3af;padding-top:24px;">
+                If you didn’t request this code, please ignore this email.
+              </td>
+            </tr>
+
+            <tr>
+              <td align="center" style="font-size:13px;color:#6b7280;padding-top:24px;">
+                Need help? <a href="${escapeHtml(
+                  supportUrl
+                )}" style="color:#4f46e5;font-weight:500;text-decoration:none">Contact support</a>
+              </td>
+            </tr>
+
+            <tr>
+              <td align="center" style="font-size:12px;color:#d1d5db;padding-top:28px;">
+                © ${prettyYear} ${prettyApp}
+              </td>
+            </tr>
+
+          </table>
+        </td>
+      </tr>
+    </table>
+  </body>
+</html>`;
+}
+
+function escapeHtml(str: string) {
+  return String(str || "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
 }
 
 function normalizePhone(p: string) {
   if (!p) return p;
   return String(p).replace(/[\s()-]/g, "");
+}
+
+async function sendViaResend(
+  from: string,
+  to: string,
+  subject: string,
+  html: string
+): Promise<SendResult> {
+  const apiKey = appConfig.RESEND_API_KEY || process.env.RESEND_API_KEY || "";
+  if (!apiKey) {
+    return {
+      ok: false,
+      provider: "none",
+      error: "Resend API key not configured",
+    };
+  }
+  try {
+    const resp = await fetch("https://api.resend.com/emails", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${apiKey}`,
+      },
+      body: JSON.stringify({
+        from,
+        to,
+        subject,
+        html,
+      }),
+    });
+    if (!resp.ok) {
+      const raw = await resp.text().catch(() => null);
+      return {
+        ok: false,
+        provider: "resend",
+        error: `Resend responded ${resp.status}`,
+        raw,
+      };
+    }
+    return { ok: true };
+  } catch (err: any) {
+    return {
+      ok: false,
+      provider: "resend",
+      error: err?.message ?? String(err),
+      raw: err,
+    };
+  }
 }
 
 export const NotifyService = {
@@ -70,7 +199,7 @@ export const NotifyService = {
       if (appConfig.TWILIO_SMS_SERVICE_SID)
         payload.messagingServiceSid = appConfig.TWILIO_SMS_SERVICE_SID;
       else payload.from = fromEnv;
-      const msg = await twilioClient.messages.create(payload);
+      await twilioClient.messages.create(payload);
       return { ok: true };
     } catch (err: any) {
       const message = err?.message ?? String(err);
@@ -83,24 +212,8 @@ export const NotifyService = {
     subject: string,
     htmlOrText: string
   ): Promise<SendResult> {
-    if (!mailTransport)
-      return { ok: false, provider: "none", error: "SMTP not configured" };
-    try {
-      const from =
-        appConfig.EMAIL_FROM ||
-        appConfig.SMTP_USER ||
-        "no-reply@myeasypage.com";
-      const info = await mailTransport.sendMail({
-        from,
-        to,
-        subject,
-        html: htmlOrText,
-      } as any);
-      return { ok: true };
-    } catch (err: any) {
-      const message = err?.message ?? String(err);
-      return { ok: false, provider: "smtp", error: message, raw: err };
-    }
+    const fromDefault = appConfig.EMAIL_FROM || `no-reply@mail.myeasypage.com`;
+    return sendViaResend(fromDefault, to, subject, htmlOrText);
   },
 
   async deliverOtp(
@@ -108,10 +221,15 @@ export const NotifyService = {
     code: string,
     channel: "email" | "mobile"
   ): Promise<SendResult> {
-    const text = `Your myeasypage verification code is ${code}. It expires shortly.`;
+    const ttlMinutes = Number(process.env.OTP_TTL_MINUTES || 10);
+    const text = `Your myeasypage verification code is ${code}. It expires in ${ttlMinutes} minutes.`;
     if (channel === "mobile") return this.sendSms(identifier, text);
     const subject = "myeasypage verification code";
-    const html = `<p>Your verification code is <strong>${code}</strong>. It expires in 10 minutes.</p>`;
+    const html = renderOtpEmailHtml({
+      code,
+      ttlMinutes,
+      appName: "myeasypage",
+    });
     return this.sendEmail(identifier, subject, html);
   },
 };

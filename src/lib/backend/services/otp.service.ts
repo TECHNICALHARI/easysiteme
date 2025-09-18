@@ -1,13 +1,29 @@
 import { OTP_RATE } from "@/lib/backend/config/rate";
 import { OtpModel } from "@/lib/backend/models/Otp.model";
 import { Types } from "mongoose";
+import { limitForOtp } from "@/lib/backend/utils/rateLimiter";
 
 function genCode() {
   return Math.floor(100000 + Math.random() * 900000).toString();
 }
 
 export const OtpService = {
-  async createOtp(identifier: string, channel: "email" | "mobile" | "reset") {
+  async createOtp(
+    identifier: string,
+    channel: "email" | "mobile" | "reset"
+  ): Promise<{
+    id: string;
+    code: string;
+    channel: "email" | "mobile" | "reset";
+    identifier: string;
+    expiresAt: Date;
+    ttlSeconds: number;
+  }> {
+    const rate = await limitForOtp(String(identifier));
+    if (!rate.allowed) {
+      throw new Error("OTP rate limit exceeded");
+    }
+
     const code = genCode();
     const expiresAt = new Date(
       Date.now() + OTP_RATE.OTP_TTL_MINUTES * 60 * 1000

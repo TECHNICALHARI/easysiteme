@@ -41,6 +41,7 @@ export const appConfig = {
   EMAIL_FROM: process.env.EMAIL_FROM || "",
 
   REDIS_URL: process.env.REDIS_URL || "",
+  RESEND_API_KEY: process.env.RESEND_API_KEY || "",
 };
 
 export type AppConfig = typeof appConfig;
