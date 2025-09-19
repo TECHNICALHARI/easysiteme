@@ -5,6 +5,7 @@ import { VerificationModel } from "@/lib/backend/models/Verification.model";
 import { successResponse, errorResponse } from "@/lib/backend/utils/response";
 import { verifyOtpSchema } from "@/lib/backend/validators/auth.schema";
 import { enforceRateLimit } from "@/lib/backend/utils/rateLimitHelper";
+import { UserService } from "@/lib/backend/services/user.service";
 
 export async function POST(req: NextRequest) {
   try {
@@ -72,6 +73,26 @@ export async function POST(req: NextRequest) {
         { verified: true, verifiedAt: new Date() },
         { upsert: true, new: true }
       );
+
+      try {
+        if (channel === "email") {
+          const u = await UserService.findByEmail(target);
+          if (u && !u.emailVerified) {
+            await UserService.updateById(String(u._id), {
+              emailVerified: true,
+            });
+          }
+        } else if (channel === "mobile") {
+          const u = await UserService.findByMobile(target);
+          if (u && !u.mobileVerified) {
+            await UserService.updateById(String(u._id), {
+              mobileVerified: true,
+            });
+          }
+        }
+      } catch (e) {
+        console.error("verify-otp: failed to mark user verified:", e);
+      }
     }
 
     return successResponse(

@@ -113,4 +113,15 @@ export const UserService = {
       plan: user.plan ?? null,
     };
   },
+
+  async updateById(
+    id: string,
+    update: Partial<Record<string, any>>,
+    options?: { session?: mongoose.ClientSession }
+  ): Promise<IUserDoc | null> {
+    const updateObj = { $set: update };
+    const opts: any = { new: true };
+    if (options?.session) opts.session = options.session;
+    return User.findByIdAndUpdate(id, updateObj, opts).exec();
+  },
 };

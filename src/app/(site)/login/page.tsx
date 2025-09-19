@@ -6,6 +6,7 @@ import LoginForm from '@/lib/frontend/main/auth/LoginForm';
 import { useToast } from '@/lib/frontend/common/ToastProvider';
 import { formatPhoneToE164 } from '@/lib/frontend/utils/common';
 import { loginApi, sendOtpApi } from '@/lib/frontend/api/services';
+import { useRouter } from 'next/navigation';
 
 export default function LoginPage() {
   const { showToast } = useToast();
@@ -24,6 +25,7 @@ export default function LoginPage() {
 
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState<{ email?: string; mobile?: string; password?: string; otp?: string }>({});
+  const router = useRouter();
 
   const handleLogin = async () => {
     setErrors({});
@@ -56,16 +58,19 @@ export default function LoginPage() {
       const result = await loginApi(payload);
       if (result?.success) {
         showToast('Login successful! Redirecting...', 'success');
+
+        const roles: string[] = (result?.data?.user?.roles as string[]) || [];
+
+        const destination = roles.includes('admin') ? '/admin' : '/superadmin';
+
         setTimeout(() => {
-          const params = new URLSearchParams(window.location.search);
-          const next = params.get('next') || '/admin';
-          window.location.href = next;
-        }, 900);
+          router.push(destination);
+        }, 500);
       } else {
         showToast(result?.message || 'Login failed', 'error');
       }
-    } catch {
-      showToast('Something went wrong. Please try again.', 'error');
+    } catch (err: any) {
+      showToast(err?.message || 'Something went wrong. Please try again.', 'error');
     } finally {
       setLoading(false);
     }

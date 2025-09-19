@@ -65,8 +65,8 @@ export default function SignupPage() {
         setTimeout(() => {
           const params = new URLSearchParams(window.location.search);
           const next = params.get('next') || '/admin';
-          // router.push(next);
-        }, 900);
+          router.push(next);
+        }, 500);
       } else {
         showToast(res?.message || 'Signup failed', 'error');
       }
