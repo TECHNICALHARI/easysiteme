@@ -3,19 +3,8 @@
 import { useEffect, useRef } from 'react';
 import type { FormData } from '@/lib/frontend/types/form';
 
-const DRAFT_VERSION = 'v3';
+const DRAFT_VERSION = 'v4';
 const KEY = `myeasypage:form:draft:${DRAFT_VERSION}`;
-
-const EDITABLE_KEYS: (keyof FormData)[] = [
-  'profile',
-  'design',
-  'seo',
-  'settings',
-  'socials',
-  'posts',
-  'subscriberSettings',
-  'stats',
-];
 
 export function loadDraft(): Partial<FormData> | undefined {
   try {
@@ -40,18 +29,23 @@ export function useLocalDraft(form: FormData, enabled: boolean, serverData?: Par
     try {
       const editableDraft: Partial<FormData> = {};
 
-      EDITABLE_KEYS.forEach((key) => {
-        const current = form[key];
-        const server = serverData?.[key];
+      const currentProfile = form.profile;
+      const serverProfile = serverData?.profile;
+      const currentDesign = form.design;
+      const serverDesign = serverData?.design;
 
-        if (JSON.stringify(current) !== JSON.stringify(server)) {
-          (editableDraft as any)[key] = current;
-        }
-      });
+      if (JSON.stringify(currentProfile) !== JSON.stringify(serverProfile)) {
+        editableDraft.profile = currentProfile;
+      }
+      if (JSON.stringify(currentDesign) !== JSON.stringify(serverDesign)) {
+        editableDraft.design = currentDesign;
+      }
 
       if (Object.keys(editableDraft).length > 0) {
         localStorage.setItem(KEY, JSON.stringify(editableDraft));
       }
-    } catch {}
+    } catch {
+      // ignore
+    }
   }, [enabled, form, serverData]);
 }

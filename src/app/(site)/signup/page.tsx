@@ -5,7 +5,7 @@ import styles from '@/styles/main.module.css';
 import SignupForm from '@/lib/frontend/main/auth/SignupForm';
 import { useToast } from '@/lib/frontend/common/ToastProvider';
 import { formatPhoneToE164 } from '@/lib/frontend/utils/common';
-import { signupApi, checkSubdomain as checkSubdomainApi } from '@/lib/frontend/api/services';
+import { signupApi, checkSubdomainApi } from '@/lib/frontend/api/services';
 import { useRouter } from 'next/navigation';
 
 export default function SignupPage() {

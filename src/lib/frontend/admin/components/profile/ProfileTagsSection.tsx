@@ -1,50 +1,42 @@
 'use client';
 
+import { Dispatch, SetStateAction } from 'react';
 import { X } from 'lucide-react';
 import styles from '@/styles/admin.module.css';
 import LockedOverlay from '../../layout/LockedOverlay';
+import type { ProfileTabData } from '@/lib/frontend/types/form';
 
 export default function ProfileTagsSection({
-  form,
-  setForm,
+  profile,
+  setProfile,
   limit = 0,
 }: {
-  form: any;
-  setForm: (f: any) => void;
+  profile: ProfileTabData;
+  setProfile: Dispatch<SetStateAction<ProfileTabData>>;
   limit?: number;
 }) {
-  const tags = form.profile.tags || [];
+  const tags = profile.tags || [];
 
   const handleAddTag = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Enter') {
       e.preventDefault();
       const val = (e.currentTarget.value || '').trim();
       if (val && !tags.includes(val) && tags.length < limit) {
-        setForm({
-          ...form,
-          profile: {
-            ...form.profile,
-            tags: [...tags, val],
-          },
-        });
+        setProfile((p) => ({ ...p, tags: [...(p.tags || []), val] }));
         e.currentTarget.value = '';
       }
     }
   };
 
   const handleRemoveTag = (index: number) => {
-    const updated = tags.filter((_tag: string, i: number) => i !== index);
-    setForm({
-      ...form,
-      profile: {
-        ...form.profile,
-        tags: updated,
-      },
+    setProfile((p) => {
+      const updated = (p.tags || []).filter((_tag: string, i: number) => i !== index);
+      return { ...p, tags: updated };
     });
   };
 
   const isTagsEnabled = limit > 0;
-  const tagsLimitReached = tags.length >= limit;
+  const tagsLimitReached = (tags || []).length >= limit;
   const showTagsLimitNotice = isTagsEnabled && tagsLimitReached;
 
   return (

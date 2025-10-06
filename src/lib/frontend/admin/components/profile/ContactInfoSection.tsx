@@ -4,14 +4,15 @@ import { Dispatch, SetStateAction } from 'react';
 import styles from '@/styles/admin.module.css';
 import ToggleSwitch from '../../../common/ToggleSwitch';
 import LockedOverlay from '../../layout/LockedOverlay';
+import type { ProfileTabData } from '@/lib/frontend/types/form';
 
 export default function ContactInfoSection({
-  form,
-  setForm,
+  profile,
+  setProfile,
   canUseContact,
 }: {
-  form: any;
-  setForm: Dispatch<SetStateAction<any>>;
+  profile: ProfileTabData;
+  setProfile: Dispatch<SetStateAction<ProfileTabData>>;
   canUseContact: boolean;
 }) {
   const disabled = !canUseContact;
@@ -28,29 +29,29 @@ export default function ContactInfoSection({
             className="input"
             placeholder="Email"
             disabled={disabled}
-            value={form.profile.email || ''}
-            onChange={(e) => setForm((p: any) => ({ ...p, profile: { ...p.profile, email: e.target.value } }))}
+            value={profile.email || ''}
+            onChange={(e) => setProfile((p) => ({ ...p, email: e.target.value }))}
           />
           <input
             className="input"
             placeholder="Phone Number"
             disabled={disabled}
-            value={form.profile.phone || ''}
-            onChange={(e) => setForm((p: any) => ({ ...p, profile: { ...p.profile, phone: e.target.value } }))}
+            value={profile.phone || ''}
+            onChange={(e) => setProfile((p) => ({ ...p, phone: e.target.value }))}
           />
           <input
             className="input"
             placeholder="Website (e.g. https://yourdomain.com)"
             disabled={disabled}
-            value={form.profile.website || ''}
-            onChange={(e) => setForm((p: any) => ({ ...p, profile: { ...p.profile, website: e.target.value } }))}
+            value={profile.website || ''}
+            onChange={(e) => setProfile((p) => ({ ...p, website: e.target.value }))}
           />
           <input
             className="input"
             placeholder="WhatsApp Number (e.g. +15555555555)"
             disabled={disabled}
-            value={form.profile.whatsapp || ''}
-            onChange={(e) => setForm((p: any) => ({ ...p, profile: { ...p.profile, whatsapp: e.target.value } }))}
+            value={profile.whatsapp || ''}
+            onChange={(e) => setProfile((p) => ({ ...p, whatsapp: e.target.value }))}
           />
         </div>
 
@@ -61,10 +62,8 @@ export default function ContactInfoSection({
         <div className="mt-4">
           <ToggleSwitch
             label="Enable Contact Form"
-            checked={!!form.profile.showContactForm}
-            onChange={(checked) =>
-              setForm((p: any) => ({ ...p, profile: { ...p.profile, showContactForm: checked } }))
-            }
+            checked={!!profile.showContactForm}
+            onChange={(checked) => setProfile((p) => ({ ...p, showContactForm: checked }))}
             isPro
             description="Visitors can message you directly from your page."
             className={disabled ? 'pointer-events-none opacity-60' : ''}

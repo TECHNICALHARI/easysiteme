@@ -19,40 +19,53 @@ function getChannel(): BroadcastChannel | null {
 }
 
 function postAllTargets(payload: any) {
-  try { window.parent?.postMessage(payload, '*'); } catch {}
-  try { window.opener?.postMessage(payload, '*'); } catch {}
-  try { window.postMessage(payload, '*'); } catch {}
+  try {
+    window.parent?.postMessage(payload, '*');
+  } catch {}
+  try {
+    window.opener?.postMessage(payload, '*');
+  } catch {}
+  try {
+    window.postMessage(payload, '*');
+  } catch {}
 }
 
 type PreviewUpdate = {
   type: 'myeasypage:preview:update';
   payload: {
-    form: FormData;
+    form: Pick<FormData, 'profile' | 'design'>;
     plan: PlanType;
     previewMode: true;
   };
 };
 
 export function usePreviewBus(form: FormData, plan: PlanType) {
-  const lastFormJson = useRef<string>('');
+  const lastJson = useRef<string>('');
   const lastPlan = useRef<PlanType | null>(null);
 
   useEffect(() => {
-    const formJson = JSON.stringify({ ...form, previewMode: true });
-    if (formJson !== lastFormJson.current) {
-      lastFormJson.current = formJson;
-      try { localStorage.setItem(CACHE_KEY, formJson); } catch {}
+    // Only send profile+design
+    const minimal = { profile: form.profile, design: form.design };
+    const formJson = JSON.stringify({ ...minimal, previewMode: true });
+
+    if (formJson !== lastJson.current) {
+      lastJson.current = formJson;
+      try {
+        localStorage.setItem(CACHE_KEY, formJson);
+      } catch {}
     }
 
-    if (formJson === lastFormJson.current && lastPlan.current === plan) return;
+    if (formJson === lastJson.current && lastPlan.current === plan) return;
     lastPlan.current = plan;
 
     const message: PreviewUpdate = {
       type: 'myeasypage:preview:update',
-      payload: { form, plan, previewMode: true as const },
+      payload: { form: minimal, plan, previewMode: true as const },
     };
 
-    try { getChannel()?.postMessage(message); } catch {}
+    try {
+      getChannel()?.postMessage(message);
+    } catch {}
     postAllTargets(message);
   }, [form, plan]);
 

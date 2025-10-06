@@ -1,16 +1,16 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Settings } from 'lucide-react';
 import styles from '@/styles/admin.module.css';
-
 import LockedOverlay from '../../layout/LockedOverlay';
 import AdminTable from '@/lib/frontend/superadmin/AdminTable';
 import ManageSubscribersModal from './ManageSubscribersModal';
-
 import { PLAN_FEATURES } from '@/config/PLAN_FEATURES';
 import { useAdminForm } from '@/lib/frontend/admin/context/AdminFormContext';
-import { SubscriberDataTypes } from '@/lib/frontend/types/form';
+import { useToast } from '@/lib/frontend/common/ToastProvider';
+import type { SubscriberDataTypes } from '@/lib/frontend/types/form';
+import { getSubscribersServiceAPI } from '@/lib/frontend/api/services';
 
 const Section = ({
     title,
@@ -36,17 +36,24 @@ const Section = ({
 );
 
 export default function SubscribersTab() {
-    const { form, setForm, plan } = useAdminForm();
-    const limits = PLAN_FEATURES[plan];
+    const { subscriberSettings, setSubscriberSettings, plan } = useAdminForm() as {
+        subscriberSettings: SubscriberDataTypes;
+        setSubscriberSettings: (next: SubscriberDataTypes | ((p: SubscriberDataTypes) => SubscriberDataTypes)) => void;
+        plan: keyof typeof PLAN_FEATURES;
+    };
+
+    const { showToast } = useToast();
+    const limits = PLAN_FEATURES[plan] ?? {};
     const [showManageModal, setShowManageModal] = useState(false);
+    const [loading, setLoading] = useState(false);
 
-    const subscriberList = form.subscriberSettings.SubscriberList;
-    const subscribers = subscriberList.data || [];
-    const total = subscriberList.total || 0;
-    const active = subscriberList.active || 0;
-    const unsubscribed = subscriberList.unsubscribed || 0;
+    const subscriberList = subscriberSettings?.SubscriberList ?? { data: [], total: 0, active: 0, unsubscribed: 0 };
+    const subscribers = subscriberList.data ?? [];
+    const total = subscriberList.total ?? 0;
+    const active = subscriberList.active ?? 0;
+    const unsubscribed = subscriberList.unsubscribed ?? 0;
 
-    const isSubscribeEnabled = limits?.showSubscribers;
+    const isSubscribeEnabled = Boolean(limits.showSubscribers);
 
     const columns = [
         { key: 'email', label: 'Email', sortable: true },
@@ -54,24 +61,64 @@ export default function SubscribersTab() {
         { key: 'status', label: 'Status', sortable: true },
     ];
 
+    const fetchSubscribers = async (signal?: AbortSignal) => {
+        setLoading(true);
+        try {
+            // Prefer service function if available
+            let res;
+            try {
+                res = await getSubscribersServiceAPI();
+            } catch (err) {
+                // fallback to direct fetch if service not available or fails
+                const url = '/api/admin/subscribers';
+                const r = await fetch(url, { credentials: 'include', signal });
+                res = r.ok ? await r.json() : null;
+            }
+
+            // Expecting shape: { success: true, data: { SubscriberList: { data: [], total, active, unsubscribed } } }
+            const payload = res?.data ?? res;
+            const subscriberPayload = payload?.SubscriberList ? { SubscriberList: payload.SubscriberList } : { SubscriberList: payload ?? { data: [], total: 0, active: 0, unsubscribed: 0 } };
+
+            setSubscriberSettings((prev: any) => ({
+                ...prev,
+                SubscriberList: subscriberPayload.SubscriberList,
+            }));
+        } catch (err: any) {
+            if (err?.name === 'AbortError') {
+                // aborted, ignore
+            } else {
+                console.error('Failed to load subscribers', err);
+                showToast(err?.message || 'Failed to load subscribers', 'error');
+            }
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    useEffect(() => {
+        const ac = new AbortController();
+        if (isSubscribeEnabled) fetchSubscribers(ac.signal);
+        return () => ac.abort();
+        // only re-run when plan changes (limits) or enable toggles
+    }, [plan, isSubscribeEnabled]);
+
     const handleManageSettings = (data: SubscriberDataTypes['subscriberSettings']) => {
-        setForm((prev) => ({
+        setSubscriberSettings((prev) => ({
             ...prev,
             subscriberSettings: {
-                ...prev.subscriberSettings,
-                subscriberSettings: data,
+                ...prev?.subscriberSettings,
+                ...data,
             },
         }));
+        setShowManageModal(false);
+        showToast('Subscriber settings updated', 'success');
     };
 
     return (
         <div className={styles.TabPageMain}>
             <div className={styles.sectionHead}>
                 <h3>Subscribers & Email List</h3>
-                <p>
-                    Collect subscribers from your page, track activity, and manage
-                    communication settings.
-                </p>
+                <p>Collect subscribers from your page, track activity, and manage communication settings.</p>
             </div>
 
             <Section
@@ -82,12 +129,12 @@ export default function SubscribersTab() {
                 }
                 right={
                     <div className="flex gap-3">
-                        <button className="btn-primary" disabled={!isSubscribeEnabled}>
-                            Send Email
+                        <button className="btn-primary" disabled={!isSubscribeEnabled || loading}>
+                            {loading ? 'Loading…' : 'Send Email'}
                         </button>
                         <button
                             className="btn-secondary gap-2"
-                            disabled={!isSubscribeEnabled}
+                            disabled={!isSubscribeEnabled || loading}
                             onClick={() => setShowManageModal(true)}
                         >
                             <Settings size={16} />
@@ -115,12 +162,13 @@ export default function SubscribersTab() {
 
                     <div className={styles.SubsTableMain}>
                         <h4 className="mb-3">Subscriber List</h4>
-                        {subscribers.length > 0 ? (
+                        {loading ? (
+                            <p className="text-sm text-muted">Loading subscribers…</p>
+                        ) : subscribers.length > 0 ? (
                             <AdminTable columns={columns} data={subscribers} />
                         ) : (
                             <p className="text-sm text-muted">
-                                No subscribers yet. Once users subscribe through your page,
-                                they’ll appear here.
+                                No subscribers yet. Once users subscribe through your page, they’ll appear here.
                             </p>
                         )}
                     </div>
@@ -131,7 +179,7 @@ export default function SubscribersTab() {
                 <ManageSubscribersModal
                     onClose={() => setShowManageModal(false)}
                     onSave={handleManageSettings}
-                    initialData={form.subscriberSettings.subscriberSettings}
+                    initialData={subscriberSettings?.subscriberSettings}
                 />
             )}
         </div>

@@ -17,6 +17,8 @@ import {
   VERIFY_OTP,
   CONTACT,
   CHANGE_PASSWORD,
+  CHANGE_SUBDOMAIN,
+  GET_PROFILE_DESIGN,
 } from "./routes";
 
 export interface ApiResponse<T = any> {
@@ -182,10 +184,17 @@ export async function submitContact(data: any) {
   });
 }
 
-export async function checkSubdomain(subdomain: string) {
+export async function checkSubdomainApi(subdomain: string) {
   return apiFetch<any>(CHECK_SUBDOMAIN(subdomain), {
     method: "GET",
     authRequired: false,
+  });
+}
+export async function changeSubdomainApi(subdomain: string) {
+  return apiFetch<any>(CHANGE_SUBDOMAIN, {
+    method: "POST",
+    body: { subdomain },
+    authRequired: true,
   });
 }
 
@@ -233,5 +242,17 @@ export async function ChangePasswordApi(data: any) {
     method: "POST",
     body: data,
     authRequired: false,
+  });
+}
+export async function getProfileDesign(data: any) {
+  return apiFetch<any>(GET_PROFILE_DESIGN, {
+    method: "GET",
+    authRequired: true,
+  });
+}
+export async function getSubscribersServiceAPI() {
+  return apiFetch<any>(GET_PROFILE_DESIGN, {
+    method: "GET",
+    authRequired: true,
   });
 }

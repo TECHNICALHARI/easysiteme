@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, FC, useRef } from 'react';
+import { useState, useEffect, useRef, FC } from 'react';
 import {
   DndContext,
   closestCenter,
@@ -19,7 +19,6 @@ import {
 import { ImagePlus, X, MapPin } from 'lucide-react';
 import clsx from 'clsx';
 import styles from '@/styles/admin.module.css';
-
 import SortableLink from './SortableLink';
 import LinkFormModal from './LinkFormModal';
 import UploadModal from '../../../common/UploadModal';
@@ -39,11 +38,21 @@ import ProfileTagsSection from './ProfileTagsSection';
 import ResumeUpload, { ResumeUploadRef } from './ResumeUpload';
 import LockedOverlay from '../../layout/LockedOverlay';
 import ToggleSwitch from '../../../common/ToggleSwitch';
-
 import { PLAN_FEATURES } from '@/config/PLAN_FEATURES';
-import { ProfileTypeMap, ReorderableProfileKeys, FormData as AdminFormData, Link, Embed, Service, FeaturedMedia, Testimonial, FAQ } from '@/lib/frontend/types/form';
+import {
+  ProfileTypeMap,
+  ReorderableProfileKeys,
+  FormData as AdminFormData,
+  Link,
+  Embed,
+  Service,
+  FeaturedMedia,
+  Testimonial,
+  FAQ,
+} from '@/lib/frontend/types/form';
 import { useAdminForm } from '@/lib/frontend/admin/context/AdminFormContext';
 import { useToast } from '@/lib/frontend/common/ToastProvider';
+import Loader from '@/lib/frontend/common/Loader';
 
 const Section: FC<{
   title?: string | React.ReactNode;
@@ -88,25 +97,39 @@ function clampLng(v: string) {
   return n.toString();
 }
 
-function sanitizePrice(v?: string) {
-  if (!v) return '';
-  const n = Number(String(v).replace(/[^\d.]/g, ''));
-  return Number.isFinite(n) && n >= 0 ? n.toString() : '';
-}
-
 export default function ProfileTab() {
-  const { form, setForm, plan } = useAdminForm() as { form: AdminFormData; setForm: (f: AdminFormData | ((p: AdminFormData) => AdminFormData)) => void; plan: keyof typeof PLAN_FEATURES };
+  const ctx = useAdminForm() as {
+    profileDesign: { profile: AdminFormData['profile']; design: AdminFormData['design'] };
+    setProfileDesign: (next: any) => void;
+    setForm?: (next: any) => void;
+    plan: keyof typeof PLAN_FEATURES;
+    form?: AdminFormData;
+    isLoading?: boolean;
+    bootstrapped?: boolean;
+  };
+
+  const { profileDesign, setProfileDesign, plan, isLoading, bootstrapped } = ctx;
+  const formProfile = profileDesign.profile;
+  const formDesign = profileDesign.design;
   const { showToast } = useToast();
 
+  if (isLoading || !bootstrapped) {
+    return (
+      <div className="flex items-center justify-center min-h-[360px]">
+        <Loader />
+      </div>
+    );
+  }
+
   const limits = PLAN_FEATURES[plan];
-  const isWebsite = (form.design?.layoutType || 'bio') === 'website';
+  const isWebsite = (formDesign?.layoutType || 'bio') === 'website';
 
   const [showLinkModal, setShowLinkModal] = useState(false);
   const [editLinkIndex, setEditLinkIndex] = useState<number | null>(null);
   const [showHeaderModal, setShowHeaderModal] = useState(false);
   const [editHeaderIndex, setEditHeaderIndex] = useState<number | null>(null);
   const [showUploadModal, setShowUploadModal] = useState(false);
-  const [uploadPreview, setUploadPreview] = useState<string | null>(form.profile.avatar || null);
+  const [uploadPreview, setUploadPreview] = useState<string | null>(formProfile.avatar || null);
   const [showEmbedModal, setShowEmbedModal] = useState(false);
   const [editEmbedIndex, setEditEmbedIndex] = useState<number | null>(null);
   const [showTestimonialModal, setShowTestimonialModal] = useState(false);
@@ -117,7 +140,7 @@ export default function ProfileTab() {
   const [editServiceIndex, setEditServiceIndex] = useState<number | null>(null);
   const [showFeaturedModal, setShowFeaturedModal] = useState(false);
   const [editFeaturedIndex, setEditFeaturedIndex] = useState<number | null>(null);
-  const [bannerPreview, setBannerPreview] = useState<string | null>(form.profile.bannerImage || null);
+  const [bannerPreview, setBannerPreview] = useState<string | null>(formProfile.bannerImage || null);
   const [showUploadBannerModal, setShowUploadBannerModal] = useState(false);
   const resumeRef = useRef<ResumeUploadRef>(null);
 
@@ -126,18 +149,18 @@ export default function ProfileTab() {
     useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates })
   );
 
-  const headersLimitReached = (form.profile.headers ?? []).length >= limits.headers;
-  const linksLimitReached = (form.profile.links ?? []).length >= limits.links;
+  const headersLimitReached = (formProfile.headers ?? []).length >= limits.headers;
+  const linksLimitReached = (formProfile.links ?? []).length >= limits.links;
   const isServicesEnabled = limits.services > 0;
-  const servicesLimitReached = (form.profile.services?.length || 0) >= limits.services;
+  const servicesLimitReached = (formProfile.services?.length || 0) >= limits.services;
   const isFaqsEnabled = limits.faqs > 0;
-  const faqsLimitReached = (form.profile.faqs?.length || 0) >= limits.faqs;
+  const faqsLimitReached = (formProfile.faqs?.length || 0) >= limits.faqs;
   const isTestimonialsEnabled = limits.testimonials > 0;
-  const testimonialsLimitReached = (form.profile.testimonials?.length || 0) >= limits.testimonials;
+  const testimonialsLimitReached = (formProfile.testimonials?.length || 0) >= limits.testimonials;
   const isFeaturedEnabled = limits.featured > 0;
-  const featuredLimitReached = (form.profile.featured?.length || 0) >= limits.featured;
+  const featuredLimitReached = (formProfile.featured?.length || 0) >= limits.featured;
   const isEmbedEnabled = limits.embeds > 0;
-  const embedsLimitReached = (form.profile.embeds?.length || 0) >= limits.embeds;
+  const embedsLimitReached = (formProfile.embeds?.length || 0) >= limits.embeds;
   const aboutDisabled = !limits.about;
   const bannerImageDisabled = !limits.bannerImage;
   const mapDisabled = !limits.map;
@@ -146,21 +169,21 @@ export default function ProfileTab() {
   const handleDragEnd = <T extends ReorderableProfileKeys>(type: T) => (event: DragEndEvent) => {
     const { active, over } = event;
     if (!active?.id || !over?.id || active.id === over.id) return;
-    const sectionItems = form.profile[type] as ProfileTypeMap[T];
+    const sectionItems = formProfile[type] as ProfileTypeMap[T];
     const oldIndex = sectionItems.findIndex((i) => i.id === active.id);
     const newIndex = sectionItems.findIndex((i) => i.id === over.id);
     if (oldIndex !== -1 && newIndex !== -1) {
       const reordered = arrayMove([...sectionItems], oldIndex, newIndex);
-      setForm(prev => ({ ...prev, profile: { ...prev.profile, [type]: reordered as any } }));
+      setProfileDesign((prev: any) => ({ ...prev, profile: { ...prev.profile, [type]: reordered } }));
       showToast('Reordered successfully', 'success');
     }
   };
 
-  useEffect(() => { if (form.profile.avatar) setUploadPreview(form.profile.avatar); }, [form.profile.avatar]);
-  useEffect(() => { if (form.profile.bannerImage) setBannerPreview(form.profile.bannerImage); }, [form.profile.bannerImage]);
+  useEffect(() => { if (formProfile.avatar) setUploadPreview(formProfile.avatar); }, [formProfile.avatar]);
+  useEffect(() => { if (formProfile.bannerImage) setBannerPreview(formProfile.bannerImage); }, [formProfile.bannerImage]);
 
   const handleImageRemove = () => {
-    setForm({ ...form, profile: { ...form.profile, avatar: '' } });
+    setProfileDesign((prev: any) => ({ ...prev, profile: { ...prev.profile, avatar: '' } }));
     setUploadPreview(null);
     showToast('Profile image removed', 'success');
   };
@@ -170,7 +193,7 @@ export default function ProfileTab() {
       showToast('Enter a title and a valid URL (http/https).', 'error');
       return;
     }
-    const updated = [...(form.profile.links || [])];
+    const updated = [...(formProfile.links || [])];
     if (editLinkIndex !== null) updated[editLinkIndex] = { ...updated[editLinkIndex], ...data };
     else {
       if (linksLimitReached) {
@@ -179,7 +202,7 @@ export default function ProfileTab() {
       }
       updated.push({ ...data, id: data.id || `link-${Date.now()}` });
     }
-    setForm({ ...form, profile: { ...form.profile, links: updated } });
+    setProfileDesign((prev: any) => ({ ...prev, profile: { ...prev.profile, links: updated } }));
     setShowLinkModal(false);
     setEditLinkIndex(null);
     showToast('Link saved', 'success');
@@ -190,7 +213,7 @@ export default function ProfileTab() {
       showToast('Enter a title and a valid embed URL.', 'error');
       return;
     }
-    const updated = [...(form.profile.embeds || [])];
+    const updated = [...(formProfile.embeds || [])];
     if (editEmbedIndex !== null) updated[editEmbedIndex] = { ...updated[editEmbedIndex], ...data };
     else {
       if (embedsLimitReached) {
@@ -199,7 +222,7 @@ export default function ProfileTab() {
       }
       updated.push({ id: `embed-${Date.now()}`, ...data });
     }
-    setForm({ ...form, profile: { ...form.profile, embeds: updated } });
+    setProfileDesign((prev: any) => ({ ...prev, profile: { ...prev.profile, embeds: updated } }));
     setShowEmbedModal(false);
     setEditEmbedIndex(null);
     showToast('Embed saved', 'success');
@@ -210,19 +233,13 @@ export default function ProfileTab() {
       showToast('Service title and description are required.', 'error');
       return;
     }
-
     const normalizeAmount = (v?: string) => {
       if (!v) return '';
       const x = v.replace(',', '.').trim();
       return /^\d{1,9}(\.\d{1,2})?$/.test(x) ? x : '';
     };
-
-    const normalized: Service = {
-      ...data,
-      amount: normalizeAmount(data.amount),
-    };
-
-    const list = [...(form.profile.services || [])];
+    const normalized: Service = { ...data, amount: normalizeAmount(data.amount) };
+    const list = [...(formProfile.services || [])];
     if (editServiceIndex !== null) {
       const id = list[editServiceIndex]?.id;
       list[editServiceIndex] = { ...normalized, id };
@@ -233,20 +250,18 @@ export default function ProfileTab() {
       }
       list.push({ ...normalized, id: `service-${Date.now()}` });
     }
-
-    setForm({ ...form, profile: { ...form.profile, services: list } });
+    setProfileDesign((prev: any) => ({ ...prev, profile: { ...prev.profile, services: list } }));
     setShowServiceModal(false);
     setEditServiceIndex(null);
     showToast('Service saved', 'success');
   };
-
 
   const handleSaveFeatured = (newFeatured: FeaturedMedia) => {
     if (!newFeatured.title?.trim() || !isValidUrl(newFeatured.url)) {
       showToast('Featured item needs a title and a valid URL.', 'error');
       return;
     }
-    const updated = [...(form.profile.featured || [])];
+    const updated = [...(formProfile.featured || [])];
     if (editFeaturedIndex !== null) {
       const id = updated[editFeaturedIndex].id;
       updated[editFeaturedIndex] = { ...updated[editFeaturedIndex], ...newFeatured, id };
@@ -257,20 +272,20 @@ export default function ProfileTab() {
       }
       updated.push({ ...newFeatured, id: `featured-${Date.now() + Math.random()}` });
     }
-    setForm({ ...form, profile: { ...form.profile, featured: updated } });
+    setProfileDesign((prev: any) => ({ ...prev, profile: { ...prev.profile, featured: updated } }));
     setShowFeaturedModal(false);
     setEditFeaturedIndex(null);
     showToast('Featured media saved', 'success');
   };
 
-  const isAvatarSet = Boolean(form.profile.avatar);
-  const hasLink = (form.profile.links?.length || 0) > 0;
+  const isAvatarSet = Boolean(formProfile.avatar);
+  const hasLink = (formProfile.links?.length || 0) > 0;
 
   const buildNavigateUrl = () => {
-    const lat = form.profile.latitude?.trim();
-    const lng = form.profile.longitude?.trim();
+    const lat = formProfile.latitude?.trim();
+    const lng = formProfile.longitude?.trim();
     if (lat && lng) return `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(lat)},${encodeURIComponent(lng)}`;
-    const addr = form.profile.fullAddress?.trim();
+    const addr = formProfile.fullAddress?.trim();
     if (addr) return `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(addr)}`;
     return `https://www.google.com/maps`;
   };
@@ -282,18 +297,16 @@ export default function ProfileTab() {
           className="input"
           type="text"
           placeholder="Full Name"
-          value={form.profile.fullName}
-          onChange={(e) => setForm({ ...form, profile: { ...form.profile, fullName: e.target.value } })}
-          onBlur={() => {
-            if (!form.profile.fullName?.trim()) showToast('Full name is required.', 'error');
-          }}
+          value={formProfile.fullName}
+          onChange={(e) => setProfileDesign((prev: any) => ({ ...prev, profile: { ...prev.profile, fullName: e.target.value } }))}
+          onBlur={() => { if (!formProfile.fullName?.trim()) showToast('Full name is required.', 'error'); }}
         />
         <textarea
           className="input my-4"
           rows={3}
           placeholder="Short Bio"
-          value={form.profile.bio}
-          onChange={(e) => setForm({ ...form, profile: { ...form.profile, bio: e.target.value } })}
+          value={formProfile.bio}
+          onChange={(e) => setProfileDesign((prev: any) => ({ ...prev, profile: { ...prev.profile, bio: e.target.value } }))}
         />
         <div className="flex flex-col gap-2 mt-4">
           <label className="font-medium">Cover Banner / Hero Image</label>
@@ -302,7 +315,7 @@ export default function ProfileTab() {
               <div className="relative w-full">
                 <img src={bannerPreview!} alt="Cover Banner" className="w-full h-40 object-cover rounded-lg border" />
                 <button
-                  onClick={() => { setForm({ ...form, profile: { ...form.profile, bannerImage: '' } }); setBannerPreview(null); showToast('Cover image removed', 'success'); }}
+                  onClick={() => { setProfileDesign((prev: any) => ({ ...prev, profile: { ...prev.profile, bannerImage: '' } })); setBannerPreview(null); showToast('Cover image removed', 'success'); }}
                   className="absolute top-2 right-2 bg-white/80 rounded-full p-1 hover:bg-white"
                 >
                   <X size={16} />
@@ -395,16 +408,16 @@ export default function ProfileTab() {
               }} disabled={linksLimitReached}>+ Add Link</button>}>
                 <LockedOverlay mode="notice" enabled={!linksLimitReached} limitReached={linksLimitReached}>
                   <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd('links')}>
-                    <SortableContext items={(form.profile.links || []).map((l: Link) => l.id)} strategy={verticalListSortingStrategy}>
+                    <SortableContext items={(formProfile.links || []).map((l: Link) => l.id)} strategy={verticalListSortingStrategy}>
                       <div className="grid gap-4">
-                        {(form.profile.links || []).map((link: Link, i: number) => (
+                        {(formProfile.links || []).map((link: Link, i: number) => (
                           <SortableLink
                             key={link.id}
                             id={link.id}
                             link={link}
                             onEdit={() => { setEditLinkIndex(i); setShowLinkModal(true); }}
                             onDelete={() => {
-                              setForm({ ...form, profile: { ...form.profile, links: (form.profile.links || []).filter((_: Link, j: number) => j !== i) } });
+                              setProfileDesign((prev: any) => ({ ...prev, profile: { ...prev.profile, links: (prev.profile.links || []).filter((_: Link, j: number) => j !== i) } }));
                               showToast('Link removed', 'success');
                             }}
                           />
@@ -420,16 +433,16 @@ export default function ProfileTab() {
               <Section key={key} title="Headers" right={<button className="btn-primary" onClick={() => setShowHeaderModal(true)} disabled={headersLimitReached}>+ Add Header</button>}>
                 <LockedOverlay mode="notice" enabled={!headersLimitReached} limitReached={headersLimitReached}>
                   <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd('headers')}>
-                    <SortableContext items={(form.profile.headers || []).map((h) => h.id)} strategy={verticalListSortingStrategy}>
+                    <SortableContext items={(formProfile.headers || []).map((h) => h.id)} strategy={verticalListSortingStrategy}>
                       <div className="grid gap-3">
-                        {(form.profile.headers || []).map((header, i: number) => (
+                        {(formProfile.headers || []).map((header, i: number) => (
                           <SortableLink
                             key={header.id}
                             id={header.id}
                             link={{ ...(header as any), type: 'header' }}
                             onEdit={() => { setEditHeaderIndex(i); setShowHeaderModal(true); }}
                             onDelete={() => {
-                              setForm({ ...form, profile: { ...form.profile, headers: (form.profile.headers || []).filter((_: any, j: number) => j !== i) } });
+                              setProfileDesign((prev: any) => ({ ...prev, profile: { ...prev.profile, headers: (prev.profile.headers || []).filter((_: any, j: number) => j !== i) } }));
                               showToast('Header removed', 'success');
                             }}
                             isHeader
@@ -446,8 +459,8 @@ export default function ProfileTab() {
               <Section key={key} title={<span>About <span className="badge-pro">Pro</span></span>}>
                 <LockedOverlay enabled={!aboutDisabled} mode="notice">
                   <RichTextEditor
-                    value={form.profile.about || ''}
-                    onChange={(val) => setForm({ ...form, profile: { ...form.profile, about: val } })}
+                    value={formProfile.about || ''}
+                    onChange={(val) => setProfileDesign((prev: any) => ({ ...prev, profile: { ...prev.profile, about: val } }))}
                     placeholder="Tell your story, skills, mission..."
                     disable={aboutDisabled}
                   />
@@ -455,28 +468,39 @@ export default function ProfileTab() {
               </Section>
             );
           case 'contact':
-            return <ContactInfoSection key={key} form={form} setForm={setForm} canUseContact={limits.contact} />;
+            return <ContactInfoSection
+              key={key}
+              profile={profileDesign.profile as any}
+              setProfile={(up) =>
+                setProfileDesign((prev: any) => ({
+                  ...prev,
+                  profile: typeof up === 'function' ? (up as any)(prev.profile) : up,
+                }))
+              }
+              canUseContact={limits.contact}
+            />;
+
           case 'location':
             return (
               <Section key={key} title={<span>Business Location <span className="badge-pro">Pro</span></span>}>
                 <LockedOverlay enabled={!mapDisabled} mode="notice">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                    <input className="input" placeholder="Full address" value={form.profile.fullAddress || ''} disabled={mapDisabled}
-                      onChange={(e) => setForm({ ...form, profile: { ...form.profile, fullAddress: e.target.value } })} />
-                    <input className="input" placeholder="Latitude (-90 to 90)" value={form.profile.latitude || ''} disabled={mapDisabled}
-                      onChange={(e) => setForm({ ...form, profile: { ...form.profile, latitude: e.target.value } })}
+                    <input className="input" placeholder="Full address" value={formProfile.fullAddress || ''} disabled={mapDisabled}
+                      onChange={(e) => setProfileDesign((prev: any) => ({ ...prev, profile: { ...prev.profile, fullAddress: e.target.value } }))} />
+                    <input className="input" placeholder="Latitude (-90 to 90)" value={formProfile.latitude || ''} disabled={mapDisabled}
+                      onChange={(e) => setProfileDesign((prev: any) => ({ ...prev, profile: { ...prev.profile, latitude: e.target.value } }))}
                       onBlur={(e) => {
                         const v = clampLat(e.target.value);
                         if (v === null) showToast('Latitude must be a number between -90 and 90.', 'error');
-                        else setForm({ ...form, profile: { ...form.profile, latitude: v } });
+                        else setProfileDesign((prev: any) => ({ ...prev, profile: { ...prev.profile, latitude: v } }));
                       }}
                     />
-                    <input className="input" placeholder="Longitude (-180 to 180)" value={form.profile.longitude || ''} disabled={mapDisabled}
-                      onChange={(e) => setForm({ ...form, profile: { ...form.profile, longitude: e.target.value } })}
+                    <input className="input" placeholder="Longitude (-180 to 180)" value={formProfile.longitude || ''} disabled={mapDisabled}
+                      onChange={(e) => setProfileDesign((prev: any) => ({ ...prev, profile: { ...prev.profile, longitude: e.target.value } }))}
                       onBlur={(e) => {
                         const v = clampLng(e.target.value);
                         if (v === null) showToast('Longitude must be a number between -180 and 180.', 'error');
-                        else setForm({ ...form, profile: { ...form.profile, longitude: v } });
+                        else setProfileDesign((prev: any) => ({ ...prev, profile: { ...prev.profile, longitude: v } }));
                       }}
                     />
                   </div>
@@ -486,10 +510,10 @@ export default function ProfileTab() {
                       loading="lazy"
                       referrerPolicy="no-referrer-when-downgrade"
                       src={
-                        form.profile.latitude && form.profile.longitude
-                          ? `https://www.google.com/maps?q=${form.profile.latitude},${form.profile.longitude}&output=embed`
-                          : form.profile.fullAddress
-                            ? `https://www.google.com/maps?q=${encodeURIComponent(form.profile.fullAddress)}&output=embed`
+                        formProfile.latitude && formProfile.longitude
+                          ? `https://www.google.com/maps?q=${formProfile.latitude},${formProfile.longitude}&output=embed`
+                          : formProfile.fullAddress
+                            ? `https://www.google.com/maps?q=${encodeURIComponent(formProfile.fullAddress)}&output=embed`
                             : `https://www.google.com/maps?q=28.6139,77.2090&output=embed`
                       }
                       title="Business Location"
@@ -515,25 +539,25 @@ export default function ProfileTab() {
                           showToast('Please upload a PDF resume.', 'error');
                           return;
                         }
-                        if (form.profile.resumeUrl?.startsWith('blob:')) URL.revokeObjectURL(form.profile.resumeUrl);
+                        if (formProfile.resumeUrl?.startsWith('blob:')) URL.revokeObjectURL(formProfile.resumeUrl);
                         const reader = new FileReader();
                         reader.onload = () => {
                           const blob = new Blob([reader.result as ArrayBuffer], { type: file.type });
                           const url = URL.createObjectURL(blob);
-                          setForm({ ...form, profile: { ...form.profile, resumeUrl: url } });
+                          setProfileDesign((prev: any) => ({ ...prev, profile: { ...prev.profile, resumeUrl: url } }));
                           showToast('Resume added', 'success');
                         };
                         reader.readAsArrayBuffer(file);
                       }}
                     />
-                    {form.profile.resumeUrl && (
+                    {formProfile.resumeUrl && (
                       <div className={styles.resumeActions}>
-                        <a href={form.profile.resumeUrl} target="_blank" rel="noopener noreferrer" className="btn-secondary">View Resume</a>
+                        <a href={formProfile.resumeUrl} target="_blank" rel="noopener noreferrer" className="btn-secondary">View Resume</a>
                         <button
                           className="btn-destructive"
                           onClick={() => {
-                            if (form.profile.resumeUrl?.startsWith('blob:')) URL.revokeObjectURL(form.profile.resumeUrl);
-                            setForm({ ...form, profile: { ...form.profile, resumeUrl: '' } });
+                            if (formProfile.resumeUrl?.startsWith('blob:')) URL.revokeObjectURL(formProfile.resumeUrl);
+                            setProfileDesign((prev: any) => ({ ...prev, profile: { ...prev.profile, resumeUrl: '' } }));
                             resumeRef.current?.reset();
                             showToast('Resume removed', 'success');
                           }}
@@ -554,16 +578,16 @@ export default function ProfileTab() {
               }} disabled={featuredLimitReached}>+ Add Media</button>}>
                 <LockedOverlay enabled={isFeaturedEnabled && !featuredLimitReached} limitReached={featuredLimitReached} mode="notice">
                   <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd('featured')}>
-                    <SortableContext items={(form.profile.featured || []).map((f: FeaturedMedia) => f.id)} strategy={verticalListSortingStrategy}>
+                    <SortableContext items={(formProfile.featured || []).map((f: FeaturedMedia) => f.id)} strategy={verticalListSortingStrategy}>
                       <div className="grid gap-3">
-                        {(form.profile.featured || []).map((featured: FeaturedMedia, i: number) => (
+                        {(formProfile.featured || []).map((featured: FeaturedMedia, i: number) => (
                           <SortableFeaturedMediaItem
                             key={featured.id}
                             id={featured.id}
                             media={featured}
                             onEdit={() => { setEditFeaturedIndex(i); setShowFeaturedModal(true); }}
                             onDelete={() => {
-                              setForm({ ...form, profile: { ...form.profile, featured: (form.profile.featured || []).filter((_: any, j: number) => j !== i) } });
+                              setProfileDesign((prev: any) => ({ ...prev, profile: { ...prev.profile, featured: (prev.profile.featured || []).filter((_: any, j: number) => j !== i) } }));
                               showToast('Featured item removed', 'success');
                             }}
                           />
@@ -582,16 +606,16 @@ export default function ProfileTab() {
               }} disabled={embedsLimitReached}>+ Add Embed</button>}>
                 <LockedOverlay enabled={isEmbedEnabled && !embedsLimitReached} limitReached={embedsLimitReached} mode="notice">
                   <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd('embeds')}>
-                    <SortableContext items={(form.profile.embeds || []).map((e: Embed) => e.id)} strategy={verticalListSortingStrategy}>
+                    <SortableContext items={(formProfile.embeds || []).map((e: Embed) => e.id)} strategy={verticalListSortingStrategy}>
                       <div className="grid gap-3">
-                        {(form.profile.embeds || []).map((embed: Embed, i: number) => (
+                        {(formProfile.embeds || []).map((embed: Embed, i: number) => (
                           <SortableLink
                             key={embed.id}
                             id={embed.id}
                             link={{ ...embed, type: 'embed' }}
                             onEdit={() => { setEditEmbedIndex(i); setShowEmbedModal(true); }}
                             onDelete={() => {
-                              setForm({ ...form, profile: { ...form.profile, embeds: (form.profile.embeds || []).filter((_: any, j: number) => j !== i) } });
+                              setProfileDesign((prev: any) => ({ ...prev, profile: { ...prev.profile, embeds: (prev.profile.embeds || []).filter((_: any, j: number) => j !== i) } }));
                               showToast('Embed removed', 'success');
                             }}
                             isEmbed
@@ -611,16 +635,16 @@ export default function ProfileTab() {
               }} disabled={servicesLimitReached}>+ Add Service</button>}>
                 <LockedOverlay enabled={isServicesEnabled && !servicesLimitReached} limitReached={servicesLimitReached} mode="notice">
                   <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd('services')}>
-                    <SortableContext items={(form.profile.services || []).map((s: Service) => s.id)} strategy={verticalListSortingStrategy}>
+                    <SortableContext items={(formProfile.services || []).map((s: Service) => s.id)} strategy={verticalListSortingStrategy}>
                       <div className="grid gap-3">
-                        {(form.profile.services || []).map((service: Service, i: number) => (
+                        {(formProfile.services || []).map((service: Service, i: number) => (
                           <SortableService
                             key={service.id}
                             id={service.id}
                             service={service}
                             onEdit={() => { setEditServiceIndex(i); setShowServiceModal(true); }}
                             onDelete={() => {
-                              setForm({ ...form, profile: { ...form.profile, services: (form.profile.services || []).filter((_: any, j: number) => j !== i) } });
+                              setProfileDesign((prev: any) => ({ ...prev, profile: { ...prev.profile, services: (prev.profile.services || []).filter((_: any, j: number) => j !== i) } }));
                               showToast('Service removed', 'success');
                             }}
                           />
@@ -639,16 +663,16 @@ export default function ProfileTab() {
               }} disabled={testimonialsLimitReached}>+ Add Testimonial</button>}>
                 <LockedOverlay enabled={isTestimonialsEnabled && !testimonialsLimitReached} limitReached={testimonialsLimitReached} mode="notice">
                   <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd('testimonials')}>
-                    <SortableContext items={(form.profile.testimonials || []).map((t: Testimonial) => t.id)} strategy={verticalListSortingStrategy}>
+                    <SortableContext items={(formProfile.testimonials || []).map((t: Testimonial) => t.id)} strategy={verticalListSortingStrategy}>
                       <div className="grid gap-3">
-                        {(form.profile.testimonials || []).map((t: Testimonial, i: number) => (
+                        {(formProfile.testimonials || []).map((t: Testimonial, i: number) => (
                           <SortableTestimonial
                             key={t.id}
                             id={t.id}
                             testimonial={t}
                             onEdit={() => { setEditTestimonialIndex(i); setShowTestimonialModal(true); }}
                             onDelete={() => {
-                              setForm({ ...form, profile: { ...form.profile, testimonials: (form.profile.testimonials || []).filter((_: any, j: number) => j !== i) } });
+                              setProfileDesign((prev: any) => ({ ...prev, profile: { ...prev.profile, testimonials: (prev.profile.testimonials || []).filter((_: any, j: number) => j !== i) } }));
                               showToast('Testimonial removed', 'success');
                             }}
                           />
@@ -667,16 +691,16 @@ export default function ProfileTab() {
               }} disabled={faqsLimitReached}>+ Add FAQ</button>}>
                 <LockedOverlay enabled={isFaqsEnabled && !faqsLimitReached} limitReached={faqsLimitReached} mode="notice">
                   <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd('faqs')}>
-                    <SortableContext items={(form.profile.faqs || []).map((f: FAQ) => f.id)} strategy={verticalListSortingStrategy}>
+                    <SortableContext items={(formProfile.faqs || []).map((f: FAQ) => f.id)} strategy={verticalListSortingStrategy}>
                       <div className="grid gap-3">
-                        {(form.profile.faqs || []).map((faq: FAQ, i: number) => (
+                        {(formProfile.faqs || []).map((faq: FAQ, i: number) => (
                           <SortableFAQ
                             key={faq.id}
                             id={faq.id}
                             faq={faq}
                             onEdit={() => { setEditFAQIndex(i); setShowFAQModal(true); }}
                             onDelete={() => {
-                              setForm({ ...form, profile: { ...form.profile, faqs: (form.profile.faqs || []).filter((_: any, j: number) => j !== i) } });
+                              setProfileDesign((prev: any) => ({ ...prev, profile: { ...prev.profile, faqs: (prev.profile.faqs || []).filter((_: any, j: number) => j !== i) } }));
                               showToast('FAQ removed', 'success');
                             }}
                           />
@@ -696,45 +720,56 @@ export default function ProfileTab() {
         <LockedOverlay enabled={limits.showSubscribers} mode="overlay">
           <ToggleSwitch
             label="Show Subscribe Section"
-            checked={!form.subscriberSettings.subscriberSettings.hideSubscribeButton}
-            onChange={(checked) =>
-              setForm((prev) => ({
-                ...prev,
-                subscriberSettings: {
-                  ...prev.subscriberSettings,
+            checked={!ctx.form?.subscriberSettings.subscriberSettings.hideSubscribeButton}
+            onChange={(checked) => {
+              if (ctx.setForm) {
+                ctx.setForm((prev: any) => ({
+                  ...prev,
                   subscriberSettings: {
-                    ...prev.subscriberSettings.subscriberSettings,
-                    hideSubscribeButton: !checked,
+                    ...prev.subscriberSettings,
+                    subscriberSettings: {
+                      ...prev.subscriberSettings.subscriberSettings,
+                      hideSubscribeButton: !checked,
+                    },
                   },
-                },
-              }))
-            }
+                }));
+              }
+            }}
             isPro={plan !== 'free'}
             description="Collect emails for launches, offers and updates."
           />
         </LockedOverlay>
       </Section>
 
-      <ProfileTagsSection form={form} setForm={setForm} limit={limits.tags} />
+      <ProfileTagsSection
+        profile={profileDesign.profile as any}
+        setProfile={(up) =>
+          setProfileDesign((prev: any) => ({
+            ...prev,
+            profile: typeof up === 'function' ? (up as any)(prev.profile) : up,
+          }))
+        }
+        limit={limits.tags}
+      />
 
       {showLinkModal && (
         <LinkFormModal
           onSave={handleAddLink}
           onClose={() => { setShowLinkModal(false); setEditLinkIndex(null); }}
-          initialData={editLinkIndex !== null ? form.profile.links[editLinkIndex] : undefined}
+          initialData={editLinkIndex !== null ? formProfile.links[editLinkIndex] : undefined}
         />
       )}
 
       {showHeaderModal && (
         <HeaderFormModal
-          initialData={editHeaderIndex !== null ? form.profile.headers?.[editHeaderIndex] : undefined}
+          initialData={editHeaderIndex !== null ? formProfile.headers?.[editHeaderIndex] : undefined}
           onClose={() => setShowHeaderModal(false)}
           onSave={(newHeader) => {
             if (!newHeader?.title?.trim()) { showToast('Header title is required.', 'error'); return; }
-            const updated = [...(form.profile.headers || [])];
+            const updated = [...(formProfile.headers || [])];
             if (editHeaderIndex !== null) updated[editHeaderIndex] = { ...updated[editHeaderIndex], ...newHeader };
             else updated.push({ ...newHeader, id: `header-${Date.now() + Math.random()}` });
-            setForm({ ...form, profile: { ...form.profile, headers: updated } });
+            setProfileDesign((prev: any) => ({ ...prev, profile: { ...prev.profile, headers: updated } }));
             setShowHeaderModal(false);
             showToast('Header saved', 'success');
           }}
@@ -746,13 +781,13 @@ export default function ProfileTab() {
           onClose={() => setShowUploadModal(false)}
           onSelectImage={(val) => {
             if (typeof val === 'string') {
-              setForm({ ...form, profile: { ...form.profile, avatar: val } });
+              setProfileDesign((prev: any) => ({ ...prev, profile: { ...prev.profile, avatar: val } }));
               setUploadPreview(val);
               showToast('Profile image updated', 'success');
             } else {
               const reader = new FileReader();
               reader.onload = () => {
-                setForm({ ...form, profile: { ...form.profile, avatar: reader.result as string } });
+                setProfileDesign((prev: any) => ({ ...prev, profile: { ...prev.profile, avatar: reader.result as string } }));
                 setUploadPreview(reader.result as string);
                 showToast('Profile image updated', 'success');
               };
@@ -768,33 +803,27 @@ export default function ProfileTab() {
         <EmbedFormModal
           onSave={handleSaveEmbed}
           onClose={() => { setShowEmbedModal(false); setEditEmbedIndex(null); }}
-          initialData={editEmbedIndex !== null ? form.profile.embeds[editEmbedIndex] : undefined}
+          initialData={editEmbedIndex !== null ? formProfile.embeds[editEmbedIndex] : undefined}
         />
       )}
 
       {showTestimonialModal && (
         <TestimonialFormModal
           onClose={() => setShowTestimonialModal(false)}
-          initialData={editTestimonialIndex !== null ? form.profile.testimonials?.[editTestimonialIndex] : undefined}
+          initialData={editTestimonialIndex !== null ? formProfile.testimonials?.[editTestimonialIndex] : undefined}
           onSave={(newTestimonial) => {
             if (!newTestimonial?.name?.trim() || !newTestimonial?.message?.trim()) {
               showToast('Testimonial name and message are required.', 'error');
               return;
             }
             if (editTestimonialIndex !== null) {
-              const updated = [...(form.profile.testimonials || [])];
+              const updated = [...(formProfile.testimonials || [])];
               updated[editTestimonialIndex] = { ...updated[editTestimonialIndex], ...newTestimonial };
-              setForm({ ...form, profile: { ...form.profile, testimonials: updated } });
+              setProfileDesign((prev: any) => ({ ...prev, profile: { ...prev.profile, testimonials: updated } }));
             } else {
               if (testimonialsLimitReached) { showToast(`Testimonials limit reached (${limits.testimonials}).`, 'error'); return; }
               const id = `testimonial-${Date.now() + Math.random()}`;
-              setForm({
-                ...form,
-                profile: {
-                  ...form.profile,
-                  testimonials: [...(form.profile.testimonials || []), { ...newTestimonial, id }],
-                },
-              });
+              setProfileDesign((prev: any) => ({ ...prev, profile: { ...prev.profile, testimonials: [...(prev.profile.testimonials || []), { ...newTestimonial, id }] } }));
             }
             setShowTestimonialModal(false);
             showToast('Testimonial saved', 'success');
@@ -805,26 +834,20 @@ export default function ProfileTab() {
       {showFAQModal && (
         <FAQFormModal
           onClose={() => setShowFAQModal(false)}
-          initialData={editFAQIndex !== null ? form.profile.faqs?.[editFAQIndex] : undefined}
+          initialData={editFAQIndex !== null ? formProfile.faqs?.[editFAQIndex] : undefined}
           onSave={(newFaq) => {
             if (!newFaq?.question?.trim() || !newFaq?.answer?.trim()) {
               showToast('FAQ question and answer are required.', 'error');
               return;
             }
             if (editFAQIndex !== null) {
-              const updated = [...(form.profile.faqs || [])];
+              const updated = [...(formProfile.faqs || [])];
               updated[editFAQIndex] = { ...updated[editFAQIndex], ...newFaq };
-              setForm({ ...form, profile: { ...form.profile, faqs: updated } });
+              setProfileDesign((prev: any) => ({ ...prev, profile: { ...prev.profile, faqs: updated } }));
             } else {
               if (faqsLimitReached) { showToast(`FAQ limit reached (${limits.faqs}).`, 'error'); return; }
               const id = `faq-${Date.now() + Math.random()}`;
-              setForm({
-                ...form,
-                profile: {
-                  ...form.profile,
-                  faqs: [...(form.profile.faqs || []), { ...newFaq, id }],
-                },
-              });
+              setProfileDesign((prev: any) => ({ ...prev, profile: { ...prev.profile, faqs: [...(prev.profile.faqs || []), { ...newFaq, id }] } }));
             }
             setShowFAQModal(false);
             showToast('FAQ saved', 'success');
@@ -836,18 +859,15 @@ export default function ProfileTab() {
         <ServiceFormModal
           onClose={() => setShowServiceModal(false)}
           onSave={handleSaveService}
-          initialData={
-            editServiceIndex !== null ? form.profile.services[editServiceIndex] : undefined
-          }
+          initialData={editServiceIndex !== null ? formProfile.services[editServiceIndex] : undefined}
         />
       )}
-
 
       {showFeaturedModal && (
         <FeaturedMediaModal
           onClose={() => setShowFeaturedModal(false)}
           onSave={handleSaveFeatured}
-          initialData={editFeaturedIndex !== null ? form.profile.featured?.[editFeaturedIndex] : undefined}
+          initialData={editFeaturedIndex !== null ? formProfile.featured?.[editFeaturedIndex] : undefined}
         />
       )}
 
@@ -856,7 +876,7 @@ export default function ProfileTab() {
           onClose={() => setShowUploadBannerModal(false)}
           onSelectImage={(val) => {
             if (typeof val === 'string') {
-              setForm({ ...form, profile: { ...form.profile, bannerImage: val } });
+              setProfileDesign((prev: any) => ({ ...prev, profile: { ...prev.profile, bannerImage: val } }));
               setBannerPreview(val);
               setShowUploadBannerModal(false);
               showToast('Cover image updated', 'success');
@@ -864,7 +884,7 @@ export default function ProfileTab() {
               const reader = new FileReader();
               reader.onloadend = () => {
                 if (typeof reader.result === 'string') {
-                  setForm({ ...form, profile: { ...form.profile, bannerImage: reader.result } });
+                  setProfileDesign((prev: any) => ({ ...prev, profile: { ...prev.profile, bannerImage: reader.result } }));
                   setBannerPreview(reader.result);
                   showToast('Cover image updated', 'success');
                 }

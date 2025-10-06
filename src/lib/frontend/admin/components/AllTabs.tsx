@@ -1,9 +1,8 @@
 'use client';
 
-import { FC, useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import styles from '@/styles/admin.module.css';
-import { FormData } from '@/lib/frontend/types/form';
 import ProfileTab from './profile/ProfileTab';
 import PostTab from './posts/PostTab';
 import DesignTab from './design/DesignTab';

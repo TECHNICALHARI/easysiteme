@@ -48,17 +48,21 @@ function normalizePost(raw: any): PostType {
 
 export default function PostTab(): JSX.Element {
   const router = useRouter();
-  const { form, setForm, plan } = useAdminForm();
+  const { posts, setPosts, plan } = useAdminForm() as {
+    posts: { posts: PostType[] };
+    setPosts: (next: { posts: PostType[] } | ((p: { posts: PostType[] }) => { posts: PostType[] })) => void;
+    plan: keyof typeof PLAN_FEATURES;
+  };
   const { showToast } = useToast();
   const [loading, setLoading] = useState(false);
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [deleteIndex, setDeleteIndex] = useState<number | null>(null);
   const mountedRef = useRef(true);
 
-  const posts: PostType[] = form?.posts?.posts ?? [];
+  const localPosts: PostType[] = posts?.posts ?? [];
   const limits = PLAN_FEATURES[plan];
   const isPostsEnabled = limits.posts > 0;
-  const postsLimitReached = (posts?.length || 0) >= limits.posts;
+  const postsLimitReached = (localPosts?.length || 0) >= limits.posts;
 
   async function fetchPosts() {
     if (!mountedRef.current) return;
@@ -68,7 +72,7 @@ export default function PostTab(): JSX.Element {
       const rawPosts = res?.data?.posts ?? res?.data ?? [];
       const normalized = Array.isArray(rawPosts) ? rawPosts.map(normalizePost) : [];
       if (!mountedRef.current) return;
-      setForm((prev) => ({ ...prev, posts: { posts: normalized } }));
+      setPosts({ posts: normalized });
     } catch (err: any) {
       showToast(err?.message || 'Failed to load posts', 'error');
     } finally {
@@ -82,6 +86,7 @@ export default function PostTab(): JSX.Element {
     return () => {
       mountedRef.current = false;
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const sensors = useSensors(
@@ -92,16 +97,16 @@ export default function PostTab(): JSX.Element {
   const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
     if (!active?.id || !over?.id || active.id === over.id) return;
-    const oldIndex = posts.findIndex((p) => (p.postId ?? p.id) === active.id);
-    const newIndex = posts.findIndex((p) => (p.postId ?? p.id) === over.id);
+    const oldIndex = localPosts.findIndex((p) => (p.postId ?? p.id) === active.id);
+    const newIndex = localPosts.findIndex((p) => (p.postId ?? p.id) === over.id);
     if (oldIndex === -1 || newIndex === -1) return;
-    const reordered = arrayMove(posts, oldIndex, newIndex);
-    setForm((prev) => ({ ...prev, posts: { ...prev.posts, posts: reordered } }));
+    const reordered = arrayMove(localPosts, oldIndex, newIndex);
+    setPosts({ posts: reordered });
   };
 
   const handleDelete = async () => {
     if (deleteIndex === null) return;
-    const post = posts[deleteIndex];
+    const post = localPosts[deleteIndex];
     if (!post) return;
     const id = post.postId ?? post.id;
     try {
@@ -119,7 +124,7 @@ export default function PostTab(): JSX.Element {
   };
 
   const handleTogglePublish = async (index: number) => {
-    const p = posts[index];
+    const p = localPosts[index];
     if (!p) return;
     const id = p.postId ?? p.id;
     try {
@@ -158,11 +163,11 @@ export default function PostTab(): JSX.Element {
         <LockedOverlay enabled={isPostsEnabled && !postsLimitReached} limitReached={postsLimitReached} mode="notice">
           {loading ? (
             <Loader />
-          ) : posts.length > 0 ? (
+          ) : localPosts.length > 0 ? (
             <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
-              <SortableContext items={posts.map((p) => p.postId ?? p.id)} strategy={verticalListSortingStrategy}>
+              <SortableContext items={localPosts.map((p) => p.postId ?? p.id)} strategy={verticalListSortingStrategy}>
                 <div className="grid gap-3">
-                  {posts.map((post, index) => (
+                  {localPosts.map((post, index) => (
                     <SortablePost
                       key={post.postId ?? post.id}
                       id={post.postId ?? post.id}

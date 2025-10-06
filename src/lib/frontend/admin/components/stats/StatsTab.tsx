@@ -1,21 +1,27 @@
 'use client';
 
 import { useState } from 'react';
-import { useAdminForm } from '@/lib/frontend/admin/context/AdminFormContext';
 import CustomSelect from '@/lib/frontend/common/CustomSelect';
 import CustomBarChart from '@/lib/frontend/common/charts/BarChart';
 import CustomPieChart from '@/lib/frontend/common/charts/PieChart';
 import LockedOverlay from '../../layout/LockedOverlay';
 import AdminTable from '@/lib/frontend/superadmin/AdminTable';
-import { PLAN_FEATURES } from '@/config/PLAN_FEATURES';
+import { PLAN_FEATURES, PlanType } from '@/config/PLAN_FEATURES';
 import styles from '@/styles/admin.module.css';
+import { useAdminForm } from '@/lib/frontend/admin/context/AdminFormContext';
 
 export default function StatsTab() {
-  const { form, plan } = useAdminForm();
+  const { profileDesign, stats, plan } = useAdminForm() as {
+    profileDesign: any;
+    stats: any;
+    plan: PlanType;
+  };
   const limits = PLAN_FEATURES[plan];
-  const isStatsEnabled = limits?.stats;
+  const isStatsEnabled = Boolean(limits?.stats);
 
-  const stats = form.stats || {};
+  const profile = profileDesign?.profile || {};
+
+  const statsData = stats || {};
 
   const filterOptions = [
     { label: 'All Time', value: 'all' },
@@ -23,8 +29,8 @@ export default function StatsTab() {
   ];
   const [selectedFilter, setSelectedFilter] = useState(filterOptions[0].value);
 
-  const totalViews = (stats.trafficSources || []).reduce((sum, src) => sum + src.value, 0);
-  const totalClicks = (stats.topLinks || []).reduce((sum, l) => sum + l.clicks, 0);
+  const totalViews = (statsData.trafficSources || []).reduce((sum: number, src: any) => sum + (src?.value || 0), 0);
+  const totalClicks = (statsData.topLinks || []).reduce((sum: number, l: any) => sum + (l?.clicks || 0), 0);
   const ctr = totalViews ? Math.round((totalClicks / totalViews) * 100) : 0;
 
   const contactColumns = [
@@ -35,11 +41,11 @@ export default function StatsTab() {
   ];
 
   const dynamicContentStats = [
-    { section: 'FAQs', count: form.profile.faqs.length },
-    { section: 'Testimonials', count: form.profile.testimonials.length },
-    { section: 'Services', count: form.profile.services.length },
-    { section: 'Embeds', count: form.profile.embeds.length },
-    { section: 'Featured Media', count: form.profile.featured.length },
+    { section: 'FAQs', count: (profile.faqs || []).length },
+    { section: 'Testimonials', count: (profile.testimonials || []).length },
+    { section: 'Services', count: (profile.services || []).length },
+    { section: 'Embeds', count: (profile.embeds || []).length },
+    { section: 'Featured Media', count: (profile.featured || []).length },
   ].filter((item) => item.count > 0);
 
   const dynamicSectionColumns = [
@@ -73,8 +79,8 @@ export default function StatsTab() {
         <div className="grid lg:grid-cols-2 gap-6 mb-6">
           <div className={styles.sectionMain}>
             <h4 className="font-semibold mb-3">Link Click Analytics</h4>
-            {stats.linkClicks && stats.linkClicks.length > 0 ? (
-              <CustomBarChart data={stats.linkClicks} />
+            {statsData.linkClicks && statsData.linkClicks.length > 0 ? (
+              <CustomBarChart data={statsData.linkClicks} />
             ) : (
               <p className="text-sm text-muted">No link clicks yet.</p>
             )}
@@ -82,8 +88,8 @@ export default function StatsTab() {
 
           <div className={styles.sectionMain}>
             <h4 className="font-semibold mb-3">Traffic Sources</h4>
-            {stats.trafficSources && stats.trafficSources.length > 0 ? (
-              <CustomPieChart data={stats.trafficSources} />
+            {statsData.trafficSources && statsData.trafficSources.length > 0 ? (
+              <CustomPieChart data={statsData.trafficSources} />
             ) : (
               <p className="text-sm text-muted">No traffic sources detected yet.</p>
             )}
@@ -107,9 +113,9 @@ export default function StatsTab() {
 
         <div className={styles.sectionMain}>
           <h4 className="text-base font-semibold mb-3">Top Links</h4>
-          {stats.topLinks && stats.topLinks.length > 0 ? (
+          {statsData.topLinks && statsData.topLinks.length > 0 ? (
             <ul className="space-y-3 text-sm">
-              {stats.topLinks.map((link, i) => (
+              {statsData.topLinks.map((link: any, i: number) => (
                 <li key={i} className="border p-3 rounded-md">
                   <div className="flex justify-between items-center font-medium">
                     <div>
@@ -139,8 +145,8 @@ export default function StatsTab() {
 
         <div className={styles.sectionMain}>
           <h4 className="text-base font-semibold mb-3">Contact Form Submissions</h4>
-          {stats.contactSubmissions && stats.contactSubmissions.length > 0 ? (
-            <AdminTable columns={contactColumns} data={stats.contactSubmissions} />
+          {statsData.contactSubmissions && statsData.contactSubmissions.length > 0 ? (
+            <AdminTable columns={contactColumns} data={statsData.contactSubmissions} />
           ) : (
             <p className="text-sm text-muted">No contact form submissions yet.</p>
           )}

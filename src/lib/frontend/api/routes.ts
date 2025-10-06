@@ -6,6 +6,8 @@ export const CHANGE_PASSWORD = "/auth/change-password";
 
 export const ADMIN_FORM = "/admin/form";
 export const PUBLISH_FORM = "/admin/form";
+export const CHANGE_SUBDOMAIN = "/admin/change-subdomain";
+export const GET_PROFILE_DESIGN = "/admin/profile-design";
 
 export const POSTS = "/admin/posts";
 export const POST = (id: string) =>

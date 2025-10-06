@@ -1,6 +1,5 @@
 export interface ProfileInfo {
   fullName: string;
-  username: string;
   title: string;
   bio: string;
   avatar: string;
@@ -104,6 +103,8 @@ export interface Settings {
   preferredLink: "primary" | "custom";
   customDomain: string;
   gaId?: string;
+  subdomain?: string;
+  seo?: SEO;
 }
 
 export interface Socials {
@@ -197,7 +198,6 @@ export interface FormData {
   profile: ProfileTabData;
   previewMode?: boolean;
   design: Design;
-  seo: SEO;
   settings: Settings;
   socials: Socials;
   posts: PostsTabData;
