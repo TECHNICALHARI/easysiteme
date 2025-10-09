@@ -1,3 +1,4 @@
+// AdminLayout.tsx
 'use client';
 
 import { useEffect, useMemo, useState, useCallback, useRef } from 'react';
@@ -43,6 +44,13 @@ const EMPTY_PROFILE: FormData['profile'] = {
   whatsapp: '',
   showContactForm: false,
   resumeUrl: '',
+  socials: {
+    youtube: '',
+    instagram: '',
+    calendly: '',
+    facebook: '',
+    LinkedIn: '',
+  },
 };
 
 const EMPTY_DESIGN: FormData['design'] = { theme: 'brand', emojiLink: '', brandingOff: false, layoutType: 'bio' };
@@ -60,32 +68,31 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const [plan, setPlan] = useState<PlanType>('free');
   const [isLoading, setIsLoading] = useState(true);
   const [bootstrapped, setBootstrapped] = useState(false);
-
   const [serverSnapshot, setServerSnapshot] = useState<ServerPartial>({});
-
   const [profileDesign, setProfileDesign] = useState<ProfileDesignSlice>({
     profile: EMPTY_PROFILE,
     design: EMPTY_DESIGN,
   });
 
-  // Other data will be fetched/managed by individual tabs (not stored in draft here)
   const [settings, setSettings] = useState<FormData['settings'] | undefined>(undefined as any);
   const [posts, setPosts] = useState<FormData['posts'] | undefined>(undefined as any);
   const [subscriberSettings, setSubscriberSettings] = useState<FormData['subscriberSettings'] | undefined>(undefined as any);
   const [stats, setStats] = useState<FormData['stats'] | undefined>(undefined as any);
-  const [socials, setSocials] = useState<FormData['socials'] | undefined>(undefined as any);
-
   const initializedRef = useRef(false);
 
-  // sync simple user properties into admin state (plan, subdomain, email fallback)
   useEffect(() => {
     if (!user) return;
     if (typeof user.plan === 'string' && user.plan) setPlan(user.plan as PlanType);
     setSettings((s) => {
-      // only set subdomain from user if settings is not yet set
       if (s) return { ...s, subdomain: s.subdomain || user.subdomain || '' } as any;
-      // keep undefined if not desired — but provide a minimal object to avoid crashes in UI that expects settings
-      return { nsfwWarning: false, preferredLink: 'primary', customDomain: '', gaId: '', subdomain: user.subdomain || '', seo: { metaTitle: '', metaDescription: '', metaKeywords: [], canonicalUrl: '', ogTitle: '', ogDescription: '', ogImage: '', twitterTitle: '', twitterDescription: '', twitterImage: '', noIndex: false, noFollow: false } } as any;
+      return {
+        nsfwWarning: false,
+        preferredLink: 'primary',
+        customDomain: '',
+        gaId: '',
+        subdomain: user.subdomain || '',
+        seo: { metaTitle: '', metaDescription: '', metaKeywords: [], canonicalUrl: '', ogTitle: '', ogDescription: '', ogImage: '', twitterTitle: '', twitterDescription: '', twitterImage: '', noIndex: false, noFollow: false },
+      } as any;
     });
     setProfileDesign((pd) => ({
       profile: { ...pd.profile, email: pd.profile.email || user.email || '' },
@@ -93,7 +100,6 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     }));
   }, [user]);
 
-  // only bootstrap once after user context is ready
   useEffect(() => {
     if (!userBootstrapped) return;
     if (initializedRef.current) return;
@@ -106,10 +112,8 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       try {
         setIsLoading(true);
 
-        // load any existing draft from localStorage (draft contains only profile/design)
         const draft = loadDraft();
 
-        // fetch profile+design from server (single source for autosave/profile)
         const res = await getProfileDesign({ signal: ac.signal }).catch(() => null);
         if (aborted) return;
 
@@ -124,7 +128,6 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
           setProfileDesign({ profile: mergedProfile, design: mergedDesign });
         } else {
-          // fallback to draft only (no server data)
           const mergedProfile = { ...EMPTY_PROFILE, ...(draft?.profile ?? {}) } as FormData['profile'];
           const mergedDesign = { ...EMPTY_DESIGN, ...(draft?.design ?? {}) } as FormData['design'];
           setProfileDesign({ profile: mergedProfile, design: mergedDesign });
@@ -145,41 +148,35 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     };
   }, [userBootstrapped, router]);
 
-  // keep a composedForm for consumer convenience. Other pieces (posts/stats/etc) are left undefined
   const composedForm = useMemo<FormData>(() => {
     return {
       profile: profileDesign.profile,
       design: profileDesign.design,
       settings: (settings as any) ?? ({} as any),
-      socials: (socials as any) ?? ({} as any),
       posts: (posts as any) ?? ({ posts: [] } as any),
       subscriberSettings: (subscriberSettings as any) ?? ({} as any),
       stats: (stats as any) ?? ({} as any),
     } as unknown as FormData;
-  }, [profileDesign, settings, socials, posts, subscriberSettings, stats]);
+  }, [profileDesign, settings, posts, subscriberSettings, stats]);
 
-  // setForm updater — safely merge only profile/design when provided (avoids returning undefined fields)
   const setForm = useCallback(
     (
       next:
         | Partial<FormData>
         | ((prev: {
-            profile: FormData['profile'];
-            design: FormData['design'];
-            settings?: FormData['settings'];
-            socials?: FormData['socials'];
-            posts?: FormData['posts'];
-            subscriberSettings?: FormData['subscriberSettings'];
-            stats?: FormData['stats'];
-          }) => Partial<FormData>)
+          profile: FormData['profile'];
+          design: FormData['design'];
+          settings?: FormData['settings'];
+          posts?: FormData['posts'];
+          subscriberSettings?: FormData['subscriberSettings'];
+          stats?: FormData['stats'];
+        }) => Partial<FormData>)
     ) => {
       if (typeof next === 'function') {
-        // compute against current composed minimal shape
         const computed = next({
           profile: profileDesign.profile,
           design: profileDesign.design,
           settings,
-          socials,
           posts,
           subscriberSettings,
           stats,
@@ -193,7 +190,6 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         }
 
         if ((computed as any).settings) setSettings((s) => ({ ...(s || {}), ...((computed as any).settings || {}) } as any));
-        if ((computed as any).socials) setSocials((s) => ({ ...(s || {}), ...((computed as any).socials || {}) } as any));
         if ((computed as any).posts) setPosts((p) => (computed as any).posts);
         if ((computed as any).subscriberSettings) setSubscriberSettings((p) => (computed as any).subscriberSettings);
         if ((computed as any).stats) setStats((p) => (computed as any).stats);
@@ -205,22 +201,19 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           }));
         }
         if (next.settings) setSettings((s) => ({ ...(s || {}), ...(next.settings || {}) } as any));
-        if (next.socials) setSocials((s) => ({ ...(s || {}), ...(next.socials || {}) } as any));
         if (next.posts) setPosts(next.posts as any);
         if (next.subscriberSettings) setSubscriberSettings(next.subscriberSettings as any);
         if (next.stats) setStats(next.stats as any);
       }
     },
-    [profileDesign, settings, socials, posts, subscriberSettings, stats]
+    [profileDesign, settings, posts, subscriberSettings, stats]
   );
 
-  // persist only profile+design diffs to local draft (useLocalDraft checks profile/design vs serverSnapshot)
   useLocalDraft(
     {
       profile: profileDesign.profile,
       design: profileDesign.design,
       settings: {} as any,
-      socials: {} as any,
       posts: { posts: [] } as any,
       subscriberSettings: {} as any,
       stats: {} as any,
@@ -229,20 +222,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     serverSnapshot as Partial<FormData>
   );
 
-  usePreviewBus(
-    (() => {
-      return {
-        profile: profileDesign.profile,
-        design: profileDesign.design,
-        settings: (settings as any) || {},
-        socials: (socials as any) || {},
-        posts: (posts as any) || ({ posts: [] } as any),
-        subscriberSettings: (subscriberSettings as any) || ({} as any),
-        stats: (stats as any) || ({} as any),
-      } as unknown as FormData;
-    })(),
-    plan
-  );
+  usePreviewBus({ profile: profileDesign.profile, design: profileDesign.design } as unknown as FormData, plan);
 
   const contextValue = {
     form: composedForm as FormData,

@@ -35,7 +35,7 @@ export default function SortableService({
         <button
           {...attributes}
           {...listeners}
-          className="mt-1 text-gray-400 hover:text-gray-600 cursor-grab flex-shrink-0"
+          className="mt-1 text-gray-400 hover:text-gray-600 cursor-move flex-shrink-0"
         >
           <GripVertical size={18} />
         </button>

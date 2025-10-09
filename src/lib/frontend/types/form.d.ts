@@ -111,6 +111,8 @@ export interface Socials {
   youtube?: string;
   instagram?: string;
   calendly?: string;
+  facebook?: string;
+  LinkedIn?: string;
 }
 
 export interface ProfileTabData extends ProfileInfo, ContactInfo, Resume {
@@ -123,6 +125,7 @@ export interface ProfileTabData extends ProfileInfo, ContactInfo, Resume {
   faqs: FAQ[];
   services: Service[];
   featured: FeaturedMedia[];
+  socials: Socials;
 }
 
 export interface Post {
@@ -199,7 +202,6 @@ export interface FormData {
   previewMode?: boolean;
   design: Design;
   settings: Settings;
-  socials: Socials;
   posts: PostsTabData;
   subscriberSettings: SubscriberDataTypes;
   stats?: Stats;

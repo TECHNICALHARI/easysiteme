@@ -22,7 +22,7 @@ export default function SortableLink({ id, link, onDelete, onEdit }: any) {
       className={`${styles.linkItem} ${link.highlighted ? 'bg-violet-50 border-brand' : 'bg-white'}`}
     >
       <div className="flex items-start gap-4 flex-1">
-        <GripVertical size={18} className="mt-1 text-gray-400 hover:text-gray-600 cursor-grab flex-shrink-0" {...listeners} {...attributes} />
+        <GripVertical size={18} className="mt-1 text-gray-400 hover:text-gray-600 cursor-move flex-shrink-0" {...listeners} {...attributes} />
         <div>
           <p className="font-semibold text-base pr-2">{link.title}</p>
           <a href={link.url} target="_blank" className="text-sm text-brand hover:underline break-all">

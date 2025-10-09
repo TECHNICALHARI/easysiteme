@@ -31,7 +31,7 @@ export default function SortableFeaturedMediaItem({
                     <button
                         {...attributes}
                         {...listeners}
-                        className="mt-1 text-gray-400 hover:text-gray-600 cursor-grab flex-shrink-0"
+                        className="mt-1 text-gray-400 hover:text-gray-600 cursor-move flex-shrink-0"
                         aria-label="Drag to reorder"
                     >
                         <GripVertical size={18} />

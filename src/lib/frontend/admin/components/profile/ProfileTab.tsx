@@ -1,3 +1,4 @@
+// ProfileTab.tsx
 'use client';
 
 import { useState, useEffect, useRef, FC } from 'react';
@@ -16,7 +17,7 @@ import {
   sortableKeyboardCoordinates,
   verticalListSortingStrategy,
 } from '@dnd-kit/sortable';
-import { ImagePlus, X, MapPin } from 'lucide-react';
+import { ImagePlus, X, MapPin, Youtube, Instagram, Calendar, Facebook, Linkedin } from 'lucide-react';
 import clsx from 'clsx';
 import styles from '@/styles/admin.module.css';
 import SortableLink from './SortableLink';
@@ -31,7 +32,6 @@ import SortableService from './SortableService';
 import { TestimonialFormModal } from './TestimonialFormModal';
 import { FAQFormModal } from './FAQFormModal';
 import { HeaderFormModal } from './HeaderFormModal';
-import ContactInfoSection from './ContactInfoSection';
 import FeaturedMediaModal from './FeaturedMediaModal';
 import SortableFeaturedMediaItem from './FeaturedMediaSection';
 import ProfileTagsSection from './ProfileTagsSection';
@@ -53,6 +53,7 @@ import {
 import { useAdminForm } from '@/lib/frontend/admin/context/AdminFormContext';
 import { useToast } from '@/lib/frontend/common/ToastProvider';
 import Loader from '@/lib/frontend/common/Loader';
+import { isValidHttpUrl, normalizeHttpUrl } from '@/lib/frontend/utils/url';
 
 const Section: FC<{
   title?: string | React.ReactNode;
@@ -73,16 +74,6 @@ const Section: FC<{
   </div>
 );
 
-function isValidUrl(u?: string) {
-  if (!u) return false;
-  try {
-    const url = new URL(u);
-    return ['http:', 'https:'].includes(url.protocol);
-  } catch {
-    return false;
-  }
-}
-
 function clampLat(v: string) {
   const n = Number(v);
   if (Number.isNaN(n)) return null;
@@ -101,16 +92,16 @@ export default function ProfileTab() {
   const ctx = useAdminForm() as {
     profileDesign: { profile: AdminFormData['profile']; design: AdminFormData['design'] };
     setProfileDesign: (next: any) => void;
-    setForm?: (next: any) => void;
+    setSubscriberSettings?: (next: any) => void;
+    subscriberSettings?: AdminFormData['subscriberSettings'];
     plan: keyof typeof PLAN_FEATURES;
-    form?: AdminFormData;
     isLoading?: boolean;
     bootstrapped?: boolean;
   };
 
   const { profileDesign, setProfileDesign, plan, isLoading, bootstrapped } = ctx;
-  const formProfile = profileDesign.profile;
-  const formDesign = profileDesign.design;
+  const formProfile = profileDesign?.profile ?? ({} as AdminFormData['profile']);
+  const formDesign = profileDesign?.design ?? ({} as AdminFormData['design']);
   const { showToast } = useToast();
 
   if (isLoading || !bootstrapped) {
@@ -123,6 +114,8 @@ export default function ProfileTab() {
 
   const limits = PLAN_FEATURES[plan];
   const isWebsite = (formDesign?.layoutType || 'bio') === 'website';
+  const socialsDisabled = !limits.socials;
+  const contactDisabled = !limits.contact;
 
   const [showLinkModal, setShowLinkModal] = useState(false);
   const [editLinkIndex, setEditLinkIndex] = useState<number | null>(null);
@@ -160,7 +153,7 @@ export default function ProfileTab() {
   const isFeaturedEnabled = limits.featured > 0;
   const featuredLimitReached = (formProfile.featured?.length || 0) >= limits.featured;
   const isEmbedEnabled = limits.embeds > 0;
-  const embedsLimitReached = (formProfile.embeds?.length || 0) >= limits.embeds;
+  const embedsLimitReached = (formProfile.embeds ?? []).length >= limits.embeds;
   const aboutDisabled = !limits.about;
   const bannerImageDisabled = !limits.bannerImage;
   const mapDisabled = !limits.map;
@@ -169,7 +162,7 @@ export default function ProfileTab() {
   const handleDragEnd = <T extends ReorderableProfileKeys>(type: T) => (event: DragEndEvent) => {
     const { active, over } = event;
     if (!active?.id || !over?.id || active.id === over.id) return;
-    const sectionItems = formProfile[type] as ProfileTypeMap[T];
+    const sectionItems = (formProfile[type] as ProfileTypeMap[T]) ?? [];
     const oldIndex = sectionItems.findIndex((i) => i.id === active.id);
     const newIndex = sectionItems.findIndex((i) => i.id === over.id);
     if (oldIndex !== -1 && newIndex !== -1) {
@@ -189,7 +182,7 @@ export default function ProfileTab() {
   };
 
   const handleAddLink = (data: Link) => {
-    if (!data?.title?.trim() || !isValidUrl(data?.url)) {
+    if (!data?.title?.trim() || !isValidHttpUrl(normalizeHttpUrl(data?.url || ''))) {
       showToast('Enter a title and a valid URL (http/https).', 'error');
       return;
     }
@@ -209,7 +202,7 @@ export default function ProfileTab() {
   };
 
   const handleSaveEmbed = (data: Pick<Embed, 'title' | 'url'>) => {
-    if (!data.title?.trim() || !isValidUrl(data.url)) {
+    if (!data.title?.trim() || !isValidHttpUrl(normalizeHttpUrl(data.url))) {
       showToast('Enter a title and a valid embed URL.', 'error');
       return;
     }
@@ -257,12 +250,12 @@ export default function ProfileTab() {
   };
 
   const handleSaveFeatured = (newFeatured: FeaturedMedia) => {
-    if (!newFeatured.title?.trim() || !isValidUrl(newFeatured.url)) {
+    if (!newFeatured.title?.trim() || !isValidHttpUrl(normalizeHttpUrl(newFeatured.url))) {
       showToast('Featured item needs a title and a valid URL.', 'error');
       return;
     }
     const updated = [...(formProfile.featured || [])];
-    if (editFeaturedIndex !== null) {
+    if (editFeaturedIndex !== null && updated[editFeaturedIndex]) {
       const id = updated[editFeaturedIndex].id;
       updated[editFeaturedIndex] = { ...updated[editFeaturedIndex], ...newFeatured, id };
     } else {
@@ -297,7 +290,7 @@ export default function ProfileTab() {
           className="input"
           type="text"
           placeholder="Full Name"
-          value={formProfile.fullName}
+          value={formProfile.fullName || ''}
           onChange={(e) => setProfileDesign((prev: any) => ({ ...prev, profile: { ...prev.profile, fullName: e.target.value } }))}
           onBlur={() => { if (!formProfile.fullName?.trim()) showToast('Full name is required.', 'error'); }}
         />
@@ -305,7 +298,7 @@ export default function ProfileTab() {
           className="input my-4"
           rows={3}
           placeholder="Short Bio"
-          value={formProfile.bio}
+          value={formProfile.bio || ''}
           onChange={(e) => setProfileDesign((prev: any) => ({ ...prev, profile: { ...prev.profile, bio: e.target.value } }))}
         />
         <div className="flex flex-col gap-2 mt-4">
@@ -379,6 +372,94 @@ export default function ProfileTab() {
   ] as const;
 
   const sequence = isWebsite ? websiteOrder : bioOrder;
+
+  type SocialKey = 'youtube' | 'instagram' | 'calendly' | 'facebook' | 'LinkedIn';
+
+  const initialSocials = () => ({
+    youtube: (formProfile?.socials as any)?.youtube || '',
+    instagram: (formProfile?.socials as any)?.instagram || '',
+    calendly: (formProfile?.socials as any)?.calendly || '',
+    facebook: (formProfile?.socials as any)?.facebook || '',
+    LinkedIn: (formProfile?.socials as any)?.LinkedIn || '',
+  });
+
+  const [socialsLocal, setSocialsLocal] = useState(initialSocials);
+  const [socialsErrors, setSocialsErrors] = useState<Record<string, string | undefined>>({});
+  const socialsSerializedRef = useRef(JSON.stringify(initialSocials()));
+
+  useEffect(() => {
+    const next = initialSocials();
+    const serialized = JSON.stringify(next);
+    if (serialized !== socialsSerializedRef.current) {
+      socialsSerializedRef.current = serialized;
+      setSocialsLocal(next);
+      setSocialsErrors({});
+    }
+  }, [formProfile.socials]);
+
+  const handleSocialChange = (key: SocialKey, value: string) => {
+    setSocialsLocal((s) => ({ ...(s || {}), [key]: value }));
+    setSocialsErrors((prev) => ({ ...prev, [key]: undefined }));
+  };
+
+  const handleSocialBlur = (key: SocialKey) => {
+    const raw = (socialsLocal as any)[key] || '';
+    const trimmed = raw.trim();
+    if (!trimmed) {
+      setSocialsErrors((p) => ({ ...p, [key]: undefined }));
+      setProfileDesign((prev: any) => ({
+        ...prev,
+        profile: { ...prev.profile, socials: { ...(prev.profile.socials || {}), [key]: '' } },
+      }));
+      return;
+    }
+    const normalized = normalizeHttpUrl(trimmed);
+    if (!isValidHttpUrl(normalized)) {
+      setSocialsErrors((p) => ({ ...p, [key]: 'Enter a valid URL starting with http:// or https://' }));
+      return;
+    }
+    setSocialsErrors((p) => ({ ...p, [key]: undefined }));
+    setSocialsLocal((s) => ({ ...(s || {}), [key]: normalized }));
+    setProfileDesign((prev: any) => ({
+      ...prev,
+      profile: { ...prev.profile, socials: { ...(prev.profile.socials || {}), [key]: normalized } },
+    }));
+  };
+
+  const [websiteLocal, setWebsiteLocal] = useState(formProfile.website || '');
+  const [websiteError, setWebsiteError] = useState<string | undefined>();
+  const websiteSerializedRef = useRef<string>(formProfile.website || '');
+
+  useEffect(() => {
+    const next = formProfile.website || '';
+    if (next !== websiteSerializedRef.current) {
+      websiteSerializedRef.current = next;
+      setWebsiteLocal(next);
+      setWebsiteError(undefined);
+    }
+  }, [formProfile.website]);
+
+  const handleWebsiteChange = (val: string) => {
+    setWebsiteLocal(val);
+    setWebsiteError(undefined);
+  };
+
+  const handleWebsiteBlur = () => {
+    const trimmed = (websiteLocal || '').trim();
+    if (!trimmed) {
+      setWebsiteError(undefined);
+      setProfileDesign((prev: any) => ({ ...prev, profile: { ...prev.profile, website: '' } }));
+      return;
+    }
+    const normalized = normalizeHttpUrl(trimmed);
+    if (!isValidHttpUrl(normalized)) {
+      setWebsiteError('Enter a valid URL starting with http:// or https://');
+      return;
+    }
+    setWebsiteError(undefined);
+    setWebsiteLocal(normalized);
+    setProfileDesign((prev: any) => ({ ...prev, profile: { ...prev.profile, website: normalized } }));
+  };
 
   return (
     <div className={styles.TabPageMain}>
@@ -468,18 +549,64 @@ export default function ProfileTab() {
               </Section>
             );
           case 'contact':
-            return <ContactInfoSection
-              key={key}
-              profile={profileDesign.profile as any}
-              setProfile={(up) =>
-                setProfileDesign((prev: any) => ({
-                  ...prev,
-                  profile: typeof up === 'function' ? (up as any)(prev.profile) : up,
-                }))
-              }
-              canUseContact={limits.contact}
-            />;
+            return (
+              <Section key={key} title="Contact">
+                <LockedOverlay enabled={!contactDisabled} mode="notice">
+                  <div className="grid gap-3">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                      <input
+                        className="input"
+                        placeholder="Email"
+                        value={formProfile.email || ''}
+                        disabled={contactDisabled}
+                        onChange={(e) => setProfileDesign((prev: any) => ({ ...prev, profile: { ...prev.profile, email: e.target.value } }))}
+                      />
+                      <input
+                        className="input"
+                        placeholder="Phone"
+                        value={formProfile.phone || ''}
+                        disabled={contactDisabled}
+                        onChange={(e) => setProfileDesign((prev: any) => ({ ...prev, profile: { ...prev.profile, phone: e.target.value } }))}
+                      />
+                    </div>
 
+                    <div>
+                      <input
+                        className="input"
+                        placeholder="Website (https://example.com)"
+                        value={websiteLocal || ''}
+                        disabled={contactDisabled}
+                        onChange={(e) => handleWebsiteChange(e.target.value)}
+                        onBlur={handleWebsiteBlur}
+                      />
+                      {websiteError && <div className="text-red-600 text-sm mt-1">{websiteError}</div>}
+                    </div>
+
+                    <div>
+                      <input
+                        className="input"
+                        placeholder="WhatsApp (with country code)"
+                        value={formProfile.whatsapp || ''}
+                        disabled={contactDisabled}
+                        onChange={(e) => setProfileDesign((prev: any) => ({ ...prev, profile: { ...prev.profile, whatsapp: e.target.value } }))}
+                      />
+                    </div>
+
+                    <div className="flex items-center gap-3">
+                      <label className={styles.checkboxLabel}>
+                        <input
+                          type="checkbox"
+                          checked={!!formProfile.showContactForm}
+                          disabled={contactDisabled}
+                          onChange={() => setProfileDesign((prev: any) => ({ ...prev, profile: { ...prev.profile, showContactForm: !prev.profile.showContactForm } }))}
+                        />
+                        <span>Show contact form on public page</span>
+                      </label>
+                    </div>
+                  </div>
+                </LockedOverlay>
+              </Section>
+            );
           case 'location':
             return (
               <Section key={key} title={<span>Business Location <span className="badge-pro">Pro</span></span>}>
@@ -717,27 +844,110 @@ export default function ProfileTab() {
       })}
 
       <Section title={<span>Subscribe <span className="badge-pro">Pro</span></span>} sub="Turn on a clean email opt-in below your content. The subscribe box will appear on your public page.">
-        <LockedOverlay enabled={limits.showSubscribers} mode="overlay">
+        <LockedOverlay enabled={!!limits.showSubscribers} mode="overlay">
           <ToggleSwitch
             label="Show Subscribe Section"
-            checked={!ctx.form?.subscriberSettings.subscriberSettings.hideSubscribeButton}
+            checked={!(ctx.subscriberSettings?.subscriberSettings?.hideSubscribeButton === true)}
             onChange={(checked) => {
-              if (ctx.setForm) {
-                ctx.setForm((prev: any) => ({
-                  ...prev,
-                  subscriberSettings: {
-                    ...prev.subscriberSettings,
+              if (typeof ctx.setSubscriberSettings === 'function') {
+                ctx.setSubscriberSettings((prev: any) => {
+                  const currentInner = (prev && prev.subscriberSettings) ? prev.subscriberSettings : { subject: '', thankYouMessage: '', hideSubscribeButton: false };
+                  return {
+                    ...prev,
                     subscriberSettings: {
-                      ...prev.subscriberSettings.subscriberSettings,
+                      ...currentInner,
                       hideSubscribeButton: !checked,
                     },
-                  },
-                }));
+                  };
+                });
+              } else {
+                showToast('Unable to update subscribe settings (missing setter).', 'error');
               }
             }}
             isPro={plan !== 'free'}
             description="Collect emails for launches, offers and updates."
           />
+        </LockedOverlay>
+      </Section>
+
+      <Section title={<span>Socials <span className="badge-pro">Pro</span></span>} sub="Add links to your social profiles. Icons are shown on your public page.">
+        <LockedOverlay enabled={!socialsDisabled} mode="notice">
+          <div className="grid gap-3">
+            <div className="grid grid-cols-[40px_1fr] gap-2 items-center">
+              <div className="flex items-center justify-center"><Youtube size={18} /></div>
+              <div>
+                <input
+                  className="input"
+                  placeholder="YouTube URL"
+                  value={socialsLocal.youtube || ''}
+                  onChange={(e) => handleSocialChange('youtube', e.target.value)}
+                  onBlur={() => handleSocialBlur('youtube')}
+                  disabled={socialsDisabled}
+                />
+                {socialsErrors.youtube && <div className="text-red-600 text-sm mt-1">{socialsErrors.youtube}</div>}
+              </div>
+            </div>
+
+            <div className="grid grid-cols-[40px_1fr] gap-2 items-center">
+              <div className="flex items-center justify-center"><Instagram size={18} /></div>
+              <div>
+                <input
+                  className="input"
+                  placeholder="Instagram URL"
+                  value={socialsLocal.instagram || ''}
+                  onChange={(e) => handleSocialChange('instagram', e.target.value)}
+                  onBlur={() => handleSocialBlur('instagram')}
+                  disabled={socialsDisabled}
+                />
+                {socialsErrors.instagram && <div className="text-red-600 text-sm mt-1">{socialsErrors.instagram}</div>}
+              </div>
+            </div>
+
+            <div className="grid grid-cols-[40px_1fr] gap-2 items-center">
+              <div className="flex items-center justify-center"><Calendar size={18} /></div>
+              <div>
+                <input
+                  className="input"
+                  placeholder="Calendly URL"
+                  value={(socialsLocal as any).calendly || ''}
+                  onChange={(e) => handleSocialChange('calendly', e.target.value)}
+                  onBlur={() => handleSocialBlur('calendly')}
+                  disabled={socialsDisabled}
+                />
+                {socialsErrors.calendly && <div className="text-red-600 text-sm mt-1">{socialsErrors.calendly}</div>}
+              </div>
+            </div>
+
+            <div className="grid grid-cols-[40px_1fr] gap-2 items-center">
+              <div className="flex items-center justify-center"><Facebook size={18} /></div>
+              <div>
+                <input
+                  className="input"
+                  placeholder="Facebook URL"
+                  value={(socialsLocal as any).facebook || ''}
+                  onChange={(e) => handleSocialChange('facebook', e.target.value)}
+                  onBlur={() => handleSocialBlur('facebook')}
+                  disabled={socialsDisabled}
+                />
+                {socialsErrors.facebook && <div className="text-red-600 text-sm mt-1">{socialsErrors.facebook}</div>}
+              </div>
+            </div>
+
+            <div className="grid grid-cols-[40px_1fr] gap-2 items-center">
+              <div className="flex items-center justify-center"><Linkedin size={18} /></div>
+              <div>
+                <input
+                  className="input"
+                  placeholder="LinkedIn URL"
+                  value={(socialsLocal as any).LinkedIn || ''}
+                  onChange={(e) => handleSocialChange('LinkedIn', e.target.value)}
+                  onBlur={() => handleSocialBlur('LinkedIn')}
+                  disabled={socialsDisabled}
+                />
+                {socialsErrors.LinkedIn && <div className="text-red-600 text-sm mt-1">{socialsErrors.LinkedIn}</div>}
+              </div>
+            </div>
+          </div>
         </LockedOverlay>
       </Section>
 
@@ -756,13 +966,13 @@ export default function ProfileTab() {
         <LinkFormModal
           onSave={handleAddLink}
           onClose={() => { setShowLinkModal(false); setEditLinkIndex(null); }}
-          initialData={editLinkIndex !== null ? formProfile.links[editLinkIndex] : undefined}
+          initialData={editLinkIndex !== null ? (formProfile.links || [])[editLinkIndex] : undefined}
         />
       )}
 
       {showHeaderModal && (
         <HeaderFormModal
-          initialData={editHeaderIndex !== null ? formProfile.headers?.[editHeaderIndex] : undefined}
+          initialData={editHeaderIndex !== null ? (formProfile.headers || [])[editHeaderIndex] : undefined}
           onClose={() => setShowHeaderModal(false)}
           onSave={(newHeader) => {
             if (!newHeader?.title?.trim()) { showToast('Header title is required.', 'error'); return; }
@@ -803,14 +1013,14 @@ export default function ProfileTab() {
         <EmbedFormModal
           onSave={handleSaveEmbed}
           onClose={() => { setShowEmbedModal(false); setEditEmbedIndex(null); }}
-          initialData={editEmbedIndex !== null ? formProfile.embeds[editEmbedIndex] : undefined}
+          initialData={editEmbedIndex !== null ? (formProfile.embeds || [])[editEmbedIndex] : undefined}
         />
       )}
 
       {showTestimonialModal && (
         <TestimonialFormModal
           onClose={() => setShowTestimonialModal(false)}
-          initialData={editTestimonialIndex !== null ? formProfile.testimonials?.[editTestimonialIndex] : undefined}
+          initialData={editTestimonialIndex !== null ? (formProfile.testimonials || [])[editTestimonialIndex] : undefined}
           onSave={(newTestimonial) => {
             if (!newTestimonial?.name?.trim() || !newTestimonial?.message?.trim()) {
               showToast('Testimonial name and message are required.', 'error');
@@ -834,7 +1044,7 @@ export default function ProfileTab() {
       {showFAQModal && (
         <FAQFormModal
           onClose={() => setShowFAQModal(false)}
-          initialData={editFAQIndex !== null ? formProfile.faqs?.[editFAQIndex] : undefined}
+          initialData={editFAQIndex !== null ? (formProfile.faqs || [])[editFAQIndex] : undefined}
           onSave={(newFaq) => {
             if (!newFaq?.question?.trim() || !newFaq?.answer?.trim()) {
               showToast('FAQ question and answer are required.', 'error');
@@ -859,7 +1069,7 @@ export default function ProfileTab() {
         <ServiceFormModal
           onClose={() => setShowServiceModal(false)}
           onSave={handleSaveService}
-          initialData={editServiceIndex !== null ? formProfile.services[editServiceIndex] : undefined}
+          initialData={editServiceIndex !== null ? (formProfile.services || [])[editServiceIndex] : undefined}
         />
       )}
 
@@ -867,7 +1077,7 @@ export default function ProfileTab() {
         <FeaturedMediaModal
           onClose={() => setShowFeaturedModal(false)}
           onSave={handleSaveFeatured}
-          initialData={editFeaturedIndex !== null ? formProfile.featured?.[editFeaturedIndex] : undefined}
+          initialData={editFeaturedIndex !== null ? (formProfile.featured || [])[editFeaturedIndex] : undefined}
         />
       )}
 
