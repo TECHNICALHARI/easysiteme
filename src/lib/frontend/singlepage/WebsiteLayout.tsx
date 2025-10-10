@@ -24,7 +24,9 @@ function sortLinks(links: LinkType[] = []) {
 
 export default function WebsiteLayout({ form }: { form: FormData }) {
   const themeClass = form.design.theme || 'brand';
-  const { profile, socials, posts } = form;
+  const profile = form.profile || ({} as any);
+  const posts = form.posts;
+  const socials = profile?.socials || {};
   const hasLinks = Boolean(profile?.links?.length);
   const hasSocials = Boolean(socials && Object.keys(socials).length > 0);
   const hasFeatured = Boolean(profile?.featured?.length);

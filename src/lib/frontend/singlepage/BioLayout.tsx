@@ -46,6 +46,8 @@ export default function BioLayout({ form }: { form: FormData }) {
   const hasSubscribe =
     !(form.subscriberSettings?.subscriberSettings?.hideSubscribeButton ?? false);
 
+  const socials = form.profile?.socials ?? {};
+
   return (
     <>
       <PreviewContainer>
@@ -57,7 +59,7 @@ export default function BioLayout({ form }: { form: FormData }) {
           <HeaderSection profile={form.profile} />
         </motion.div>
 
-        <SocialSection socials={form.socials} />
+        <SocialSection socials={socials} />
 
         {hasLinks && <LinkSection links={linksSorted} />}
         {hasFeatured && <FeaturedSection featured={form.profile!.featured!} />}

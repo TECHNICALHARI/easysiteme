@@ -18,14 +18,16 @@ const hasAnyData = (f?: FormData | null) =>
   !!f &&
   !!(
     f.profile?.fullName ||
-    f.profile?.username ||
     (f.profile?.links?.length ?? 0) > 0 ||
     (f.profile?.featured?.length ?? 0) > 0 ||
     (f.profile?.avatar && f.profile.avatar.length > 0)
   );
 
 export default function AdminPreviewClient() {
-  const { form, isLoading } = useAdminForm();
+  const ctx = useAdminForm() as any;
+  const { form: formFromCtx, profileDesign, settings, posts, subscriberSettings, stats, isLoading } = ctx;
+
+  // incoming from messages/broadcast channel (same as before)
   const [incoming, setIncoming] = useState<FormData | null>(null);
 
   useEffect(() => {
@@ -75,13 +77,31 @@ export default function AdminPreviewClient() {
     }
   }, []);
 
-  const theme = useMemo(() => (incoming ?? form)?.design?.theme ?? 'brand', [incoming, form]);
-  const layoutType = useMemo(() => (incoming ?? form)?.design?.layoutType ?? 'bio', [incoming, form]);
+  // Build a merged form from the admin context pieces (prefer profileDesign slices, fallback to form)
+  const mergedFromAdminContext = useMemo<FormData>(() => {
+    const profile = (profileDesign && profileDesign.profile) || (formFromCtx && formFromCtx.profile) || ({} as any);
+    const design = (profileDesign && profileDesign.design) || (formFromCtx && formFromCtx.design) || ({} as any);
+
+    return {
+      profile,
+      design,
+      settings: settings ?? (formFromCtx && formFromCtx.settings) ?? ({} as any),
+      posts: posts ?? (formFromCtx && formFromCtx.posts) ?? ({} as any),
+      subscriberSettings: subscriberSettings ?? (formFromCtx && formFromCtx.subscriberSettings) ?? ({} as any),
+      stats: stats ?? (formFromCtx && formFromCtx.stats) ?? ({} as any),
+      previewMode: true,
+    } as FormData;
+  }, [profileDesign, formFromCtx, settings, posts, subscriberSettings, stats]);
+
+  // decide which data to show: incoming (live message) > mergedFromAdminContext > formFromCtx
+  const theme = useMemo(() => (incoming ?? mergedFromAdminContext ?? formFromCtx)?.design?.theme ?? 'brand', [incoming, mergedFromAdminContext, formFromCtx]);
+  const layoutType = useMemo(() => (incoming ?? mergedFromAdminContext ?? formFromCtx)?.design?.layoutType ?? 'bio', [incoming, mergedFromAdminContext, formFromCtx]);
   const ThemeClass = (themeStyles as Record<string, string>)[theme] ?? themeStyles['brand'];
 
   const data: FormData | null = (() => {
     if (hasAnyData(incoming)) return incoming as FormData;
-    if (hasAnyData(form)) return { ...form, previewMode: true } as FormData;
+    if (hasAnyData(mergedFromAdminContext)) return { ...mergedFromAdminContext, previewMode: true } as FormData;
+    if (hasAnyData(formFromCtx)) return { ...(formFromCtx as FormData), previewMode: true } as FormData;
     return null;
   })();
 

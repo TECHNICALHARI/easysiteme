@@ -62,7 +62,7 @@ export default function EmbedFormModal({ onSave, onClose, initialData }: Props) 
         <div>
           <input
             className="input"
-            placeholder="Embed Title (e.g. My Calendly)"
+            placeholder="Embed Title (e.g. My Video or Calendar)"
             value={title}
             onChange={(e) => setTitle(e.target.value)}
             onBlur={(e) => setTitle(e.target.value.trim())}
