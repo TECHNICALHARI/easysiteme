@@ -1,4 +1,3 @@
-// src/app/api/send-otp/route.ts
 import { NextRequest } from "next/server";
 import { connectDb } from "@/lib/backend/config/db";
 import { OtpService } from "@/lib/backend/services/otp.service";

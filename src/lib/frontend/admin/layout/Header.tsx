@@ -14,32 +14,47 @@ import { useUser } from '@/lib/frontend/context/UserContext';
 import ConfirmModal from '@/lib/frontend/common/ConfirmModal';
 import { useRouter } from 'next/navigation';
 
-function getPublicUrl(username?: string, customDomain?: string) {
-  if (!username && !customDomain) return '';
+// --- use subdomain here instead of username ---
+function getPublicUrl(subdomain?: string, customDomain?: string) {
+  if (!subdomain && !customDomain) return '';
   if (customDomain) return `https://${customDomain}`;
-  return `https://${username}.myeasypage.com`;
+  return `https://${subdomain}.myeasypage.com`;
 }
 
 export default function AdminHeader() {
-  const { form } = useAdminForm();
+  const {
+    profileDesign,
+    settings,
+    plan,
+    isLoading,
+  } = useAdminForm();
+
+  const router = useRouter();
+  const { showToast } = useToast();
+  const { logout } = useUser();
+
   const [openShare, setOpenShare] = useState(false);
   const [confirmLogoutOpen, setConfirmLogoutOpen] = useState(false);
   const [logoutLoading, setLogoutLoading] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement | null>(null);
-  const { showToast } = useToast();
-  const { logout } = useUser();
-  const router = useRouter();
 
-  const publicUrl = useMemo(
-    () => getPublicUrl(form?.profile?.username, form?.settings?.customDomain),
-    [form?.profile?.username, form?.settings?.customDomain]
-  );
+  // ✅ Build public URL using subdomain instead of username
+  const publicUrl = useMemo(() => {
+    return getPublicUrl(settings?.subdomain, settings?.customDomain);
+  }, [settings?.subdomain, settings?.customDomain]);
 
   const handlePublish = async () => {
     try {
-      const res = await publishAdminForm(form);
-      showToast(res.message || 'Published', 'success');
+      // Only send necessary payload
+      const payload = {
+        profile: profileDesign.profile,
+        design: profileDesign.design,
+        settings,
+      };
+
+      const res = await publishAdminForm(payload as any);
+      showToast(res.message || 'Published successfully!', 'success');
     } catch (err: any) {
       showToast(err?.message || 'Publish failed', 'error');
     }
@@ -56,7 +71,7 @@ export default function AdminHeader() {
       } else {
         setOpenShare(true);
       }
-    } catch {}
+    } catch { }
   };
 
   const handleConfirmLogout = async () => {
@@ -93,6 +108,7 @@ export default function AdminHeader() {
               <button
                 className={`btn-primary shadow-md ${styles.publishChangesButton}`}
                 onClick={handlePublish}
+                disabled={isLoading}
                 aria-label="Publish Changes"
                 title="Publish Changes"
               >
@@ -107,7 +123,9 @@ export default function AdminHeader() {
                 onClick={() => router.push('/pricing')}
               >
                 <Sparkles size={16} className={styles.icon} />
-                <span className={styles.btnLabel}>Upgrade</span>
+                <span className={styles.btnLabel}>
+                  {plan === 'free' ? 'Upgrade' : `Plan: ${plan}`}
+                </span>
               </button>
 
               <a
@@ -120,8 +138,10 @@ export default function AdminHeader() {
               >
                 <Link2 size={16} className={styles.icon} />
                 <span className={styles.btnLabel}>
-                  {form?.settings?.customDomain ||
-                    (form?.profile?.username ? `${form.profile.username}.myeasypage.com` : 'yourname.myeasypage.com')}
+                  {settings?.customDomain ||
+                    (settings?.subdomain
+                      ? `${settings.subdomain}.myeasypage.com`
+                      : 'yourname.myeasypage.com')}
                 </span>
               </a>
 
@@ -138,16 +158,6 @@ export default function AdminHeader() {
 
                 {menuOpen && (
                   <div className={styles.headerDropdown} role="menu" aria-label="User menu">
-                    {/* <button
-                      className={styles.dropdownItem}
-                      onClick={() => {
-                        setMenuOpen(false);
-                        router.push('/admin/profile');
-                      }}
-                    >
-                      <UserIcon size={16} /> <span>Profile</span>
-                    </button> */}
-
                     <button
                       className={styles.dropdownItem}
                       onClick={() => {
@@ -202,5 +212,3 @@ export default function AdminHeader() {
     </>
   );
 }
-
-

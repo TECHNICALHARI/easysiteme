@@ -50,9 +50,6 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
     const cacheRef = useRef<{ user?: UserPublic; etag?: string; ts?: number }>({});
     const refreshPromiseRef = useRef<Promise<void> | null>(null);
     const bcRef = useRef<BroadcastChannel | null>(null);
-
-    console.log(user, "user")
-
     const broadcast = (msg: any) => {
         try {
             if (bcRef.current) bcRef.current.postMessage(msg);

@@ -1,7 +1,7 @@
-export const SIGNUP = "/signup";
-export const LOGIN = "/login";
-export const SEND_OTP = "/send-otp";
-export const VERIFY_OTP = "/verify-otp";
+export const SIGNUP = "/auth/signup";
+export const LOGIN = "/auth/login";
+export const SEND_OTP = "/auth/send-otp";
+export const VERIFY_OTP = "/auth/verify-otp";
 export const CHANGE_PASSWORD = "/auth/change-password";
 
 export const ADMIN_FORM = "/admin/form";
