@@ -244,10 +244,17 @@ export async function ChangePasswordApi(data: any) {
     authRequired: false,
   });
 }
-export async function getProfileDesign(data: any) {
+export async function getProfileDesignApi(data: any) {
   return apiFetch<any>(GET_PROFILE_DESIGN, {
     method: "GET",
     authRequired: true,
+  });
+}
+export async function saveProfileDesignApi(data: any) {
+  return apiFetch<any>(GET_PROFILE_DESIGN, {
+    method: "POST",
+    authRequired: true,
+    body: data,
   });
 }
 export async function getSubscribersServiceAPI() {

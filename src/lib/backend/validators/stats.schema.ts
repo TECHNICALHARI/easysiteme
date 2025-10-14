@@ -1,24 +1,34 @@
 import { z } from "zod";
 
-export const trackLinkSchema = z.object({
-  siteId: z.string().min(1),
-  url: z.string().url("Invalid URL"),
-  title: z.string().optional().or(z.literal("")),
+export const linkClickSchema = z.object({
+  label: z.string(),
+  value: z.number().nonnegative(),
 });
 
-export const trackTrafficSchema = z.object({
-  siteId: z.string().min(1),
-  source: z.string().min(1),
-  value: z.number().optional().default(1),
+export const trafficSourceSchema = z.object({
+  label: z.string(),
+  value: z.number().nonnegative(),
 });
 
-export const contactSubmitSchema = z.object({
-  siteId: z.string().min(1),
-  name: z.string().optional(),
-  email: z.string().optional(),
-  message: z.string().min(1),
+export const contactSubmissionSchema = z.object({
+  name: z.string(),
+  email: z.string().email().optional(),
+  message: z.string(),
+  submittedOn: z.string(),
 });
 
-export type TrackLinkInput = z.infer<typeof trackLinkSchema>;
-export type TrackTrafficInput = z.infer<typeof trackTrafficSchema>;
-export type ContactSubmitInput = z.infer<typeof contactSubmitSchema>;
+export const topLinkSchema = z.object({
+  title: z.string(),
+  url: z.string(),
+  clicks: z.number().nonnegative(),
+});
+
+export const statsSchema = z.object({
+  linkClicks: z.array(linkClickSchema).optional(),
+  trafficSources: z.array(trafficSourceSchema).optional(),
+  contactSubmissions: z.array(contactSubmissionSchema).optional(),
+  topLinks: z.array(topLinkSchema).optional(),
+  lastUpdated: z.string().optional(),
+});
+
+export type StatsInput = z.infer<typeof statsSchema>;

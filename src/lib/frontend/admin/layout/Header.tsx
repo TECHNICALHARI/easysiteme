@@ -8,13 +8,12 @@ import Logo from '../../common/Logo';
 import ShareModal from '@/lib/frontend/singlepage/components/ShareModal';
 import { useAdminForm } from '@/lib/frontend/admin/context/AdminFormContext';
 import { useToast } from '@/lib/frontend/common/ToastProvider';
-import { publishAdminForm } from '../../api/services';
+import { saveProfileDesignApi } from '@/lib/frontend/api/services';
 import Link from 'next/link';
 import { useUser } from '@/lib/frontend/context/UserContext';
 import ConfirmModal from '@/lib/frontend/common/ConfirmModal';
 import { useRouter } from 'next/navigation';
 
-// --- use subdomain here instead of username ---
 function getPublicUrl(subdomain?: string, customDomain?: string) {
   if (!subdomain && !customDomain) return '';
   if (customDomain) return `https://${customDomain}`;
@@ -22,13 +21,7 @@ function getPublicUrl(subdomain?: string, customDomain?: string) {
 }
 
 export default function AdminHeader() {
-  const {
-    profileDesign,
-    settings,
-    plan,
-    isLoading,
-  } = useAdminForm();
-
+  const { profileDesign, settings, plan, isLoading } = useAdminForm();
   const router = useRouter();
   const { showToast } = useToast();
   const { logout } = useUser();
@@ -37,26 +30,29 @@ export default function AdminHeader() {
   const [confirmLogoutOpen, setConfirmLogoutOpen] = useState(false);
   const [logoutLoading, setLogoutLoading] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
+  const [publishing, setPublishing] = useState(false);
   const menuRef = useRef<HTMLDivElement | null>(null);
 
-  // ✅ Build public URL using subdomain instead of username
   const publicUrl = useMemo(() => {
     return getPublicUrl(settings?.subdomain, settings?.customDomain);
   }, [settings?.subdomain, settings?.customDomain]);
 
   const handlePublish = async () => {
     try {
-      // Only send necessary payload
+      setPublishing(true);
       const payload = {
-        profile: profileDesign.profile,
-        design: profileDesign.design,
-        settings,
+        profile: profileDesign?.profile ?? {},
+        design: profileDesign?.design ?? {},
+        settings: settings ?? {},
       };
 
-      const res = await publishAdminForm(payload as any);
-      showToast(res.message || 'Published successfully!', 'success');
+      const res = await saveProfileDesignApi(payload as any);
+      showToast(res?.message || 'Published successfully!', 'success');
     } catch (err: any) {
+      console.error('publish error', err);
       showToast(err?.message || 'Publish failed', 'error');
+    } finally {
+      setPublishing(false);
     }
   };
 
@@ -71,7 +67,8 @@ export default function AdminHeader() {
       } else {
         setOpenShare(true);
       }
-    } catch { }
+    } catch {
+    }
   };
 
   const handleConfirmLogout = async () => {
@@ -108,12 +105,12 @@ export default function AdminHeader() {
               <button
                 className={`btn-primary shadow-md ${styles.publishChangesButton}`}
                 onClick={handlePublish}
-                disabled={isLoading}
+                disabled={isLoading || publishing}
                 aria-label="Publish Changes"
                 title="Publish Changes"
               >
                 <UploadCloud size={16} className={styles.icon} />
-                <span className={styles.btnLabel}>Publish Changes</span>
+                <span className={styles.btnLabel}>{publishing ? 'Publishing…' : 'Publish Changes'}</span>
               </button>
 
               <button

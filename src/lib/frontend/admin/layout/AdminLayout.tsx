@@ -13,7 +13,7 @@ import PreviewFab from './PreviewFab';
 import { PlanType } from '@/config/PLAN_FEATURES';
 import Loader from '@/lib/frontend/common/Loader';
 import { useUser } from '@/lib/frontend/context/UserContext';
-import { getProfileDesign } from '@/lib/frontend/api/services';
+import { getProfileDesignApi } from '@/lib/frontend/api/services';
 
 type ServerPartial = Partial<{
   profile: Partial<ProfileTabData>;
@@ -114,7 +114,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
         const draft = loadDraft();
 
-        const res = await getProfileDesign({ signal: ac.signal }).catch(() => null);
+        const res = await getProfileDesignApi({ signal: ac.signal }).catch(() => null);
         if (aborted) return;
 
         if (res && res.data) {

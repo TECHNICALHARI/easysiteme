@@ -1,37 +1,60 @@
-import mongoose, { Schema, Document } from "mongoose";
+import mongoose, { Document, Schema } from "mongoose";
 
-export interface ISubscriber {
-  siteId: mongoose.Types.ObjectId;
+export interface ISubscriberRow {
   email: string;
+  subscribedOn: string;
   status: "Active" | "Unsubscribed";
-  subscribedOn: Date;
-  unsubscribedOn?: Date;
 }
 
-export interface ISubscriberDoc extends ISubscriber, Document {}
+export interface ISubscriberList {
+  data: ISubscriberRow[];
+  total: number;
+  active: number;
+  unsubscribed: number;
+}
 
-const SubscriberSchema = new Schema<ISubscriberDoc>(
+export interface ISubscriberSettings {
+  subject?: string;
+  thankYouMessage?: string;
+  hideSubscribeButton?: boolean;
+}
+
+export interface ISubscriberDoc {
+  owner: mongoose.Types.ObjectId;
+  subscriberSettings: ISubscriberSettings;
+  SubscriberList: ISubscriberList;
+}
+
+export type ISubscriberModelDoc = ISubscriberDoc & Document;
+
+const SubscriberRowSchema = new Schema({
+  email: { type: String, required: true },
+  subscribedOn: { type: String, required: true },
+  status: { type: String, enum: ["Active", "Unsubscribed"], required: true },
+});
+
+const SubscriberListSchema = new Schema({
+  data: { type: [SubscriberRowSchema], default: [] },
+  total: { type: Number, default: 0 },
+  active: { type: Number, default: 0 },
+  unsubscribed: { type: Number, default: 0 },
+});
+
+const SubscriberSettingsSchema = new Schema({
+  subject: { type: String, default: "" },
+  thankYouMessage: { type: String, default: "" },
+  hideSubscribeButton: { type: Boolean, default: false },
+});
+
+const SubscriberSchema = new Schema(
   {
-    siteId: {
-      type: Schema.Types.ObjectId,
-      ref: "Site",
-      required: true,
-      index: true,
-    },
-    email: { type: String, required: true, lowercase: true, trim: true },
-    status: {
-      type: String,
-      enum: ["Active", "Unsubscribed"],
-      default: "Active",
-    },
-    subscribedOn: { type: Date, default: Date.now },
-    unsubscribedOn: { type: Date },
+    owner: { type: Schema.Types.ObjectId, ref: "User", required: true, unique: true },
+    subscriberSettings: { type: SubscriberSettingsSchema, default: {} },
+    SubscriberList: { type: SubscriberListSchema, default: {} },
   },
   { timestamps: true }
 );
 
-SubscriberSchema.index({ siteId: 1, email: 1 }, { unique: true });
-
 export const Subscriber =
-  mongoose.models.Subscriber ||
-  mongoose.model<ISubscriberDoc>("Subscriber", SubscriberSchema);
+  (mongoose.models && (mongoose.models.Subscriber as mongoose.Model<ISubscriberModelDoc>)) ||
+  mongoose.model<ISubscriberModelDoc>("Subscriber", SubscriberSchema);
