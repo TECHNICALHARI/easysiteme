@@ -1,3 +1,4 @@
+// src/lib/frontend/admin/layout/Header.tsx
 'use client';
 
 import { useMemo, useState, useRef, useEffect } from 'react';
@@ -8,7 +9,6 @@ import Logo from '../../common/Logo';
 import ShareModal from '@/lib/frontend/singlepage/components/ShareModal';
 import { useAdminForm } from '@/lib/frontend/admin/context/AdminFormContext';
 import { useToast } from '@/lib/frontend/common/ToastProvider';
-import { saveProfileDesignApi } from '@/lib/frontend/api/services';
 import Link from 'next/link';
 import { useUser } from '@/lib/frontend/context/UserContext';
 import ConfirmModal from '@/lib/frontend/common/ConfirmModal';
@@ -21,7 +21,7 @@ function getPublicUrl(subdomain?: string, customDomain?: string) {
 }
 
 export default function AdminHeader() {
-  const { profileDesign, settings, plan, isLoading } = useAdminForm();
+  const { profileDesign, settings, plan, isLoading, publishChanges } = useAdminForm() as any;
   const router = useRouter();
   const { showToast } = useToast();
   const { logout } = useUser();
@@ -37,19 +37,11 @@ export default function AdminHeader() {
     return getPublicUrl(settings?.subdomain, settings?.customDomain);
   }, [settings?.subdomain, settings?.customDomain]);
 
-  const handlePublish = async () => {
+  const handlePublishClick = async () => {
     try {
       setPublishing(true);
-      const payload = {
-        profile: profileDesign?.profile ?? {},
-        design: profileDesign?.design ?? {},
-        settings: settings ?? {},
-      };
-
-      const res = await saveProfileDesignApi(payload as any);
-      showToast(res?.message || 'Published successfully!', 'success');
+      await publishChanges();
     } catch (err: any) {
-      console.error('publish error', err);
       showToast(err?.message || 'Publish failed', 'error');
     } finally {
       setPublishing(false);
@@ -67,8 +59,7 @@ export default function AdminHeader() {
       } else {
         setOpenShare(true);
       }
-    } catch {
-    }
+    } catch { }
   };
 
   const handleConfirmLogout = async () => {
@@ -104,7 +95,7 @@ export default function AdminHeader() {
             <div className={styles.headerRight}>
               <button
                 className={`btn-primary shadow-md ${styles.publishChangesButton}`}
-                onClick={handlePublish}
+                onClick={handlePublishClick}
                 disabled={isLoading || publishing}
                 aria-label="Publish Changes"
                 title="Publish Changes"

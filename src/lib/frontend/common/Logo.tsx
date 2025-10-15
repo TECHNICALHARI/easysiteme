@@ -7,7 +7,7 @@ interface Props {
 const Logo: FC<Props> = ({ width }) => {
     return (
         <div className={`logo`}>
-            <Image src="/logo.png" alt="myeasypage" width={width ? width : 100} height={30} />
+            {/* <Image src="/logo.png" alt="myeasypage" width={width ? width : 100} height={30} /> */}
         </div>
     )
 }

@@ -1,3 +1,4 @@
+// src/lib/frontend/admin/components/subscribe/SubscribersTab.tsx
 'use client';
 
 import { useEffect, useState } from 'react';
@@ -10,7 +11,10 @@ import { PLAN_FEATURES } from '@/config/PLAN_FEATURES';
 import { useAdminForm } from '@/lib/frontend/admin/context/AdminFormContext';
 import { useToast } from '@/lib/frontend/common/ToastProvider';
 import type { SubscriberDataTypes } from '@/lib/frontend/types/form';
-import { getSubscribersServiceAPI } from '@/lib/frontend/api/services';
+import {
+    getSubscribersServiceAPI,
+    saveSubscribersServiceAPI,
+} from '@/lib/frontend/api/services';
 
 const Section = ({
     title,
@@ -38,7 +42,11 @@ const Section = ({
 export default function SubscribersTab() {
     const { subscriberSettings, setSubscriberSettings, plan } = useAdminForm() as {
         subscriberSettings: SubscriberDataTypes;
-        setSubscriberSettings: (next: SubscriberDataTypes | ((p: SubscriberDataTypes) => SubscriberDataTypes)) => void;
+        setSubscriberSettings: (
+            next:
+                | SubscriberDataTypes
+                | ((p: SubscriberDataTypes) => SubscriberDataTypes)
+        ) => void;
         plan: keyof typeof PLAN_FEATURES;
     };
 
@@ -46,8 +54,15 @@ export default function SubscribersTab() {
     const limits = PLAN_FEATURES[plan] ?? {};
     const [showManageModal, setShowManageModal] = useState(false);
     const [loading, setLoading] = useState(false);
+    const [saving, setSaving] = useState(false);
 
-    const subscriberList = subscriberSettings?.SubscriberList ?? { data: [], total: 0, active: 0, unsubscribed: 0 };
+    const subscriberList =
+        subscriberSettings?.SubscriberList ?? {
+            data: [],
+            total: 0,
+            active: 0,
+            unsubscribed: 0,
+        };
     const subscribers = subscriberList.data ?? [];
     const total = subscriberList.total ?? 0;
     const active = subscriberList.active ?? 0;
@@ -62,32 +77,24 @@ export default function SubscribersTab() {
     ];
 
     const fetchSubscribers = async (signal?: AbortSignal) => {
+        if (!isSubscribeEnabled) return;
         setLoading(true);
         try {
-            // Prefer service function if available
-            let res;
-            try {
-                res = await getSubscribersServiceAPI();
-            } catch (err) {
-                // fallback to direct fetch if service not available or fails
-                const url = '/api/admin/subscribers';
-                const r = await fetch(url, { credentials: 'include', signal });
-                res = r.ok ? await r.json() : null;
-            }
-
-            // Expecting shape: { success: true, data: { SubscriberList: { data: [], total, active, unsubscribed } } }
-            const payload = res?.data ?? res;
-            const subscriberPayload = payload?.SubscriberList ? { SubscriberList: payload.SubscriberList } : { SubscriberList: payload ?? { data: [], total: 0, active: 0, unsubscribed: 0 } };
+            const res = await getSubscribersServiceAPI();
+            const payload = res?.data ?? {};
+            const nextList =
+                payload?.SubscriberList ??
+                payload ??
+                ({ data: [], total: 0, active: 0, unsubscribed: 0 } as any);
 
             setSubscriberSettings((prev: any) => ({
                 ...prev,
-                SubscriberList: subscriberPayload.SubscriberList,
+                SubscriberList: nextList,
+                subscriberSettings:
+                    payload?.subscriberSettings ?? prev?.subscriberSettings ?? {},
             }));
         } catch (err: any) {
-            if (err?.name === 'AbortError') {
-                // aborted, ignore
-            } else {
-                console.error('Failed to load subscribers', err);
+            if (err?.name !== 'AbortError') {
                 showToast(err?.message || 'Failed to load subscribers', 'error');
             }
         } finally {
@@ -97,28 +104,47 @@ export default function SubscribersTab() {
 
     useEffect(() => {
         const ac = new AbortController();
-        if (isSubscribeEnabled) fetchSubscribers(ac.signal);
+        fetchSubscribers(ac.signal);
         return () => ac.abort();
-        // only re-run when plan changes (limits) or enable toggles
-    }, [plan, isSubscribeEnabled]);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [plan]);
 
-    const handleManageSettings = (data: SubscriberDataTypes['subscriberSettings']) => {
-        setSubscriberSettings((prev) => ({
-            ...prev,
-            subscriberSettings: {
-                ...prev?.subscriberSettings,
-                ...data,
-            },
-        }));
-        setShowManageModal(false);
-        showToast('Subscriber settings updated', 'success');
+    const handleManageSettings = async (
+        data: SubscriberDataTypes['subscriberSettings']
+    ) => {
+        setSaving(true);
+        try {
+            const res = await saveSubscribersServiceAPI({
+                subscriberSettings: data,
+            });
+            const saved =
+                (res?.data?.subscriberSettings as SubscriberDataTypes['subscriberSettings']) ??
+                data;
+
+            setSubscriberSettings((prev) => ({
+                ...prev,
+                subscriberSettings: {
+                    ...(prev?.subscriberSettings || {}),
+                    ...(saved || {}),
+                },
+            }));
+            showToast(res?.message || 'Subscriber settings updated', 'success');
+            setShowManageModal(false);
+        } catch (err: any) {
+            showToast(err?.message || 'Failed to update settings', 'error');
+        } finally {
+            setSaving(false);
+        }
     };
 
     return (
         <div className={styles.TabPageMain}>
             <div className={styles.sectionHead}>
                 <h3>Subscribers & Email List</h3>
-                <p>Collect subscribers from your page, track activity, and manage communication settings.</p>
+                <p>
+                    Collect subscribers from your page, track activity, and manage
+                    communication settings.
+                </p>
             </div>
 
             <Section
@@ -129,16 +155,20 @@ export default function SubscribersTab() {
                 }
                 right={
                     <div className="flex gap-3">
-                        <button className="btn-primary" disabled={!isSubscribeEnabled || loading}>
-                            {loading ? 'Loading…' : 'Send Email'}
+                        <button
+                            className="btn-secondary"
+                            disabled={!isSubscribeEnabled || loading}
+                            onClick={() => fetchSubscribers()}
+                        >
+                            {loading ? 'Refreshing…' : 'Refresh'}
                         </button>
                         <button
                             className="btn-secondary gap-2"
-                            disabled={!isSubscribeEnabled || loading}
+                            disabled={!isSubscribeEnabled || saving}
                             onClick={() => setShowManageModal(true)}
                         >
                             <Settings size={16} />
-                            Manage Settings
+                            {saving ? 'Saving…' : 'Manage Settings'}
                         </button>
                     </div>
                 }
@@ -168,7 +198,8 @@ export default function SubscribersTab() {
                             <AdminTable columns={columns} data={subscribers} />
                         ) : (
                             <p className="text-sm text-muted">
-                                No subscribers yet. Once users subscribe through your page, they’ll appear here.
+                                No subscribers yet. Once users subscribe through your page,
+                                they’ll appear here.
                             </p>
                         )}
                     </div>

@@ -1,6 +1,6 @@
 import {
   ADMIN_FORM,
-  PUBLISH_FORM,
+  PROFILE_DESIGN,
   POSTS,
   SUBSCRIBERS,
   SUBSCRIBE_PUBLIC,
@@ -18,7 +18,6 @@ import {
   CONTACT,
   CHANGE_PASSWORD,
   CHANGE_SUBDOMAIN,
-  GET_PROFILE_DESIGN,
 } from "./routes";
 
 export interface ApiResponse<T = any> {
@@ -122,7 +121,7 @@ export async function getAdminForm() {
 }
 
 export async function publishAdminForm(data: any) {
-  return apiFetch<any>(PUBLISH_FORM, { method: "POST", body: data });
+  return apiFetch<any>(ADMIN_FORM, { method: "POST", body: data });
 }
 
 export async function listPosts() {
@@ -169,11 +168,19 @@ export async function subscribePublic(data: any) {
 }
 
 export async function trackLink(data: any) {
-  return apiFetch<any>(TRACK_LINK, { method: "POST", body: data });
+  return apiFetch<any>(TRACK_LINK, {
+    method: "POST",
+    body: data,
+    authRequired: false,
+  });
 }
 
 export async function trackTraffic(data: any) {
-  return apiFetch<any>(TRACK_TRAFFIC, { method: "POST", body: data });
+  return apiFetch<any>(TRACK_TRAFFIC, {
+    method: "POST",
+    body: data,
+    authRequired: false,
+  });
 }
 
 export async function submitContact(data: any) {
@@ -244,22 +251,36 @@ export async function ChangePasswordApi(data: any) {
     authRequired: false,
   });
 }
-export async function getProfileDesignApi(data: any) {
-  return apiFetch<any>(GET_PROFILE_DESIGN, {
+export async function getProfileDesignApi(opts?: { signal?: AbortSignal }) {
+  const url = PROFILE_DESIGN;
+  return apiFetch<any>(url, {
     method: "GET",
     authRequired: true,
   });
 }
 export async function saveProfileDesignApi(data: any) {
-  return apiFetch<any>(GET_PROFILE_DESIGN, {
+  return apiFetch<any>(PROFILE_DESIGN, {
     method: "POST",
     authRequired: true,
     body: data,
   });
 }
 export async function getSubscribersServiceAPI() {
-  return apiFetch<any>(GET_PROFILE_DESIGN, {
+  return apiFetch<any>(SUBSCRIBERS, {
     method: "GET",
     authRequired: true,
   });
+}
+export async function saveSubscribersServiceAPI(data: any) {
+  return apiFetch<any>(SUBSCRIBERS, {
+    method: "POST",
+    authRequired: true,
+    body: data,
+  });
+}
+export async function getStatsServiceAPI() {
+  return apiFetch<any>("/admin/stats", { method: "GET" });
+}
+export async function saveStatsServiceAPI(data: any) {
+  return apiFetch<any>("/admin/stats", { method: "POST", body: data });
 }

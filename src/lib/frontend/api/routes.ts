@@ -5,9 +5,11 @@ export const VERIFY_OTP = "/auth/verify-otp";
 export const CHANGE_PASSWORD = "/auth/change-password";
 
 export const ADMIN_FORM = "/admin/form";
-export const PUBLISH_FORM = "/admin/form";
 export const CHANGE_SUBDOMAIN = "/admin/change-subdomain";
-export const GET_PROFILE_DESIGN = "/admin/profile-design";
+
+export const PROFILE_DESIGN = "/admin/profile-design";
+export const SUBSCRIBERS = "/admin/subscribers";
+export const STATS = "/admin/stats";
 
 export const POSTS = "/admin/posts";
 export const POST = (id: string) =>
@@ -15,12 +17,9 @@ export const POST = (id: string) =>
 export const POST_PUBLISH = (id: string) =>
   `/admin/posts?postId=${encodeURIComponent(id)}&action=publish`;
 
-export const SUBSCRIBERS = "/admin/subscribers";
-
 export const TRACK_LINK = "/public/stats/track-link";
 export const TRACK_TRAFFIC = "/public/stats/track-traffic";
 export const SUBMIT_CONTACT = "/public/stats/contact";
-
 export const SUBSCRIBE_PUBLIC = "/public/subscribe";
 
 export const CHECK_SUBDOMAIN = (subdomain: string) =>

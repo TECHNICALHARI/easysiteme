@@ -1,4 +1,4 @@
-// AdminLayout.tsx
+// src/app/admin/AdminLayout.tsx
 'use client';
 
 import { useEffect, useMemo, useState, useCallback, useRef } from 'react';
@@ -13,11 +13,13 @@ import PreviewFab from './PreviewFab';
 import { PlanType } from '@/config/PLAN_FEATURES';
 import Loader from '@/lib/frontend/common/Loader';
 import { useUser } from '@/lib/frontend/context/UserContext';
-import { getProfileDesignApi } from '@/lib/frontend/api/services';
+import { getProfileDesignApi, saveProfileDesignApi } from '@/lib/frontend/api/services';
+import { useToast } from '@/lib/frontend/common/ToastProvider';
 
 type ServerPartial = Partial<{
   profile: Partial<ProfileTabData>;
   design: Partial<FormData['design']>;
+  settings: Partial<FormData['settings']>;
 }>;
 
 const EMPTY_PROFILE: FormData['profile'] = {
@@ -55,6 +57,52 @@ const EMPTY_PROFILE: FormData['profile'] = {
 
 const EMPTY_DESIGN: FormData['design'] = { theme: 'brand', emojiLink: '', brandingOff: false, layoutType: 'bio' };
 
+const DEFAULT_SETTINGS: FormData['settings'] = {
+  nsfwWarning: false,
+  preferredLink: 'primary',
+  customDomain: '',
+  gaId: '',
+  subdomain: '',
+  seo: {
+    metaTitle: '',
+    metaDescription: '',
+    metaKeywords: [],
+    canonicalUrl: '',
+    ogTitle: '',
+    ogDescription: '',
+    ogImage: '',
+    twitterTitle: '',
+    twitterDescription: '',
+    twitterImage: '',
+    noIndex: false,
+    noFollow: false,
+  },
+};
+
+function cleanDeep<T extends Record<string, any>>(obj?: T): Partial<T> {
+  if (!obj || typeof obj !== 'object') return {};
+  const out: any = Array.isArray(obj) ? [] : {};
+  for (const [k, v] of Object.entries(obj)) {
+    if (v === undefined || v === null) continue;
+    if (typeof v === 'string') {
+      if (v.trim() === '') continue;
+      out[k] = v;
+      continue;
+    }
+    if (typeof v === 'object') {
+      if (Array.isArray(v)) {
+        out[k] = v;
+        continue;
+      }
+      const nested = cleanDeep(v as any);
+      if (Object.keys(nested).length > 0) out[k] = nested;
+      continue;
+    }
+    out[k] = v;
+  }
+  return out;
+}
+
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname() || '';
   const router = useRouter();
@@ -65,6 +113,8 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const user = userCtx?.user ?? null;
   const userBootstrapped = userCtx?.isBootstrapped ?? false;
 
+  const { showToast } = useToast();
+
   const [plan, setPlan] = useState<PlanType>('free');
   const [isLoading, setIsLoading] = useState(true);
   const [bootstrapped, setBootstrapped] = useState(false);
@@ -74,26 +124,16 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     design: EMPTY_DESIGN,
   });
 
-  const [settings, setSettings] = useState<FormData['settings'] | undefined>(undefined as any);
-  const [posts, setPosts] = useState<FormData['posts'] | undefined>(undefined as any);
-  const [subscriberSettings, setSubscriberSettings] = useState<FormData['subscriberSettings'] | undefined>(undefined as any);
-  const [stats, setStats] = useState<FormData['stats'] | undefined>(undefined as any);
+  const [settings, setSettings] = useState<FormData['settings']>(DEFAULT_SETTINGS);
+  const [posts, setPosts] = useState<FormData['posts'] | undefined>(undefined);
+  const [subscriberSettings, setSubscriberSettings] = useState<FormData['subscriberSettings'] | undefined>(undefined);
+  const [stats, setStats] = useState<FormData['stats'] | undefined>(undefined);
   const initializedRef = useRef(false);
 
   useEffect(() => {
     if (!user) return;
     if (typeof user.plan === 'string' && user.plan) setPlan(user.plan as PlanType);
-    setSettings((s) => {
-      if (s) return { ...s, subdomain: s.subdomain || user.subdomain || '' } as any;
-      return {
-        nsfwWarning: false,
-        preferredLink: 'primary',
-        customDomain: '',
-        gaId: '',
-        subdomain: user.subdomain || '',
-        seo: { metaTitle: '', metaDescription: '', metaKeywords: [], canonicalUrl: '', ogTitle: '', ogDescription: '', ogImage: '', twitterTitle: '', twitterDescription: '', twitterImage: '', noIndex: false, noFollow: false },
-      } as any;
-    });
+    setSettings((prev) => ({ ...(prev || DEFAULT_SETTINGS), subdomain: prev?.subdomain || user.subdomain || '' }));
     setProfileDesign((pd) => ({
       profile: { ...pd.profile, email: pd.profile.email || user.email || '' },
       design: pd.design,
@@ -118,19 +158,49 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         if (aborted) return;
 
         if (res && res.data) {
-          const incomingProfile = (res.data.profile ?? {}) as Partial<ProfileTabData>;
-          const incomingDesign = (res.data.design ?? {}) as Partial<FormData['design']>;
+          const doc = (res.data.profileDesign ?? res.data) as any;
 
-          setServerSnapshot({ profile: incomingProfile, design: incomingDesign });
+          const incomingProfile = (doc.profile ?? {}) as Partial<ProfileTabData>;
+          const incomingDesign = (doc.design ?? {}) as Partial<FormData['design']>;
+          const incomingSettings = (doc.settings ?? {}) as Partial<FormData['settings']>;
 
-          const mergedProfile = { ...EMPTY_PROFILE, ...(incomingProfile as any), ...(draft?.profile ?? {}) } as FormData['profile'];
-          const mergedDesign = { ...EMPTY_DESIGN, ...(incomingDesign as any), ...(draft?.design ?? {}) } as FormData['design'];
+          setServerSnapshot({ profile: incomingProfile, design: incomingDesign, settings: incomingSettings });
+
+          const cleanDraftProfile = cleanDeep(draft?.profile ?? {});
+          const cleanDraftDesign = cleanDeep(draft?.design ?? {});
+          const cleanDraftSettings = cleanDeep(draft?.settings ?? {});
+
+          const mergedProfile = {
+            ...EMPTY_PROFILE,
+            ...(incomingProfile as any),
+            ...cleanDraftProfile,
+          } as FormData['profile'];
+
+          const mergedDesign = {
+            ...EMPTY_DESIGN,
+            ...(incomingDesign as any),
+            ...cleanDraftDesign,
+          } as FormData['design'];
+
+          const mergedSettings = {
+            ...DEFAULT_SETTINGS,
+            ...(incomingSettings as any),
+            ...cleanDraftSettings,
+          } as FormData['settings'];
 
           setProfileDesign({ profile: mergedProfile, design: mergedDesign });
+          setSettings((prev) => ({ ...(prev || DEFAULT_SETTINGS), ...(mergedSettings || {}) } as FormData['settings']));
         } else {
-          const mergedProfile = { ...EMPTY_PROFILE, ...(draft?.profile ?? {}) } as FormData['profile'];
-          const mergedDesign = { ...EMPTY_DESIGN, ...(draft?.design ?? {}) } as FormData['design'];
+          const cleanDraftProfile = cleanDeep(draft?.profile ?? {});
+          const cleanDraftDesign = cleanDeep(draft?.design ?? {});
+          const cleanDraftSettings = cleanDeep(draft?.settings ?? {});
+
+          const mergedProfile = { ...EMPTY_PROFILE, ...cleanDraftProfile } as FormData['profile'];
+          const mergedDesign = { ...EMPTY_DESIGN, ...cleanDraftDesign } as FormData['design'];
+          const mergedSettings = { ...DEFAULT_SETTINGS, ...cleanDraftSettings } as FormData['settings'];
+
           setProfileDesign({ profile: mergedProfile, design: mergedDesign });
+          setSettings((prev) => ({ ...(prev || DEFAULT_SETTINGS), ...(mergedSettings || {}) } as FormData['settings']));
         }
 
         setBootstrapped(true);
@@ -148,15 +218,50 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     };
   }, [userBootstrapped, router]);
 
+  const publishChanges = useCallback(async () => {
+    try {
+      const payload = {
+        profile: profileDesign?.profile ?? {},
+        design: profileDesign?.design ?? {},
+        settings: settings ?? {},
+      };
+      const res = await saveProfileDesignApi(payload as any);
+      if (res?.success) {
+        const fresh = await getProfileDesignApi().catch(() => null);
+        if (fresh && fresh.data) {
+          const doc = (fresh.data.profileDesign ?? fresh.data) as any;
+          const incomingProfile = (doc.profile ?? {}) as Partial<ProfileTabData>;
+          const incomingDesign = (doc.design ?? {}) as Partial<FormData['design']>;
+          const incomingSettings = (doc.settings ?? {}) as Partial<FormData['settings']>;
+
+          setServerSnapshot({ profile: incomingProfile, design: incomingDesign, settings: incomingSettings });
+
+          const mergedProfile = { ...EMPTY_PROFILE, ...(incomingProfile as any) } as FormData['profile'];
+          const mergedDesign = { ...EMPTY_DESIGN, ...(incomingDesign as any) } as FormData['design'];
+
+          setProfileDesign({ profile: mergedProfile, design: mergedDesign });
+          setSettings((prev) => ({ ...(prev || DEFAULT_SETTINGS), ...(incomingSettings as any) } as FormData['settings']));
+        }
+        showToast(res?.message || 'Published successfully!', 'success');
+      } else {
+        showToast(res?.message || 'Publish failed', 'error');
+      }
+      return res;
+    } catch (err: any) {
+      showToast(err?.message || 'Publish failed', 'error');
+      throw err;
+    }
+  }, [profileDesign, settings, showToast]);
+
   const composedForm = useMemo<FormData>(() => {
     return {
       profile: profileDesign.profile,
       design: profileDesign.design,
-      settings: (settings as any) ?? ({} as any),
-      posts: (posts as any) ?? ({ posts: [] } as any),
-      subscriberSettings: (subscriberSettings as any) ?? ({} as any),
-      stats: (stats as any) ?? ({} as any),
-    } as unknown as FormData;
+      settings: (settings as any) ?? DEFAULT_SETTINGS,
+      posts: (posts as any) ?? ({ posts: [] } as FormData['posts']),
+      subscriberSettings: (subscriberSettings as any) ?? ({} as FormData['subscriberSettings']),
+      stats: (stats as any) ?? ({} as FormData['stats']),
+    } as FormData;
   }, [profileDesign, settings, posts, subscriberSettings, stats]);
 
   const setForm = useCallback(
@@ -164,13 +269,13 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       next:
         | Partial<FormData>
         | ((prev: {
-          profile: FormData['profile'];
-          design: FormData['design'];
-          settings?: FormData['settings'];
-          posts?: FormData['posts'];
-          subscriberSettings?: FormData['subscriberSettings'];
-          stats?: FormData['stats'];
-        }) => Partial<FormData>)
+            profile: FormData['profile'];
+            design: FormData['design'];
+            settings?: FormData['settings'];
+            posts?: FormData['posts'];
+            subscriberSettings?: FormData['subscriberSettings'];
+            stats?: FormData['stats'];
+          }) => Partial<FormData>)
     ) => {
       if (typeof next === 'function') {
         const computed = next({
@@ -180,7 +285,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           posts,
           subscriberSettings,
           stats,
-        } as any);
+        });
 
         if (computed.profile || computed.design) {
           setProfileDesign((prev) => ({
@@ -189,10 +294,12 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           }));
         }
 
-        if ((computed as any).settings) setSettings((s) => ({ ...(s || {}), ...((computed as any).settings || {}) } as any));
-        if ((computed as any).posts) setPosts((p) => (computed as any).posts);
-        if ((computed as any).subscriberSettings) setSubscriberSettings((p) => (computed as any).subscriberSettings);
-        if ((computed as any).stats) setStats((p) => (computed as any).stats);
+        if ((computed as any).settings) {
+          setSettings((s) => ({ ...(s || DEFAULT_SETTINGS), ...((computed as any).settings || {}) } as FormData['settings']));
+        }
+        if ((computed as any).posts) setPosts((computed as any).posts as FormData['posts']);
+        if ((computed as any).subscriberSettings) setSubscriberSettings((computed as any).subscriberSettings as FormData['subscriberSettings']);
+        if ((computed as any).stats) setStats((computed as any).stats as FormData['stats']);
       } else {
         if (next.profile || next.design) {
           setProfileDesign((prev) => ({
@@ -200,10 +307,10 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             design: next.design ? (next.design as FormData['design']) : prev.design,
           }));
         }
-        if (next.settings) setSettings((s) => ({ ...(s || {}), ...(next.settings || {}) } as any));
-        if (next.posts) setPosts(next.posts as any);
-        if (next.subscriberSettings) setSubscriberSettings(next.subscriberSettings as any);
-        if (next.stats) setStats(next.stats as any);
+        if (next.settings) setSettings((s) => ({ ...(s || DEFAULT_SETTINGS), ...(next.settings || {}) } as FormData['settings']));
+        if (next.posts) setPosts(next.posts as FormData['posts']);
+        if (next.subscriberSettings) setSubscriberSettings(next.subscriberSettings as FormData['subscriberSettings']);
+        if (next.stats) setStats(next.stats as FormData['stats']);
       }
     },
     [profileDesign, settings, posts, subscriberSettings, stats]
@@ -213,26 +320,26 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     {
       profile: profileDesign.profile,
       design: profileDesign.design,
-      settings: {} as any,
-      posts: { posts: [] } as any,
-      subscriberSettings: {} as any,
-      stats: {} as any,
+      settings: settings || DEFAULT_SETTINGS,
+      posts: posts || ({ posts: [] } as FormData['posts']),
+      subscriberSettings: subscriberSettings || ({} as FormData['subscriberSettings']),
+      stats: stats || ({} as FormData['stats']),
     } as FormData,
     true,
     serverSnapshot as Partial<FormData>
   );
 
-  usePreviewBus({ profile: profileDesign.profile, design: profileDesign.design } as unknown as FormData, plan);
+  usePreviewBus({ profile: profileDesign.profile, design: profileDesign.design } as FormData, plan);
 
   const contextValue = {
-    form: composedForm as FormData,
+    form: composedForm,
     setForm,
     profileDesign,
     setProfileDesign,
     settings,
     setSettings: (next: Partial<FormData['settings']> | ((s: FormData['settings'] | undefined) => FormData['settings'])) => {
       if (typeof next === 'function') setSettings((s) => (next as any)(s));
-      else setSettings((s) => ({ ...(s || {}), ...(next || {}) } as any));
+      else setSettings((s) => ({ ...(s || DEFAULT_SETTINGS), ...(next || {}) } as FormData['settings']));
     },
     posts,
     setPosts: (next: FormData['posts'] | ((p: FormData['posts'] | undefined) => FormData['posts'])) => {
@@ -254,6 +361,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     plan,
     isLoading,
     bootstrapped,
+    publishChanges,
   };
 
   return (

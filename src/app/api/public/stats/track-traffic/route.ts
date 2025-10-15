@@ -19,20 +19,17 @@ export async function POST(req: NextRequest) {
     }
     if (!targetOwnerId)
       return errorResponse("ownerId or ownerSubdomain required", 400, req);
-    const name = body.name ?? "Anonymous";
-    const email = body.email ?? "";
-    const message = body.message ?? "";
-    if (!message) return errorResponse("message is required", 400, req);
-    await statsService.addContactSubmission(targetOwnerId, {
-      name,
-      email,
-      message,
-      submittedOn: new Date().toISOString(),
-    });
-    return successResponse({ submitted: true }, "Submitted", 200, req);
+    const source = body.source || body.label || "unknown";
+    const value = typeof body.value === "number" ? body.value : 1;
+    await statsService.addTrafficSource(
+      targetOwnerId,
+      String(source),
+      Number(value)
+    );
+    return successResponse({ tracked: true }, "Tracked", 200, req);
   } catch (err: any) {
     if (err instanceof SyntaxError)
       return errorResponse("Invalid JSON body", 400, req);
-    return errorResponse(err?.message || "Failed to submit contact", 500, req);
+    return errorResponse(err?.message || "Failed to track traffic", 500, req);
   }
 }
