@@ -265,6 +265,20 @@ export async function saveProfileDesignApi(data: any) {
     body: data,
   });
 }
+export async function getProfileDesignDraftApi() {
+  return apiFetch<any>(`${PROFILE_DESIGN}/draft`, {
+    method: "GET",
+    authRequired: true,
+  });
+}
+
+export async function saveProfileDesignDraftApi(data: any) {
+  return apiFetch<any>(`${PROFILE_DESIGN}/draft`, {
+    method: "POST",
+    authRequired: true,
+    body: data,
+  });
+}
 export async function getSubscribersServiceAPI() {
   return apiFetch<any>(SUBSCRIBERS, {
     method: "GET",
@@ -278,6 +292,7 @@ export async function saveSubscribersServiceAPI(data: any) {
     body: data,
   });
 }
+
 export async function getStatsServiceAPI() {
   return apiFetch<any>("/admin/stats", { method: "GET" });
 }

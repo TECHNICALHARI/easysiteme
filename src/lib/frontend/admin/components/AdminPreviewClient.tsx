@@ -10,6 +10,7 @@ import PageLayout from '@/lib/frontend/singlepage/layout/PageLayout';
 import themeStyles from '@/styles/theme.module.css';
 import previewStyles from '@/styles/preview.module.css';
 import PreviewSkeleton from '@/lib/frontend/singlepage/components/PreviewSkeleton';
+import { getProfileDesignDraftApi } from '@/lib/frontend/api/services';
 
 const CACHE_KEY = 'myeasypage:preview:last';
 const BUS_NAME = 'myeasypage:preview';
@@ -26,18 +27,37 @@ const hasAnyData = (f?: FormData | null) =>
 export default function AdminPreviewClient() {
   const ctx = useAdminForm() as any;
   const { form: formFromCtx, profileDesign, settings, posts, subscriberSettings, stats, isLoading } = ctx;
-
-  // incoming from messages/broadcast channel (same as before)
   const [incoming, setIncoming] = useState<FormData | null>(null);
+
+  const normalizePayload = (payload: any): FormData | null => {
+    if (!payload) return null;
+    const maybeDraft = payload.draft ?? payload.form ?? payload;
+    if (!maybeDraft) return null;
+    if (maybeDraft.profile || maybeDraft.design) {
+      return {
+        profile: maybeDraft.profile ?? {},
+        design: maybeDraft.design ?? {},
+        settings: maybeDraft.settings ?? {},
+        posts: maybeDraft.posts ?? { posts: [] },
+        subscriberSettings: maybeDraft.subscriberSettings ?? {},
+        stats: maybeDraft.stats ?? {},
+        previewMode: true,
+      } as FormData;
+    }
+    return null;
+  };
 
   useEffect(() => {
     const onWin = (ev: MessageEvent) => {
       const msg = ev.data;
       if (msg?.type === 'myeasypage:preview:update' && msg.payload) {
-        setIncoming({ ...(msg.payload as FormData), previewMode: true });
+        const n = normalizePayload(msg.payload);
+        if (n) setIncoming(n);
       }
       if (msg?.type === 'myeasypage:preview:ping') {
-        window.postMessage({ type: 'myeasypage:preview:ready' }, '*');
+        try {
+          window.postMessage({ type: 'myeasypage:preview:ready' }, '*');
+        } catch { }
       }
     };
     window.addEventListener('message', onWin);
@@ -47,23 +67,39 @@ export default function AdminPreviewClient() {
       ch = new BroadcastChannel(BUS_NAME);
       const onBus = (e: MessageEvent) => {
         if (e.data?.type === 'myeasypage:preview:update' && e.data.payload) {
-          setIncoming({ ...(e.data.payload as FormData), previewMode: true });
+          const n = normalizePayload(e.data.payload);
+          if (n) setIncoming(n);
         }
       };
       ch.addEventListener('message', onBus);
 
-      // cold-start fallback
       try {
         const cached = localStorage.getItem(CACHE_KEY);
         if (cached) {
-          const parsed = JSON.parse(cached) as FormData;
-          if (hasAnyData(parsed)) setIncoming({ ...parsed, previewMode: true });
+          const parsed = JSON.parse(cached) as any;
+          const n = normalizePayload(parsed);
+          if (n && hasAnyData(n)) setIncoming(n);
         }
-      } catch {}
+      } catch { }
 
-      // announce ready
-      try { window.parent?.postMessage({ type: 'myeasypage:preview:ready' }, '*'); } catch {}
-      try { window.opener?.postMessage({ type: 'myeasypage:preview:ready' }, '*'); } catch {}
+      (async () => {
+        try {
+          const dr = await getProfileDesignDraftApi().catch(() => null);
+          if (dr && dr.data) {
+            const rawDraft = dr.data.draft ?? dr.data.profileDesign ?? dr.data ?? null;
+            const n = normalizePayload(rawDraft);
+            if (n && hasAnyData(n)) {
+              setIncoming((prev) => {
+                if (prev && hasAnyData(prev)) return prev;
+                return n;
+              });
+            }
+          }
+        } catch { }
+      })();
+
+      try { window.parent?.postMessage({ type: 'myeasypage:preview:ready' }, '*'); } catch { }
+      try { window.opener?.postMessage({ type: 'myeasypage:preview:ready' }, '*'); } catch { }
 
       return () => {
         window.removeEventListener('message', onWin);
@@ -77,11 +113,9 @@ export default function AdminPreviewClient() {
     }
   }, []);
 
-  // Build a merged form from the admin context pieces (prefer profileDesign slices, fallback to form)
   const mergedFromAdminContext = useMemo<FormData>(() => {
     const profile = (profileDesign && profileDesign.profile) || (formFromCtx && formFromCtx.profile) || ({} as any);
     const design = (profileDesign && profileDesign.design) || (formFromCtx && formFromCtx.design) || ({} as any);
-
     return {
       profile,
       design,
@@ -93,9 +127,9 @@ export default function AdminPreviewClient() {
     } as FormData;
   }, [profileDesign, formFromCtx, settings, posts, subscriberSettings, stats]);
 
-  // decide which data to show: incoming (live message) > mergedFromAdminContext > formFromCtx
-  const theme = useMemo(() => (incoming ?? mergedFromAdminContext ?? formFromCtx)?.design?.theme ?? 'brand', [incoming, mergedFromAdminContext, formFromCtx]);
-  const layoutType = useMemo(() => (incoming ?? mergedFromAdminContext ?? formFromCtx)?.design?.layoutType ?? 'bio', [incoming, mergedFromAdminContext, formFromCtx]);
+  const source = incoming ?? mergedFromAdminContext ?? (formFromCtx as FormData | null);
+  const theme = useMemo(() => source?.design?.theme ?? 'brand', [source]);
+  const layoutType = useMemo(() => source?.design?.layoutType ?? 'bio', [source]);
   const ThemeClass = (themeStyles as Record<string, string>)[theme] ?? themeStyles['brand'];
 
   const data: FormData | null = (() => {
