@@ -18,6 +18,8 @@ import {
   CONTACT,
   CHANGE_PASSWORD,
   CHANGE_SUBDOMAIN,
+  CREATE_ORDER,
+  VERIFY_PAYMENT,
 } from "./routes";
 
 export interface ApiResponse<T = any> {
@@ -298,4 +300,20 @@ export async function getStatsServiceAPI() {
 }
 export async function saveStatsServiceAPI(data: any) {
   return apiFetch<any>("/admin/stats", { method: "POST", body: data });
+}
+
+
+export async function createOrderServiceAPI(data: any) {
+  return apiFetch<any>(CREATE_ORDER, {
+    method: "POST",
+    authRequired: true,
+    body: data,
+  });
+}
+export async function verifyPaymentServiceAPI(data: any) {
+  return apiFetch<any>(VERIFY_PAYMENT, {
+    method: "POST",
+    authRequired: true,
+    body: data,
+  });
 }

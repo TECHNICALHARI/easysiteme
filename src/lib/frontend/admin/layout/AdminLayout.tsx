@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useMemo, useState, useCallback, useRef } from 'react';
-import { usePathname, useRouter } from 'next/navigation';
+import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import AdminHeader from '@/lib/frontend/admin/layout/Header';
 import Container from '@/lib/frontend/admin/layout/Container';
 import { AdminFormContext, ProfileDesignSlice } from '@/lib/frontend/admin/context/AdminFormContext';
@@ -108,26 +108,28 @@ const hasAnyData = (f?: Partial<FormData> | null) =>
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname() || '';
+  const searchParams = useSearchParams();
   const router = useRouter();
   const path = pathname.replace(/\/+$/, '');
   const isPreviewRoute = useMemo(() => /(?:^|\/)admin\/preview(?:\/|$)/.test(path), [path]);
+
   const userCtx = useUser();
   const user = userCtx?.user ?? null;
   const userBootstrapped = userCtx?.isBootstrapped ?? false;
+
   const { showToast } = useToast();
+
   const [plan, setPlan] = useState<PlanType>('free');
   const [isLoading, setIsLoading] = useState(true);
   const [bootstrapped, setBootstrapped] = useState(false);
   const [serverSnapshot, setServerSnapshot] = useState<ServerPartial>({});
   const [profileDesign, setProfileDesign] = useState<ProfileDesignSlice>({ profile: EMPTY_PROFILE, design: EMPTY_DESIGN });
+
   const [settings, setSettings] = useState<FormData['settings']>(DEFAULT_SETTINGS);
   const [posts, setPosts] = useState<FormData['posts'] | undefined>(undefined);
   const [subscriberSettings, setSubscriberSettings] = useState<FormData['subscriberSettings'] | undefined>(undefined);
   const [stats, setStats] = useState<FormData['stats'] | undefined>(undefined);
   const initializedRef = useRef(false);
-  const pendingDraftRef = useRef<FormData | null>(null);
-  const [confirmOpen, setConfirmOpen] = useState(false);
-  const [suspendAutosave, setSuspendAutosave] = useState(true);
 
   useEffect(() => {
     if (!user) return;
@@ -135,6 +137,25 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     setSettings((prev) => ({ ...(prev || DEFAULT_SETTINGS), subdomain: prev?.subdomain || user.subdomain || '' }));
     setProfileDesign((pd) => ({ profile: { ...pd.profile, email: pd.profile.email || user.email || '' }, design: pd.design }));
   }, [user]);
+
+  const pendingDraftRef = useRef<FormData | null>(null);
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const [suspendAutosave, setSuspendAutosave] = useState(true);
+
+  const isConfirmModalAllowed = useMemo(() => {
+    const denyPaths = [/\/admin\/plan/i, /\/admin\/preview/i, /\/admin\/login/i];
+    for (const rx of denyPaths) {
+      if (rx.test(path)) return false;
+    }
+    const tab = searchParams?.get('tab') ?? '';
+    const denyTabs = ['posts', 'subscribers', 'stats'];
+    if (tab && denyTabs.includes(tab.toLowerCase())) return false;
+    try {
+      const disabled = localStorage.getItem('myeasypage:preview:disableDraftModal');
+      if (disabled === '1') return false;
+    } catch {}
+    return true;
+  }, [path, searchParams]);
 
   useEffect(() => {
     if (!userBootstrapped) return;
@@ -146,11 +167,11 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       try {
         setIsLoading(true);
         const pubPromise = getProfileDesignApi({ signal: ac.signal }).catch(() => null);
-        const draftPromise = getProfileDesignDraftApi ? getProfileDesignDraftApi() : Promise.resolve(null);
+        const draftPromise = typeof getProfileDesignDraftApi === 'function' ? getProfileDesignDraftApi() : Promise.resolve(null);
         const [pubRes, dr] = await Promise.all([pubPromise, draftPromise]);
         if (aborted) return;
         const pubDoc = pubRes?.data ? (pubRes.data.profileDesign ?? pubRes.data) : null;
-        const draftDoc = dr?.data ? (dr.data.profileDesign ?? dr.data.draft ?? dr.data) : null;
+        const draftDoc = dr?.data ? (dr.data.draft ?? dr.data.profileDesign ?? dr.data) : null;
         const incomingProfile = (pubDoc?.profile ?? {}) as Partial<ProfileTabData>;
         const incomingDesign = (pubDoc?.design ?? {}) as Partial<FormData['design']>;
         const incomingSettings = (pubDoc?.settings ?? {}) as Partial<FormData['settings']>;
@@ -178,7 +199,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         const preferDraft = draftDoc && hasAnyData(draftDoc) && draftUpdatedAt > pubUpdatedAt;
         setProfileDesign({ profile: publishedProfile, design: publishedDesign });
         setSettings((prev) => ({ ...(prev || DEFAULT_SETTINGS), ...(publishedSettings || {}) } as FormData['settings']));
-        if (preferDraft) {
+        if (preferDraft && isConfirmModalAllowed) {
           pendingDraftRef.current = {
             profile: { ...EMPTY_PROFILE, ...(draftProfile as any) },
             design: { ...EMPTY_DESIGN, ...(draftDesign as any) },
@@ -202,7 +223,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       aborted = true;
       ac.abort();
     };
-  }, [userBootstrapped, router]);
+  }, [userBootstrapped, router, isConfirmModalAllowed]);
 
   const { saving: draftSaving, triggerSave: triggerDraftSave } = useAutoSaveDraft({
     profile: profileDesign.profile,
@@ -362,18 +383,20 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
   return (
     <AdminFormContext.Provider value={contextValue as any}>
-      <ConfirmModal
-        open={confirmOpen}
-        onClose={handleKeepPublished}
-        onConfirm={async () => {
-          handleLoadDraft();
-        }}
-        title="Load autosaved draft?"
-        message="We found an autosaved draft that is newer than your published content. Do you want to load the draft?"
-        confirmLabel="Load Draft"
-        cancelLabel="Keep Published"
-        loading={false}
-      />
+      {isConfirmModalAllowed && (
+        <ConfirmModal
+          open={confirmOpen}
+          onClose={handleKeepPublished}
+          onConfirm={async () => {
+            handleLoadDraft();
+          }}
+          title="Load autosaved draft?"
+          message="We found an autosaved draft that is newer than your published content. Do you want to load the draft?"
+          confirmLabel="Load Draft"
+          cancelLabel="Keep Published"
+          loading={false}
+        />
+      )}
       {isLoading && !bootstrapped ? (
         <div className="flex items-center justify-center min-h-screen">
           <Loader />

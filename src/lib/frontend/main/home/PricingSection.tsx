@@ -1,56 +1,9 @@
-"use client";
+'use client';
+
 import { motion } from 'framer-motion';
 import styles from '@/styles/main.module.css';
 import PlanCard from '@/lib/frontend/main/home/PlanCard';
-
-const plans = [
-  {
-    name: 'Free',
-    price: '₹0',
-    cta: 'Start Free',
-    features: [
-      'Website + Bio link',
-      'Basic blog (up to 5 posts)',
-      '2 links & 1 header',
-      'Fixed theme',
-      'myeasypage subdomain',
-      'Branding visible',
-    ],
-    highlight: false,
-  },
-  {
-    name: 'Pro',
-    price: '₹199/year',
-    cta: 'Go Pro',
-    features: [
-      'Everything in Free',
-      'Custom domain',
-      'Rich About & Gallery',
-      'Contact form & Map',
-      'Up to 3 services',
-      'Embeds (YouTube, Calendly)',
-      'Remove branding',
-      'Up to 20 posts',
-    ],
-    highlight: true,
-  },
-  {
-    name: 'Premium',
-    price: '₹499/year',
-    cta: 'Upgrade',
-    features: [
-      'Everything in Pro',
-      'Advanced themes',
-      'Testimonials & FAQs',
-      'Featured media',
-      'Up to 10 services',
-      'Email subscribe section',
-      'Up to 50 posts',
-      'Priority support',
-    ],
-    highlight: false,
-  },
-];
+import { PlanData } from '../../utils/data/plans';
 
 export default function PricingSection() {
   return (
@@ -61,14 +14,14 @@ export default function PricingSection() {
             Plans made for everyone
           </h2>
           <p className="section-subtitle">
-            Start free with a subdomain. Upgrade anytime for custom domains, premium layouts and pro features — all at simple, flat prices.
+            Upgrade anytime for custom domains, premium layouts and pro features — all at simple, flat prices.
           </p>
         </div>
 
         <ul className={styles.planGrid} role="list" aria-label="Pricing plans">
-          {plans.map((plan, i) => (
+          {PlanData.map((plan, i) => (
             <motion.li
-              key={plan.name}
+              key={plan.id || plan.name}
               className={styles.planWrapper}
               initial={{ opacity: 0, y: 14 }}
               whileInView={{ opacity: 1, y: 0 }}

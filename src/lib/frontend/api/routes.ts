@@ -31,3 +31,5 @@ export const USER_PAGE = (username: string) =>
 export const UPLOAD_IMAGE = "/uploads/image";
 export const DELETE_IMAGE = "/uploads/delete";
 export const CONTACT = "/contact";
+export const CREATE_ORDER = "/payments/create-order";
+export const VERIFY_PAYMENT = "/payments/verify";

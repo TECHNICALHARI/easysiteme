@@ -2,6 +2,7 @@
 
 import { Lock } from 'lucide-react';
 import styles from '@/styles/admin.module.css';
+import { useRouter } from 'next/navigation';
 
 type LockedOverlayProps = {
   enabled: boolean;
@@ -14,11 +15,12 @@ type LockedOverlayProps = {
 const LockedOverlay: React.FC<LockedOverlayProps> = ({
   enabled,
   limitReached = false,
-  upgradeUrl = '/pricing',
+  upgradeUrl = '/admin/plan',
   mode = 'overlay',
   children,
 }) => {
   const isLocked = !enabled || limitReached;
+  const router = useRouter();
 
   if (!isLocked) return <>{children}</>;
 
@@ -37,7 +39,7 @@ const LockedOverlay: React.FC<LockedOverlayProps> = ({
           </div>
           <button
             className="btn-secondary"
-            onClick={() => (window.location.href = upgradeUrl)}
+            onClick={() => router.push(upgradeUrl)}
           >
             Upgrade Now
           </button>
@@ -53,7 +55,7 @@ const LockedOverlay: React.FC<LockedOverlayProps> = ({
         <p className={styles.lockText}>{message}</p>
         <button
           className="btn-secondary"
-          onClick={() => (window.location.href = upgradeUrl)}
+          onClick={() => router.push(upgradeUrl)}
         >
           Upgrade Now
         </button>

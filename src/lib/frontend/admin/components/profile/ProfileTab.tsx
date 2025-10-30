@@ -1,4 +1,3 @@
-// ProfileTab.tsx
 'use client';
 
 import { useState, useEffect, useRef, FC } from 'react';
