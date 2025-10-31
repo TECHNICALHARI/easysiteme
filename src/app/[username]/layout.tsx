@@ -6,6 +6,7 @@ import { UserPageProvider } from "@/lib/frontend/singlepage/context/UserPageProv
 import { notFound } from "next/navigation";
 import dummyFormData from "@/lib/frontend/utils/dummyForm";
 import { fetchPublicPageServer } from "@/lib/frontend/api/publicPages";
+import NotFoundPage from "@/lib/frontend/common/NotFoundPage";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -69,15 +70,23 @@ export default async function UserLayout(props: LayoutProps) {
   const result = await fetchUserPage(username);
   const data = result.data ?? null;
   const etag = result.etag ?? null;
-  if (!data) {
-    notFound();
-  }
+
   return (
     <html lang="en">
       <body className={`${inter.variable} antialiased`}>
-        <UserPageProvider initialData={data ?? dummyFormData} initialEtag={etag ?? null}>
-          {props.children}
-        </UserPageProvider>
+        {
+          data ?
+            <UserPageProvider initialData={data ?? dummyFormData} initialEtag={etag ?? null}>
+              {props.children}
+            </UserPageProvider>
+            :
+            <NotFoundPage
+              subtitle="User Not Found"
+              message="Sorry, we couldn’t find this username on myeasypage."
+              backHref="/"
+              backLabel="Go to Home"
+            />
+        }
       </body>
     </html>
   );
