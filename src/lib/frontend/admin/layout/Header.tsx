@@ -25,7 +25,6 @@ export default function AdminHeader() {
   const router = useRouter();
   const { showToast } = useToast();
   const { logout } = useUser();
-
   const [openShare, setOpenShare] = useState(false);
   const [confirmLogoutOpen, setConfirmLogoutOpen] = useState(false);
   const [logoutLoading, setLogoutLoading] = useState(false);
