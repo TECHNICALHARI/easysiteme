@@ -1,16 +1,12 @@
-'use client';
+"use client";
+import { motion } from "framer-motion";
+import styles from "@/styles/preview.module.css";
+import { Service } from "@/lib/frontend/types/form";
 
-import { motion } from 'framer-motion';
-import styles from '@/styles/preview.module.css';
-import { Service } from '@/lib/frontend/types/form';
+const fade = { hidden: { opacity: 0, y: 18 }, visible: { opacity: 1, y: 0 } };
 
-const fadeInUp = {
-  hidden: { opacity: 0, y: 20 },
-  visible: { opacity: 1, y: 0 },
-};
-
-export default function ServiceSection({ services }: { services: Service[] }) {
-  if (!services?.length) return null;
+export default function ServiceSection({ services }: { services?: Service[] | any }) {
+  if (!Array.isArray(services) || services.length === 0) return null;
 
   const isSingle = services.length === 1;
 
@@ -18,32 +14,42 @@ export default function ServiceSection({ services }: { services: Service[] }) {
     <motion.section
       id="services"
       className="px-4 mt-10"
-      variants={fadeInUp}
+      variants={fade}
       initial="hidden"
       whileInView="visible"
-      transition={{ duration: 0.5 }}
+      transition={{ duration: 0.45 }}
       viewport={{ once: true }}
     >
       <h2 className={styles.sectionTitle}>Services</h2>
-      <div className={`grid gap-6 ${isSingle ? '' : 'sm:grid-cols-2 lg:grid-cols-3'}`}>
-        {services.map((service, i) => (
+      <div className={`grid gap-6 ${isSingle ? "" : "sm:grid-cols-2 lg:grid-cols-3"}`}>
+        {services.map((service: any, i: number) => (
           <motion.div
-            key={service.id}
+            key={service.id ?? i}
             className={styles.serviceCard}
-            variants={fadeInUp}
+            variants={fade}
             initial="hidden"
             whileInView="visible"
-            transition={{ duration: 0.4, delay: i * 0.1 }}
+            transition={{ delay: i * 0.04, duration: 0.32 }}
             viewport={{ once: true }}
           >
-            <h3 className={styles.serviceTitle}>{service.title}</h3>
-            <p className={styles.serviceDescription}>{service.description}</p>
-            {service.price && <p className={styles.servicePrice}>₹{parseInt(service.price).toLocaleString()}</p>}
-            {service.ctaLink && (
-              <a href={service.ctaLink} target="_blank" rel="noopener noreferrer" className={styles.ctaButton}>
-                {service.ctaLabel || 'Learn More'}
-              </a>
+            <h3 className={styles.serviceTitle}>{service.title || "Untitled Service"}</h3>
+            {service.description ? <p className={styles.serviceDescription}>{service.description}</p> : null}
+            {(service.amount || service.currencySymbol || service.customSymbol) && (
+              <p className={styles.servicePrice}>
+                {(service.currencySymbol ?? service.customSymbol ?? "")}{" "}
+                {service.amount ? service.amount : ""}
+              </p>
             )}
+            {service.ctaLink ? (
+              <a
+                href={service.ctaLink}
+                target="_blank"
+                rel="noopener noreferrer"
+                className={styles.ctaButton}
+              >
+                {service.ctaLabel || "Learn More"}
+              </a>
+            ) : null}
           </motion.div>
         ))}
       </div>

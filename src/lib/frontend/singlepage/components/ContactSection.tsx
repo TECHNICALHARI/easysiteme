@@ -1,37 +1,36 @@
-'use client';
+"use client";
+import { useState } from "react";
+import { motion } from "framer-motion";
+import { Mail, Phone, Globe, MessageSquare, MapPin } from "lucide-react";
+import styles from "@/styles/preview.module.css";
 
-import { useState } from 'react';
-import { motion } from 'framer-motion';
-import { Mail, Phone, Globe, MessageSquare, MapPin } from 'lucide-react';
-import styles from '@/styles/preview.module.css';
-import type { ProfileTabData } from '@/lib/frontend/types/form';
-
-export default function ContactSection({ profile }: { profile: ProfileTabData }) {
-    const [formData, setFormData] = useState({ name: '', email: '', message: '' });
+export default function ContactSection({ profile }: { profile?: any }) {
+    const [formData, setFormData] = useState({ name: "", email: "", message: "" });
     const [submitted, setSubmitted] = useState(false);
 
     const showInfo =
-        !!profile.fullAddress ||
-        !!profile.email ||
-        !!profile.phone ||
-        !!profile.website ||
-        !!profile.whatsapp;
+        !!(profile?.fullAddress) ||
+        !!(profile?.email) ||
+        !!(profile?.phone) ||
+        !!(profile?.website) ||
+        !!(profile?.whatsapp);
 
-    const showForm = !!profile.showContactForm;
+    const showForm = !!profile?.showContactForm;
 
     if (!showInfo && !showForm) return null;
 
     const onSubmit = (e: React.FormEvent) => {
         e.preventDefault();
         setSubmitted(true);
-        setFormData({ name: '', email: '', message: '' });
+        setFormData({ name: "", email: "", message: "" });
     };
+
     return (
         <section id="contact" className={styles.contactSectionCard}>
             <div className={styles.contactGrad} />
             <motion.div
                 className={styles.contactInner}
-                initial={{ opacity: 0, y: 26 }}
+                initial={{ opacity: 0, y: 24 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ duration: 0.45 }}
@@ -43,13 +42,13 @@ export default function ContactSection({ profile }: { profile: ProfileTabData })
                         <div className={styles.contactCard}>
                             <h3 className={styles.contactTitle}>Contact Information</h3>
                             <ul className={styles.contactList}>
-                                {profile.fullAddress && (
+                                {profile?.fullAddress && (
                                     <li className={styles.contactItem}>
                                         <MapPin size={18} className={styles.contactIcon} />
                                         <span>{profile.fullAddress}</span>
                                     </li>
                                 )}
-                                {profile.phone && (
+                                {profile?.phone && (
                                     <li className={styles.contactItem}>
                                         <Phone size={18} className={styles.contactIcon} />
                                         <a href={`tel:${profile.phone}`} className={styles.contactLink}>
@@ -57,7 +56,7 @@ export default function ContactSection({ profile }: { profile: ProfileTabData })
                                         </a>
                                     </li>
                                 )}
-                                {profile.email && (
+                                {profile?.email && (
                                     <li className={styles.contactItem}>
                                         <Mail size={18} className={styles.contactIcon} />
                                         <a href={`mailto:${profile.email}`} className={styles.contactLink}>
@@ -65,28 +64,18 @@ export default function ContactSection({ profile }: { profile: ProfileTabData })
                                         </a>
                                     </li>
                                 )}
-                                {profile.website && (
+                                {profile?.website && (
                                     <li className={styles.contactItem}>
                                         <Globe size={18} className={styles.contactIcon} />
-                                        <a
-                                            href={profile.website}
-                                            target="_blank"
-                                            rel="noopener noreferrer"
-                                            className={styles.contactLink}
-                                        >
+                                        <a href={profile.website} target="_blank" rel="noopener noreferrer" className={styles.contactLink}>
                                             {profile.website}
                                         </a>
                                     </li>
                                 )}
-                                {profile.whatsapp && (
+                                {profile?.whatsapp && (
                                     <li className={styles.contactItem}>
                                         <MessageSquare size={18} className={styles.contactIcon} />
-                                        <a
-                                            href={`https://wa.me/${profile.whatsapp}`}
-                                            target="_blank"
-                                            rel="noopener noreferrer"
-                                            className={styles.contactLink}
-                                        >
+                                        <a href={`https://wa.me/${profile.whatsapp}`} target="_blank" rel="noopener noreferrer" className={styles.contactLink}>
                                             WhatsApp: {profile.whatsapp}
                                         </a>
                                     </li>
@@ -129,9 +118,7 @@ export default function ContactSection({ profile }: { profile: ProfileTabData })
                                     </button>
                                 </form>
                             ) : (
-                                <p className={styles.contactThanks}>
-                                    🎉 Thanks for reaching out! I’ll get back to you soon.
-                                </p>
+                                <p className={styles.contactThanks}>🎉 Thanks for reaching out! I’ll get back to you soon.</p>
                             )}
                         </div>
                     )}

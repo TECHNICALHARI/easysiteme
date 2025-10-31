@@ -1,32 +1,20 @@
-'use client';
+"use client";
+import { useState } from "react";
+import { AnimatePresence, motion } from "framer-motion";
+import { ChevronDown } from "lucide-react";
+import styles from "@/styles/preview.module.css";
 
-import { useState } from 'react';
-import { AnimatePresence, motion } from 'framer-motion';
-import { ChevronDown } from 'lucide-react';
-import styles from '@/styles/preview.module.css';
-
-interface FAQ {
-  id: string;
-  question: string;
-  answer: string;
-}
-
-const fadeInUp = {
-  hidden: { opacity: 0, y: 20 },
-  visible: { opacity: 1, y: 0 },
-};
-
-export default function FAQSection({ faqs }: { faqs: FAQ[] }) {
+export default function FAQSection({ faqs }: { faqs?: any[] }) {
   const [openIndex, setOpenIndex] = useState<number | null>(null);
+  if (!Array.isArray(faqs) || faqs.length === 0) return null;
 
   return (
     <motion.section
       id="faq"
       className="w-full max-w-3xl mx-auto px-4 mt-10"
-      variants={fadeInUp}
-      initial="hidden"
-      whileInView="visible"
-      transition={{ duration: 0.5 }}
+      initial={{ opacity: 0, y: 16 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.4 }}
       viewport={{ once: true }}
     >
       <h2 className={styles.sectionTitle}>FAQs</h2>
@@ -35,19 +23,17 @@ export default function FAQSection({ faqs }: { faqs: FAQ[] }) {
           const isOpen = openIndex === idx;
           return (
             <motion.div
-              key={faq.id}
+              key={faq.id ?? idx}
               className={styles.faqItem}
-              variants={fadeInUp}
-              initial="hidden"
-              whileInView="visible"
-              transition={{ duration: 0.4, delay: idx * 0.05 }}
+              initial={{ opacity: 0, y: 10 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              transition={{ delay: idx * 0.03, duration: 0.26 }}
               viewport={{ once: true }}
             >
               <button className={styles.faqQuestion} onClick={() => setOpenIndex(isOpen ? null : idx)}>
-                {faq.question}
-                <ChevronDown className={`${styles.faqChevron} ${isOpen ? styles.rotate : ''}`} size={18} />
+                <span>{faq.question || "Untitled question"}</span>
+                <ChevronDown className={`${styles.faqChevron} ${isOpen ? styles.rotate : ""}`} size={18} />
               </button>
-
               <AnimatePresence initial={false}>
                 {isOpen && (
                   <motion.div
@@ -55,10 +41,10 @@ export default function FAQSection({ faqs }: { faqs: FAQ[] }) {
                     initial={{ opacity: 0, maxHeight: 0 }}
                     animate={{ opacity: 1, maxHeight: 500 }}
                     exit={{ opacity: 0, maxHeight: 0 }}
-                    transition={{ duration: 0.3, ease: 'easeInOut' }}
+                    transition={{ duration: 0.28 }}
                   >
                     <div className={styles.faqContent}>
-                      <p>{faq.answer}</p>
+                      <p>{faq.answer || ""}</p>
                     </div>
                   </motion.div>
                 )}

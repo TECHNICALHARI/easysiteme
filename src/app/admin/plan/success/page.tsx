@@ -1,10 +1,8 @@
 'use client';
-import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useEffect } from 'react';
 
 export default function Page() {
-    const router = useRouter();
 
     useEffect(() => {
         document.title = 'Payment Successful';

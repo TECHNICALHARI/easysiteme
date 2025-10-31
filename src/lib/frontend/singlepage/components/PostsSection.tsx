@@ -1,17 +1,10 @@
-'use client';
+"use client";
+import { motion } from "framer-motion";
+import styles from "@/styles/preview.module.css";
+import clsx from "clsx";
 
-import { motion } from 'framer-motion';
-import styles from '@/styles/preview.module.css';
-import { Post } from '@/lib/frontend/types/form';
-import clsx from 'clsx';
-
-const fadeInUp = {
-  hidden: { opacity: 0, y: 20 },
-  visible: { opacity: 1, y: 0 },
-};
-
-export default function PostsSection({ posts }: { posts: Post[] }) {
-  if (!posts?.length) return null;
+export default function PostsSection({ posts }: { posts?: any[] }) {
+  if (!Array.isArray(posts) || posts.length === 0) return null;
 
   const visiblePosts = posts.slice(0, 4);
   const isCentered = visiblePosts.length < 4;
@@ -20,10 +13,9 @@ export default function PostsSection({ posts }: { posts: Post[] }) {
     <motion.section
       id="posts"
       className="px-4 mt-10"
-      variants={fadeInUp}
-      initial="hidden"
-      whileInView="visible"
-      transition={{ duration: 0.5 }}
+      initial={{ opacity: 0, y: 16 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.4 }}
       viewport={{ once: true }}
     >
       <h2 className={styles.sectionTitle}>Featured Articles & Blogs</h2>
@@ -35,19 +27,18 @@ export default function PostsSection({ posts }: { posts: Post[] }) {
       <div className={clsx(styles.postSliderWrapper, isCentered && styles.centeredPosts)}>
         {visiblePosts.map((post, i) => (
           <motion.div
-            key={post.id}
+            key={post.id ?? i}
             className={clsx(styles.postCard, styles.postSlide)}
-            variants={fadeInUp}
-            initial="hidden"
-            whileInView="visible"
-            transition={{ duration: 0.4, delay: i * 0.1 }}
+            initial={{ opacity: 0, y: 10 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ delay: i * 0.04, duration: 0.3 }}
             viewport={{ once: true }}
           >
-            {post.thumbnail && <img src={post.thumbnail} alt={post.title} className={styles.postThumbnail} />}
+            {post.thumbnail ? <img src={post.thumbnail} alt={post.title} className={styles.postThumbnail} /> : <div className={styles.postThumbnailPlaceholder}>No image</div>}
             <div className={styles.postContent}>
-              <h3 className={styles.postTitle}>{post.title}</h3>
-              <p className={styles.postExcerpt}>{post.description}</p>
-              <a href={`/blog/${post.slug}`} className={styles.learnMoreBtn} target="_blank" rel="noopener noreferrer">
+              <h3 className={styles.postTitle}>{post.title || "Untitled"}</h3>
+              <p className={styles.postExcerpt}>{post.description || ""}</p>
+              <a href={`/blog/${post.slug ?? ""}`} className={styles.learnMoreBtn} target="_blank" rel="noopener noreferrer">
                 Learn More →
               </a>
             </div>

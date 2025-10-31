@@ -43,7 +43,7 @@ interface UploadModalProps {
   onSelectImage: (fileOrIcon: File | keyof typeof staticIconMap) => void;
   showTabs?: boolean;
   type?: 'image' | 'pdf';
-  maxBytes?: number; // optional override (defaults to 5MB)
+  maxBytes?: number; 
 }
 
 export const staticIconMap = {
