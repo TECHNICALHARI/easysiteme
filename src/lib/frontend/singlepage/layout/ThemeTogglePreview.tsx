@@ -24,7 +24,7 @@ export default function ThemeTogglePreview() {
   return (
     <button
       onClick={toggleTheme}
-      className="p-2 rounded-full hover:bg-[var(--color-muted)] transition-colors"
+      className="p-2 rounded-full hover:bg-[var(--color-muted)] transition-colors cursor-pointer"
       title={`Switch to ${theme === 'dark' ? 'light' : 'dark'} mode`}
       aria-label="Toggle theme"
     >

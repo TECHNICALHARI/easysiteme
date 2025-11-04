@@ -29,7 +29,7 @@ export default function PreviewPage() {
   return (
     <div className={clsx(styles.previewWrapper, ThemeClass)} data-theme={theme}>
       {layoutType === "website" ? (
-        <PageLayout form={effective}>
+        <PageLayout form={{ ...effective, posts: posts ? { posts } : effective.posts }}>
           <WebsiteLayout form={{ ...effective, posts: posts ? { posts } : effective.posts }} />
         </PageLayout>
       ) : (

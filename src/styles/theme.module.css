@@ -1,20 +1,42 @@
-/* ========== BRAND (DEFAULT FALLBACK) ========== */
+/* LIGHT */
 .brand {
-  --color-bg: #ffffff;
-  --color-text: #111111;
-  --color-brand: #4f46e5;
-  --color-brand-dark: #4338ca;
-  --color-muted: #f3f4f6;
-
-  --bg: var(--color-bg);
-  --text: var(--color-text);
-  --accent: var(--color-brand);
-  --button-bg: var(--color-brand);
+  /* base tokens (literals) */
+  --bg: #ffffff;
+  --text: #111111;
+  --accent: #4f46e5;
+  --button-bg: #4f46e5;
   --button-text: #ffffff;
-  --button-hover: var(--color-brand-dark);
+  --button-hover: #4338ca;
+
+  /* mapped design tokens (same pattern as .aurora) */
+  --color-bg: var(--bg);
+  --color-text: var(--text);
+  --color-brand: var(--accent);
+  --color-brand-dark: var(--button-hover);
+  --color-text-muted: #6b7280; /* optional */
+  --color-muted: #f3f4f6;
 }
 
-/* ========== AURORA ========== */
+/* DARK (your requested values) */
+:root[data-theme='dark'] .brand {
+  /* base tokens (literals) */
+  --bg: #0a0a0a;
+  --text: #f3f3f3;
+  --accent: #8b5cf6;
+  --button-bg: #8b5cf6;
+  --button-text: #ffffff;
+  --button-hover: #7c3aed;
+
+  /* mapped */
+  --color-bg: var(--bg);
+  --color-text: var(--text);
+  --color-brand: var(--accent);
+  --color-brand-dark: var(--button-hover);
+  --color-text-muted: #a1a1aa;
+  --color-muted: #1a1a1a;
+}
+
+
 .aurora {
   --bg: linear-gradient(to right, #f3e5f5, #e0f7fa);
   --text: #3c096c;
