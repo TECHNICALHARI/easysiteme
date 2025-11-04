@@ -12,11 +12,20 @@ export default function HeaderSection({ profile }: { profile: ProfileTabData | a
       .filter(Boolean)
       .map((n: string) => n[0]?.toUpperCase() ?? "")
       .join("") || "•";
+
+  const hasBanner = Boolean(profile?.bannerImage);
+  const hasTitle = Boolean(profile?.title);
+  const hasBio = Boolean(profile?.bio);
+  const hasTags = Array.isArray(profile?.tags) && profile.tags.length > 0;
+  const hasHeaders = Array.isArray(profile?.headers) && profile.headers.length > 0;
+  const hasAbout = Boolean(profile?.about);
+  const hasAnyMeta = hasTitle || hasBio || hasTags || hasHeaders || hasAbout;
+
   const fadeInUp = { hidden: { opacity: 0, y: 16 }, visible: { opacity: 1, y: 0 } };
 
   return (
     <section className={styles.profileSection}>
-      {profile?.bannerImage ? (
+      {hasBanner && (
         <motion.div
           key={profile.bannerImage}
           initial={{ opacity: 0 }}
@@ -25,9 +34,8 @@ export default function HeaderSection({ profile }: { profile: ProfileTabData | a
           className={styles.bannerWrapper}
         >
           <img src={profile.bannerImage} alt="Banner" className={styles.bannerImage} />
+          <div className={styles.bannerOverlay} />
         </motion.div>
-      ) : (
-        <div className={styles.bannerFallback} />
       )}
 
       <motion.div
@@ -36,7 +44,7 @@ export default function HeaderSection({ profile }: { profile: ProfileTabData | a
         whileInView="visible"
         transition={{ duration: 0.55 }}
         viewport={{ once: true }}
-        className={`${styles.profileInfo} ${profile?.bannerImage ? "" : styles.noMarginTop}`}
+        className={hasBanner ? styles.profileInfoCard : styles.profileInfoFrameless}
       >
         {profile?.avatar ? (
           <motion.img
@@ -54,34 +62,29 @@ export default function HeaderSection({ profile }: { profile: ProfileTabData | a
             initial={{ opacity: 0, scale: 0.98 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.28 }}
-            className={styles.avatarFallback}
+            className={`${styles.avatarFallback} ${styles.avatarGradientRing}`}
           >
             {initials}
           </motion.div>
         )}
 
-        <motion.h1
-          variants={fadeInUp}
-          initial="hidden"
-          whileInView="visible"
-          className={styles.avatarName}
-        >
+        <motion.h1 variants={fadeInUp} className={styles.avatarName}>
           {name || profile?.settings?.subdomain || "Anonymous"}
         </motion.h1>
 
-        {profile?.title ? (
+        {hasTitle && (
           <motion.p variants={fadeInUp} className={styles.tagline}>
             {profile.title}
           </motion.p>
-        ) : null}
+        )}
 
-        {profile?.bio ? (
+        {hasBio && (
           <motion.p variants={fadeInUp} className={styles.bio}>
             {profile.bio}
           </motion.p>
-        ) : null}
+        )}
 
-        {Array.isArray(profile?.tags) && profile.tags.length > 0 && (
+        {hasTags && (
           <motion.div variants={fadeInUp} className={styles.tagsWrapper}>
             {profile.tags.slice(0, 6).map((tag: string, idx: number) => (
               <span key={`${tag}-${idx}`} className={styles.tag}>
@@ -91,7 +94,7 @@ export default function HeaderSection({ profile }: { profile: ProfileTabData | a
           </motion.div>
         )}
 
-        {Array.isArray(profile?.headers) && profile.headers.length > 0 && (
+        {hasHeaders && (
           <motion.div variants={fadeInUp} className={styles.headersWrapper}>
             {profile.headers.map((h: any) => (
               <h2 key={h.id} className={styles.profileSubheader}>
@@ -101,13 +104,15 @@ export default function HeaderSection({ profile }: { profile: ProfileTabData | a
           </motion.div>
         )}
 
-        {profile?.about ? (
+        {hasAbout && (
           <motion.div
             variants={fadeInUp}
             className={styles.about}
             dangerouslySetInnerHTML={{ __html: profile.about }}
           />
-        ) : null}
+        )}
+
+        {!hasAnyMeta && <div className={styles.metaSpacer} />}
       </motion.div>
     </section>
   );

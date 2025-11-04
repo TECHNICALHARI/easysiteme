@@ -58,8 +58,7 @@ export default function BioLayout({ form }: { form: FormData | any }) {
           <HeaderSection profile={profile} />
         </motion.div>
 
-        <SocialSection socials={socials} />
-
+        <SocialSection socials={socials} showActions ={true} />
         {hasLinks && <LinkSection links={linksSorted} />}
         {hasFeatured && <FeaturedSection featured={profile.featured ?? []} />}
         {hasEmbeds && <EmbedSection embeds={profile.embeds ?? []} />}
@@ -72,7 +71,7 @@ export default function BioLayout({ form }: { form: FormData | any }) {
 
       <ContactSection profile={profile} />
       {hasSubscribe && <SubscribeSection form={form} />}
-      {!form?.previewMode && <StickyActionBar form={form} />}
+      {/* {!form?.previewMode && <StickyActionBar form={form} />} */}
       <PageFooter form={form} />
     </>
   );

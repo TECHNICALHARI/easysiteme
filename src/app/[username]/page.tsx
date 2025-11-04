@@ -33,7 +33,7 @@ export default function PreviewPage() {
           <WebsiteLayout form={{ ...effective, posts: posts ? { posts } : effective.posts }} />
         </PageLayout>
       ) : (
-        <BioLayout form={{ ...effective, posts: posts ? { posts } : effective.posts }} />
+        <BioLayout form={{ ...effective, posts: posts ? { posts } : effective.posts }}  />
       )}
     </div>
   );

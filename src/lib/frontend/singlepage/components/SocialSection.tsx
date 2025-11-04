@@ -1,10 +1,12 @@
 "use client";
 import { motion } from "framer-motion";
 import styles from "@/styles/preview.module.css";
-import { Instagram, Youtube, Calendar, Twitter, Linkedin, Globe } from "lucide-react";
+import { Instagram, Youtube, Calendar, Twitter, Linkedin, Globe, Share2 } from "lucide-react";
 import { Socials } from "@/lib/frontend/types/form";
+import ThemeTogglePreview from "../layout/ThemeTogglePreview";
+import { useCallback, useMemo } from "react";
 
-export default function SocialSection({ socials }: { socials?: Socials | any }) {
+export default function SocialSection({ socials, showActions }: { socials?: Socials | any, showActions?: boolean }) {
   const socialData = [
     { id: "instagram", icon: <Instagram size={18} />, url: socials?.instagram },
     { id: "youtube", icon: <Youtube size={18} />, url: socials?.youtube },
@@ -14,7 +16,25 @@ export default function SocialSection({ socials }: { socials?: Socials | any }) 
     { id: "website", icon: <Globe size={18} />, url: (socials as any)?.website },
   ].filter((s) => typeof s.url === "string" && s.url.trim().length > 0);
 
-  if (socialData.length === 0) return null;
+  const pageUrl = useMemo(() => {
+    if (typeof window === "undefined") return "https://myeasypage.app";
+    return window.location.href;
+  }, []);
+
+  const handleShare = useCallback(async () => {
+    try {
+      if (typeof navigator !== "undefined" && (navigator as any).share) {
+        await (navigator as any).share({ title: "Check my profile", url: pageUrl });
+        return;
+      }
+    } catch { }
+    try {
+      await navigator.clipboard.writeText(pageUrl);
+      alert("Link copied!");
+    } catch {
+      window.open(pageUrl, "_blank", "noopener,noreferrer");
+    }
+  }, [pageUrl]);
 
   return (
     <motion.div
@@ -35,10 +55,41 @@ export default function SocialSection({ socials }: { socials?: Socials | any }) 
           whileInView={{ opacity: 1, y: 0 }}
           transition={{ delay: i * 0.04, duration: 0.28 }}
           viewport={{ once: true }}
+          aria-label={s.id}
+          title={s.id}
         >
           {s.icon}
         </motion.a>
       ))}
+      {
+        showActions && <>
+          <motion.button
+            type="button"
+            onClick={handleShare}
+            className={`${styles.socialIcon} ${styles.socialAction}`}
+            initial={{ opacity: 0, y: 6 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ delay: socialData.length * 0.04, duration: 0.28 }}
+            viewport={{ once: true }}
+            aria-label="Share"
+            title="Share"
+          >
+            <Share2 size={18} />
+          </motion.button>
+
+          <motion.div
+            className={`${styles.socialIcon} ${styles.themeToggleInline}`}
+            initial={{ opacity: 0, y: 6 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ delay: socialData.length * 0.04 + 0.04, duration: 0.28 }}
+            viewport={{ once: true }}
+            aria-label="Toggle theme"
+            title="Toggle theme"
+          >
+            <ThemeTogglePreview />
+          </motion.div>
+        </>
+      }
     </motion.div>
   );
 }

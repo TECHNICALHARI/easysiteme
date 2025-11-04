@@ -21,11 +21,12 @@ export default function ServiceSection({ services }: { services?: Service[] | an
       viewport={{ once: true }}
     >
       <h2 className={styles.sectionTitle}>Services</h2>
-      <div className={`grid gap-6 ${isSingle ? "" : "sm:grid-cols-2 lg:grid-cols-3"}`}>
+
+      <div className={`${styles.mediaGrid} ${isSingle ? styles.mediaGridSingle : ""}`}>
         {services.map((service: any, i: number) => (
           <motion.div
             key={service.id ?? i}
-            className={styles.serviceCard}
+            className={`${styles.serviceCard} ${isSingle ? styles.singleCardWide : ""}`}
             variants={fade}
             initial="hidden"
             whileInView="visible"
@@ -33,13 +34,18 @@ export default function ServiceSection({ services }: { services?: Service[] | an
             viewport={{ once: true }}
           >
             <h3 className={styles.serviceTitle}>{service.title || "Untitled Service"}</h3>
-            {service.description ? <p className={styles.serviceDescription}>{service.description}</p> : null}
+
+            {service.description ? (
+              <p className={styles.serviceDescription}>{service.description}</p>
+            ) : null}
+
             {(service.amount || service.currencySymbol || service.customSymbol) && (
               <p className={styles.servicePrice}>
                 {(service.currencySymbol ?? service.customSymbol ?? "")}{" "}
                 {service.amount ? service.amount : ""}
               </p>
             )}
+
             {service.ctaLink ? (
               <a
                 href={service.ctaLink}

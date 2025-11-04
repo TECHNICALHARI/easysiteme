@@ -45,10 +45,8 @@ export default function LinkSection({ links }: { links: Link[] | any }) {
                       className={styles.linkImageIcon}
                     />
                   </div>
-                ) : Icon ? (
+                ) : Icon && (
                   <Icon size={20} className={styles.linkLucideIcon} />
-                ) : (
-                  <div className={styles.linkIconPlaceholder}>•</div>
                 )}
               </div>
               <span className={styles.linkText}>{link.title || "Untitled"}</span>
