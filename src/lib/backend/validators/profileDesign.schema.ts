@@ -1,4 +1,3 @@
-// src/lib/backend/validators/profile.schema.ts
 import { z } from "zod";
 
 const HeaderSchema = z.object({

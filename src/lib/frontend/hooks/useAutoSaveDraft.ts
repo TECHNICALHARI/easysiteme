@@ -32,7 +32,7 @@ export default function useAutoSaveDraft({
   design,
   settings,
   enabled = true,
-  debounceMs = 1500,
+  debounceMs = 1200,
 }: {
   profile: any;
   design: any;
@@ -44,16 +44,6 @@ export default function useAutoSaveDraft({
   const [lastSavedAt, setLastSavedAt] = useState<number | null>(null);
   const timerRef = useRef<number | null>(null);
   const payloadRef = useRef<any>(null);
-  const pendingRef = useRef(false);
-
-  const scheduleSave = () => {
-    if (!enabled) return;
-    if (timerRef.current) window.clearTimeout(timerRef.current);
-    timerRef.current = window.setTimeout(
-      () => doSave(),
-      debounceMs
-    ) as unknown as number;
-  };
 
   const doSave = async () => {
     const clean = {
@@ -62,7 +52,6 @@ export default function useAutoSaveDraft({
       settings: cleanDeep(settings),
     };
     payloadRef.current = clean;
-    pendingRef.current = true;
     setSaving(true);
     try {
       if (typeof saveProfileDesignDraftApi === "function") {
@@ -76,11 +65,18 @@ export default function useAutoSaveDraft({
         });
       }
       setLastSavedAt(Date.now());
-      pendingRef.current = false;
-    } catch {
     } finally {
       setSaving(false);
     }
+  };
+
+  const scheduleSave = () => {
+    if (!enabled) return;
+    if (timerRef.current) window.clearTimeout(timerRef.current);
+    timerRef.current = window.setTimeout(
+      () => doSave(),
+      debounceMs
+    ) as unknown as number;
   };
 
   useEffect(() => {
@@ -116,7 +112,6 @@ export default function useAutoSaveDraft({
         }
       }
     };
-
     window.addEventListener("beforeunload", handleBeforeUnload);
     return () => window.removeEventListener("beforeunload", handleBeforeUnload);
   }, []);
@@ -125,6 +120,5 @@ export default function useAutoSaveDraft({
     saving,
     lastSavedAt,
     triggerSave: doSave,
-    pending: pendingRef.current,
   };
 }

@@ -10,6 +10,7 @@ import styles from '@/styles/postdetails.module.css';
 import NoData from '@/lib/frontend/common/NoData';
 import GoBackButton from '@/lib/frontend/common/GoBackButton';
 import { useToast } from '@/lib/frontend/common/ToastProvider';
+import Loader from '@/lib/frontend/common/Loader';
 
 function normalizeFetchedPost(fetched: any, postId: string): Post {
   const id = fetched?.postId ?? fetched?.id ?? postId;
@@ -89,7 +90,7 @@ export default function ViewPostPage(): JSX.Element {
   }, [postId, showToast]);
 
   if (isLoading) {
-    return <div className="p-4 text-gray-500">Loading post...</div>;
+    return <Loader />;
   }
 
   if (!post) {

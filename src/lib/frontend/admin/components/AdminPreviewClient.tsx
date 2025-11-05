@@ -27,6 +27,8 @@ const hasAnyData = (f?: FormData | null) =>
 export default function AdminPreviewClient() {
   const ctx = useAdminForm() as any;
   const { form: formFromCtx, profileDesign, settings, posts, subscriberSettings, stats, isLoading } = ctx;
+
+  console.log(ctx, "ctx")
   const [incoming, setIncoming] = useState<FormData | null>(null);
 
   const normalizePayload = (payload: any): FormData | null => {

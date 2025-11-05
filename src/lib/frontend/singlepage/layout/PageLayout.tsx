@@ -23,7 +23,6 @@ export default function PageLayout({ children, form }: PageLayoutProps) {
     faqs: (form?.profile?.faqs?.length ?? 0) > 0,
     testimonials: (form?.profile?.testimonials?.length ?? 0) > 0,
   };
-console.log(form, "form")
   return (
     <>
       {hasHeaderOrFooterSections && <PageHeader showNav sections={sections} form={form} />}

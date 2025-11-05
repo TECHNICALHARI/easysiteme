@@ -4,6 +4,8 @@ export interface ProfileInfo {
   bio: string;
   avatar: string;
   bannerImage?: string;
+  avatarPublicId?: string;
+  bannerPublicId?: string;
 }
 
 export interface Link {
@@ -74,6 +76,7 @@ export interface ContactInfo {
 
 export interface Resume {
   resumeUrl?: string;
+  resumePublicId?: string;
 }
 
 export interface SEO {
@@ -89,6 +92,8 @@ export interface SEO {
   twitterImage?: string;
   noIndex?: boolean;
   noFollow?: boolean;
+  ogImagePublicId?: string;
+  twitterImagePublicId?: string;
 }
 
 export interface Design {

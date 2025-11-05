@@ -79,13 +79,17 @@ const DEFAULT_SETTINGS: FormData['settings'] = {
   },
 };
 
-function cleanDeep<T extends Record<string, any>>(obj?: T): Partial<T> {
+function cleanDeep<T extends Record<string, any>>(obj?: T, keepEmptyKeys: Set<string> = new Set()): Partial<T> {
   if (!obj || typeof obj !== 'object') return {};
   const out: any = Array.isArray(obj) ? [] : {};
   for (const [k, v] of Object.entries(obj)) {
-    if (v === undefined || v === null) continue;
+    if (v === undefined) continue;
+    if (v === null) {
+      if (keepEmptyKeys.has(k)) out[k] = v;
+      continue;
+    }
     if (typeof v === 'string') {
-      if (v.trim() === '') continue;
+      if (v.trim() === '' && !keepEmptyKeys.has(k)) continue;
       out[k] = v;
       continue;
     }
@@ -94,8 +98,8 @@ function cleanDeep<T extends Record<string, any>>(obj?: T): Partial<T> {
         out[k] = v;
         continue;
       }
-      const nested = cleanDeep(v as any);
-      if (Object.keys(nested).length > 0) out[k] = nested;
+      const nested = cleanDeep(v as any, keepEmptyKeys);
+      if (Object.keys(nested).length > 0 || keepEmptyKeys.has(k)) out[k] = nested;
       continue;
     }
     out[k] = v;
@@ -104,7 +108,13 @@ function cleanDeep<T extends Record<string, any>>(obj?: T): Partial<T> {
 }
 
 const hasAnyData = (f?: Partial<FormData> | null) =>
-  !!f && !!(f.profile?.fullName || (f.profile?.links?.length ?? 0) > 0 || (f.profile?.featured?.length ?? 0) > 0 || (f.profile?.avatar && f.profile.avatar.length > 0));
+  !!f &&
+  !!(
+    (f.profile as any)?.fullName ||
+    ((f.profile as any)?.links?.length ?? 0) > 0 ||
+    ((f.profile as any)?.featured?.length ?? 0) > 0 ||
+    ((f.profile as any)?.avatar && (f.profile as any).avatar.length > 0)
+  );
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname() || '';
@@ -129,7 +139,11 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const [posts, setPosts] = useState<FormData['posts'] | undefined>(undefined);
   const [subscriberSettings, setSubscriberSettings] = useState<FormData['subscriberSettings'] | undefined>(undefined);
   const [stats, setStats] = useState<FormData['stats'] | undefined>(undefined);
+
   const initializedRef = useRef(false);
+  const loadedOnceRef = useRef(false);
+  const userEditedRef = useRef(false);
+  const [dirty, setDirty] = useState(false);
 
   useEffect(() => {
     if (!user) return;
@@ -143,7 +157,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const [suspendAutosave, setSuspendAutosave] = useState(true);
 
   const isConfirmModalAllowed = useMemo(() => {
-    const denyPaths = [/\/admin\/plan/i, /\/admin\/preview/i, /\/admin\/login/i];
+    const denyPaths = [/\/admin\/plan/i, /\/admin\/preview/i, /\/admin\/login/i, /\/admin\/posts(?:\/|$)/i];
     for (const rx of denyPaths) {
       if (rx.test(path)) return false;
     }
@@ -153,7 +167,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     try {
       const disabled = localStorage.getItem('myeasypage:preview:disableDraftModal');
       if (disabled === '1') return false;
-    } catch {}
+    } catch { }
     return true;
   }, [path, searchParams]);
 
@@ -161,44 +175,56 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     if (!userBootstrapped) return;
     if (initializedRef.current) return;
     initializedRef.current = true;
+
     let aborted = false;
     const ac = new AbortController();
+
     (async () => {
       try {
         setIsLoading(true);
-        const pubPromise = getProfileDesignApi({ signal: ac.signal }).catch(() => null);
-        const draftPromise = typeof getProfileDesignDraftApi === 'function' ? getProfileDesignDraftApi() : Promise.resolve(null);
-        const [pubRes, dr] = await Promise.all([pubPromise, draftPromise]);
+        const [pubRes, dr] = await Promise.all([
+          getProfileDesignApi({ signal: ac.signal }).catch(() => null),
+          typeof getProfileDesignDraftApi === 'function' ? getProfileDesignDraftApi().catch(() => null) : Promise.resolve(null),
+        ]);
         if (aborted) return;
+
         const pubDoc = pubRes?.data ? (pubRes.data.profileDesign ?? pubRes.data) : null;
         const draftDoc = dr?.data ? (dr.data.draft ?? dr.data.profileDesign ?? dr.data) : null;
+
         const incomingProfile = (pubDoc?.profile ?? {}) as Partial<ProfileTabData>;
         const incomingDesign = (pubDoc?.design ?? {}) as Partial<FormData['design']>;
         const incomingSettings = (pubDoc?.settings ?? {}) as Partial<FormData['settings']>;
         setServerSnapshot({ profile: incomingProfile, design: incomingDesign, settings: incomingSettings });
+
         const publishedProfile = { ...EMPTY_PROFILE, ...(incomingProfile as any) } as FormData['profile'];
         const publishedDesign = { ...EMPTY_DESIGN, ...(incomingDesign as any) } as FormData['design'];
         const publishedSettings = { ...DEFAULT_SETTINGS, ...(incomingSettings as any) } as FormData['settings'];
+
         let draftProfile: Partial<FormData['profile']> | null = null;
         let draftDesign: Partial<FormData['design']> | null = null;
         let draftSettings: Partial<FormData['settings']> | null = null;
         let draftUpdatedAt = 0;
         let pubUpdatedAt = 0;
+
         if (draftDoc) {
-          const maybeProfile = draftDoc.profile ?? null;
-          const maybeDesign = draftDoc.design ?? null;
-          const maybeSettings = draftDoc.settings ?? null;
-          draftProfile = maybeProfile ? (maybeProfile as Partial<FormData['profile']>) : null;
-          draftDesign = maybeDesign ? (maybeDesign as Partial<FormData['design']>) : null;
-          draftSettings = maybeSettings ? (maybeSettings as Partial<FormData['settings']>) : null;
-          draftUpdatedAt = draftDoc.updatedAt ? Date.parse(draftDoc.updatedAt) : 0;
+          draftProfile = (draftDoc as any).profile ?? null;
+          draftDesign = (draftDoc as any).design ?? null;
+          draftSettings = (draftDoc as any).settings ?? null;
+          draftUpdatedAt = (draftDoc as any).draftUpdatedAt
+            ? Date.parse((draftDoc as any).draftUpdatedAt)
+            : (draftDoc as any).updatedAt
+              ? Date.parse((draftDoc as any).updatedAt)
+              : 0;
         }
         if (pubDoc) {
-          pubUpdatedAt = pubDoc.updatedAt ? Date.parse(pubDoc.updatedAt) : 0;
+          pubUpdatedAt = (pubDoc as any).updatedAt ? Date.parse((pubDoc as any).updatedAt) : 0;
         }
+
         const preferDraft = draftDoc && hasAnyData(draftDoc) && draftUpdatedAt > pubUpdatedAt;
+
         setProfileDesign({ profile: publishedProfile, design: publishedDesign });
         setSettings((prev) => ({ ...(prev || DEFAULT_SETTINGS), ...(publishedSettings || {}) } as FormData['settings']));
+
         if (preferDraft && isConfirmModalAllowed) {
           pendingDraftRef.current = {
             profile: { ...EMPTY_PROFILE, ...(draftProfile as any) },
@@ -210,35 +236,66 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         } else {
           pendingDraftRef.current = null;
           setSuspendAutosave(false);
+          loadedOnceRef.current = true;
         }
+
         setBootstrapped(true);
-      } catch (err: any) {
+      } catch {
         const next = typeof window !== 'undefined' ? window.location.pathname + window.location.search : '/';
         router.push(`/login?next=${encodeURIComponent(next)}`);
       } finally {
-        if (!aborted) setIsLoading(false);
+        setIsLoading(false);
       }
     })();
+
     return () => {
       aborted = true;
       ac.abort();
     };
   }, [userBootstrapped, router, isConfirmModalAllowed]);
 
-  const { saving: draftSaving, triggerSave: triggerDraftSave } = useAutoSaveDraft({
-    profile: profileDesign.profile,
-    design: profileDesign.design,
-    settings,
-    enabled: !suspendAutosave,
-    debounceMs: 1500,
-  });
+  const DELETE_KEYS = useMemo(
+    () =>
+      new Set<string>([
+        'bannerImage',
+        'bannerPublicId',
+        'avatar',
+        'avatarPublicId',
+        'resumeUrl',
+        'resumePublicId',
+        'ogImage',
+        'ogImagePublicId',
+        'twitterImage',
+        'twitterImagePublicId',
+        'bio',
+        'about',
+        'fullName',
+        'title',
+        'email',
+        'phone',
+        'website',
+        'whatsapp',
+        'fullAddress',
+        'latitude',
+        'longitude',
+        'emojiLink',
+        'metaTitle',
+        'metaDescription',
+        'canonicalUrl',
+        'ogTitle',
+        'ogDescription',
+        'twitterTitle',
+        'twitterDescription',
+      ]),
+    []
+  );
 
   const publishChanges = useCallback(async () => {
     try {
       const payload = {
-        profile: cleanDeep(profileDesign.profile),
-        design: cleanDeep(profileDesign.design),
-        settings: cleanDeep(settings),
+        profile: cleanDeep(profileDesign.profile, DELETE_KEYS),
+        design: cleanDeep(profileDesign.design, DELETE_KEYS),
+        settings: cleanDeep(settings, DELETE_KEYS),
       };
       const res = await saveProfileDesignApi(payload as any);
       if (res?.success) {
@@ -265,7 +322,15 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       showToast(err?.message || 'Publish failed', 'error');
       throw err;
     }
-  }, [profileDesign, settings, showToast]);
+  }, [profileDesign, settings, showToast, DELETE_KEYS]);
+
+  const { saving: draftSaving, triggerSave: triggerDraftSave } = useAutoSaveDraft({
+    profile: profileDesign.profile,
+    design: profileDesign.design,
+    settings,
+    enabled: !suspendAutosave && dirty,
+    debounceMs: 1200,
+  });
 
   const composedForm = useMemo<FormData>(() => {
     return {
@@ -283,14 +348,16 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       next:
         | Partial<FormData>
         | ((prev: {
-            profile: FormData['profile'];
-            design: FormData['design'];
-            settings?: FormData['settings'];
-            posts?: FormData['posts'];
-            subscriberSettings?: FormData['subscriberSettings'];
-            stats?: FormData['stats'];
-          }) => Partial<FormData>)
+          profile: FormData['profile'];
+          design: FormData['design'];
+          settings?: FormData['settings'];
+          posts?: FormData['posts'];
+          subscriberSettings?: FormData['subscriberSettings'];
+          stats?: FormData['stats'];
+        }) => Partial<FormData>)
     ) => {
+      userEditedRef.current = true;
+      setDirty(true);
       if (typeof next === 'function') {
         const computed = next({
           profile: profileDesign.profile,
@@ -328,51 +395,59 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     [profileDesign, settings, posts, subscriberSettings, stats]
   );
 
+  const wrapDirtyDispatch = <T,>(dispatch: React.Dispatch<React.SetStateAction<T>>): React.Dispatch<React.SetStateAction<T>> => {
+    return (value) => {
+      userEditedRef.current = true;
+      setDirty(true);
+      dispatch(value);
+    };
+  };
+
   usePreviewBus({ profile: profileDesign.profile, design: profileDesign.design } as FormData, plan);
 
   const handleLoadDraft = () => {
     const d = pendingDraftRef.current;
-    if (!d) return;
+    if (!d) {
+      setSuspendAutosave(false);
+      setConfirmOpen(false);
+      return;
+    }
     setProfileDesign({ profile: { ...EMPTY_PROFILE, ...(d.profile as any) }, design: { ...EMPTY_DESIGN, ...(d.design as any) } });
     setSettings((prev) => ({ ...(prev || DEFAULT_SETTINGS), ...(d.settings as any) } as FormData['settings']));
     pendingDraftRef.current = null;
     setConfirmOpen(false);
+    setDirty(false);
     setSuspendAutosave(false);
+    triggerDraftSave();
+    loadedOnceRef.current = true;
   };
 
   const handleKeepPublished = () => {
     pendingDraftRef.current = null;
     setConfirmOpen(false);
+    setDirty(false);
     setSuspendAutosave(false);
+    loadedOnceRef.current = true;
   };
 
   const contextValue = {
     form: composedForm,
     setForm,
     profileDesign,
-    setProfileDesign,
+    setProfileDesign: wrapDirtyDispatch(setProfileDesign),
     settings,
     setSettings: (next: Partial<FormData['settings']> | ((s: FormData['settings'] | undefined) => FormData['settings'])) => {
+      userEditedRef.current = true;
+      setDirty(true);
       if (typeof next === 'function') setSettings((s) => (next as any)(s));
       else setSettings((s) => ({ ...(s || DEFAULT_SETTINGS), ...(next || {}) } as FormData['settings']));
     },
     posts,
-    setPosts: (next: FormData['posts'] | ((p: FormData['posts'] | undefined) => FormData['posts'])) => {
-      if (typeof next === 'function') setPosts((p) => (next as any)(p));
-      else setPosts(next as FormData['posts']);
-    },
+    setPosts: wrapDirtyDispatch<FormData['posts'] | undefined>(setPosts),
     subscriberSettings,
-    setSubscriberSettings: (next:
-      | FormData['subscriberSettings']
-      | ((p: FormData['subscriberSettings'] | undefined) => FormData['subscriberSettings'])) => {
-      if (typeof next === 'function') setSubscriberSettings((p) => (next as any)(p));
-      else setSubscriberSettings(next as FormData['subscriberSettings']);
-    },
+    setSubscriberSettings: wrapDirtyDispatch<FormData['subscriberSettings'] | undefined>(setSubscriberSettings),
     stats,
-    setStats: (next: FormData['stats'] | ((p: FormData['stats'] | undefined) => FormData['stats'])) => {
-      if (typeof next === 'function') setStats((p) => (next as any)(p));
-      else setStats(next as FormData['stats']);
-    },
+    setStats: wrapDirtyDispatch<FormData['stats'] | undefined>(setStats),
     plan,
     isLoading,
     bootstrapped,
@@ -387,9 +462,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         <ConfirmModal
           open={confirmOpen}
           onClose={handleKeepPublished}
-          onConfirm={async () => {
-            handleLoadDraft();
-          }}
+          onConfirm={handleLoadDraft}
           title="Load autosaved draft?"
           message="We found an autosaved draft that is newer than your published content. Do you want to load the draft?"
           confirmLabel="Load Draft"
