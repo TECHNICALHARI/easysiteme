@@ -310,7 +310,7 @@
   color: rgba(255, 255, 255, 0.88);
   font-weight: 500;
   letter-spacing: 0.01em;
-  margin: 0 0 1.6rem;
+  margin: 0 0 2rem;
 }
 
 .domainForm {
@@ -417,7 +417,7 @@
   grid-template-columns: repeat(3, max-content);
   gap: .6rem .8rem;
   align-items: center;
-  margin-top: 1.1rem;
+  margin-top: 2.1rem;
 }
 
 .benefit {

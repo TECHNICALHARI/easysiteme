@@ -7,6 +7,7 @@ import { useUserPage } from "@/lib/frontend/singlepage/context/UserPageProvider"
 import themeStyles from "@/styles/theme.module.css";
 import styles from "@/styles/preview.module.css";
 import { usePublicPage } from "@/lib/frontend/singlepage/context/usePublicPageClient";
+import NotFoundPage from "@/lib/frontend/common/NotFoundPage";
 
 const THEME_FALLBACK = "brand" as const;
 
@@ -17,9 +18,12 @@ export default function PreviewPage() {
   const effective = freshData ?? initialData;
   if (!effective) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <p className="text-gray-500">This page is not available.</p>
-      </div>
+      <NotFoundPage
+        subtitle="User Not Found"
+        message="Sorry, we couldn’t find this username on myeasypage."
+        backHref="/"
+        backLabel="Go to Home"
+      />
     );
   }
   const layoutType = effective.design?.layoutType ?? "bio";
@@ -33,7 +37,7 @@ export default function PreviewPage() {
           <WebsiteLayout form={{ ...effective, posts: posts ? { posts } : effective.posts }} />
         </PageLayout>
       ) : (
-        <BioLayout form={{ ...effective, posts: posts ? { posts } : effective.posts }}  />
+        <BioLayout form={{ ...effective, posts: posts ? { posts } : effective.posts }} />
       )}
     </div>
   );

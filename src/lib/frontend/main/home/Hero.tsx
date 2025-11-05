@@ -18,7 +18,7 @@ export default function Hero() {
   const create = (e?: React.SyntheticEvent) => {
     e?.preventDefault();
     const q = safe ? `?u=${encodeURIComponent(safe)}` : '';
-    router.push(`/create${q}`);
+    router.push(`/signup${q}`);
   };
 
   const vh: React.CSSProperties = {

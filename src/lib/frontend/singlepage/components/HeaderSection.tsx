@@ -33,7 +33,7 @@ export default function HeaderSection({ profile }: { profile: ProfileTabData | a
           transition={{ duration: 0.36, ease: "easeOut" }}
           className={styles.bannerWrapper}
         >
-          <img src={profile.bannerImage} alt="Banner" className={styles.bannerImage} />
+          <img src={profile.bannerImage} alt="Banner"  className={styles.bannerImage} />
           <div className={styles.bannerOverlay} />
         </motion.div>
       )}
