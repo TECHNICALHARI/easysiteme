@@ -80,11 +80,6 @@ const ContactInfoSchema = z.object({
   showContactForm: z.boolean().optional().default(false),
 });
 
-const ResumeSchema = z.object({
-  resumeUrl: z.string().optional().nullable(),
-  resumePublicId: z.string().optional().nullable(),
-});
-
 const ProfileSchema = z
   .object({
     fullName: z.string().optional().nullable(),
@@ -103,17 +98,11 @@ const ProfileSchema = z
     services: z.array(ServiceSchema).optional().default([]),
     featured: z.array(FeaturedMediaSchema).optional().default([]),
     tags: z.array(z.string()).optional().default([]),
-    fullAddress: z.string().optional().nullable(),
-    latitude: z.string().optional().nullable(),
-    longitude: z.string().optional().nullable(),
-    email: z.string().optional().nullable(),
-    phone: z.string().optional().nullable(),
-    website: z.string().optional().nullable(),
-    whatsapp: z.string().optional().nullable(),
-    showContactForm: z.boolean().optional().default(false),
-    resume: ResumeSchema.optional().default({}),
+    resumeUrl: z.string().optional().nullable(),
+    resumePublicId: z.string().optional().nullable(),
     socials: SocialsSchema.optional().default({}),
   })
+  .merge(ContactInfoSchema)
   .partial();
 
 const DesignSchema = z.object({
@@ -160,4 +149,5 @@ export const ProfileDesignSchema = z
     settings: SettingsSchema.default({} as z.infer<typeof SettingsSchema>),
   })
   .partial();
+
 export type ProfileDesignInput = z.infer<typeof ProfileDesignSchema>;

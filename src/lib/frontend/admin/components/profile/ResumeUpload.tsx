@@ -22,17 +22,8 @@ const ResumeUpload = forwardRef<ResumeUploadRef, ResumeUploadProps>(({ onSelectF
     }
   }));
 
-  const handleDrop = (e: React.DragEvent) => {
-    e.preventDefault();
-    const file = e.dataTransfer.files[0];
-    if (file && validateFile(file)) {
-      setUploadedFileName(file.name);
-      onSelectFile(file);
-    }
-  };
-
   const validateFile = (file: File) => {
-    const isPDF = file.type === 'application/pdf';
+    const isPDF = file.type === 'application/pdf' || file.name.toLowerCase().endsWith('.pdf');
     const isValidSize = file.size <= 5 * 1024 * 1024;
     if (!isPDF) {
       alert('Only PDF files are allowed.');
@@ -45,7 +36,16 @@ const ResumeUpload = forwardRef<ResumeUploadRef, ResumeUploadProps>(({ onSelectF
     return true;
   };
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleDrop = async (e: React.DragEvent) => {
+    e.preventDefault();
+    const file = e.dataTransfer.files?.[0];
+    if (file && validateFile(file)) {
+      setUploadedFileName(file.name);
+      onSelectFile(file);
+    }
+  };
+
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file && validateFile(file)) {
       setUploadedFileName(file.name);
@@ -63,11 +63,10 @@ const ResumeUpload = forwardRef<ResumeUploadRef, ResumeUploadProps>(({ onSelectF
       <input
         type="file"
         ref={fileInputRef}
-        accept=".pdf"
+        accept="application/pdf,.pdf"
         className="hidden"
         onChange={handleFileChange}
       />
-
       {uploadedFileName ? (
         <div className="flex items-center justify-center gap-2">
           <CheckCircle2 size={20} className="text-green-600" />

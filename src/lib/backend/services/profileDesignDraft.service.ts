@@ -1,8 +1,11 @@
-// src/lib/backend/services/profileDesignDraft.service.ts
 import mongoose from "mongoose";
 import { connectDb } from "@/lib/backend/config/db";
 import { ProfileDesignDraft } from "@/lib/backend/models/ProfileDesignDraft.model";
-import { replaceProfileBase64Images } from "@/lib/backend/utils/profile-image-helper";
+import {
+  replaceProfileBase64Images,
+  collectPublicIdsFromDoc,
+  removeUnusedPublicIds,
+} from "@/lib/backend/utils/profile-image-helper";
 import {
   ProfileDesignInput,
   ProfileDesignSchema,
@@ -25,9 +28,17 @@ class ProfileDesignDraftService {
     if (!parsed.success) {
       throw new Error("Validation error");
     }
-    const incoming = parsed.data;
 
-    const { processed } = await replaceProfileBase64Images(incoming);
+    const existing = await ProfileDesignDraft.findOne({
+      owner: new mongoose.Types.ObjectId(ownerId),
+    })
+      .lean()
+      .exec();
+    const oldPublicIds = existing
+      ? collectPublicIdsFromDoc(existing)
+      : new Set<string>();
+
+    const { processed } = await replaceProfileBase64Images(parsed.data);
 
     const merged = {
       profile: { ...(processed.profile ?? {}) },
@@ -42,7 +53,12 @@ class ProfileDesignDraftService {
       { upsert: true, new: true, setDefaultsOnInsert: true }
     ).exec();
 
-    return doc ? (doc.toObject ? doc.toObject() : doc) : null;
+    const newPublicSet = collectPublicIdsFromDoc(
+      doc?.toObject ? doc.toObject() : (doc as any) || {}
+    );
+    await removeUnusedPublicIds(oldPublicIds, newPublicSet);
+
+    return doc ? (doc.toObject ? doc.toObject() : (doc as any)) : null;
   }
 }
 

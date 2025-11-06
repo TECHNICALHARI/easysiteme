@@ -661,29 +661,64 @@ export default function ProfileTab() {
                     <ResumeUpload
                       ref={resumeRef}
                       onSelectFile={(file) => {
-                        if (!file?.type?.includes('pdf')) {
-                          showToast('Please upload a PDF resume.', 'error');
-                          return;
-                        }
-                        if (formProfile.resumeUrl?.startsWith('blob:')) URL.revokeObjectURL(formProfile.resumeUrl);
-                        const reader = new FileReader();
-                        reader.onload = () => {
-                          const blob = new Blob([reader.result as ArrayBuffer], { type: file.type });
-                          const url = URL.createObjectURL(blob);
-                          setProfileDesign((prev: any) => ({ ...prev, profile: { ...prev.profile, resumeUrl: url } }));
-                          showToast('Resume added', 'success');
-                        };
-                        reader.readAsArrayBuffer(file);
+                        (async () => {
+                          const isPdfType = file.type === 'application/pdf' || file.name.toLowerCase().endsWith('.pdf');
+                          if (!isPdfType) {
+                            showToast('Please upload a PDF resume.', 'error');
+                            return;
+                          }
+                          const max = 5 * 1024 * 1024;
+                          if (file.size > max) {
+                            showToast('File must be less than 5MB.', 'error');
+                            return;
+                          }
+                          const sig = new Uint8Array(await file.slice(0, 5).arrayBuffer());
+                          const isPdfMagic = sig[0] === 0x25 && sig[1] === 0x50 && sig[2] === 0x44 && sig[3] === 0x46 && sig[4] === 0x2D;
+                          if (!isPdfMagic) {
+                            showToast('Corrupted PDF file. Please re-export the PDF.', 'error');
+                            return;
+                          }
+                          const reader = new FileReader();
+                          reader.onloadend = () => {
+                            const result = reader.result;
+                            if (typeof result === 'string' && result.startsWith('data:application/pdf;base64,')) {
+                              setProfileDesign((prev: any) => ({
+                                ...prev,
+                                profile: { ...prev.profile, resumeUrl: result }
+                              }));
+                              showToast('Resume added', 'success');
+                            } else {
+                              showToast('Failed to read PDF file.', 'error');
+                            }
+                          };
+                          reader.readAsDataURL(file);
+                        })();
                       }}
                     />
-                    {formProfile.resumeUrl && (
+                    {!!formProfile.resumeUrl && (
                       <div className={styles.resumeActions}>
-                        <a href={formProfile.resumeUrl} target="_blank" rel="noopener noreferrer" className="btn-secondary">View Resume</a>
+                        <a
+                          href={formProfile.resumeUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="btn-secondary"
+                        >
+                          View
+                        </a>
+                        <a
+                          href={formProfile.resumeUrl.replace('data:application/pdf', 'data:application/octet-stream')}
+                          download="resume.pdf"
+                          className="btn-primary"
+                        >
+                          Download
+                        </a>
                         <button
                           className="btn-destructive"
                           onClick={() => {
-                            if (formProfile.resumeUrl?.startsWith('blob:')) URL.revokeObjectURL(formProfile.resumeUrl);
-                            setProfileDesign((prev: any) => ({ ...prev, profile: { ...prev.profile, resumeUrl: '' } }));
+                            setProfileDesign((prev: any) => ({
+                              ...prev,
+                              profile: { ...prev.profile, resumeUrl: '' }
+                            }));
                             resumeRef.current?.reset();
                             showToast('Resume removed', 'success');
                           }}
@@ -696,6 +731,8 @@ export default function ProfileTab() {
                 </LockedOverlay>
               </Section>
             );
+
+
           case 'featured':
             return (
               <Section key={key} title="Featured Media" right={<button className="btn-primary" onClick={() => {
