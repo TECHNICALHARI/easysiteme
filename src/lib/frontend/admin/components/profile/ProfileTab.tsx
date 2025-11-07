@@ -134,6 +134,7 @@ export default function ProfileTab() {
   const [editFeaturedIndex, setEditFeaturedIndex] = useState<number | null>(null);
   const [bannerPreview, setBannerPreview] = useState<string | null>(formProfile.bannerImage || null);
   const [showUploadBannerModal, setShowUploadBannerModal] = useState(false);
+  const [resumePreviewUrl, setResumePreviewUrl] = useState<string | null>(null);
   const resumeRef = useRef<ResumeUploadRef>(null);
 
   const sensors = useSensors(
@@ -460,6 +461,68 @@ export default function ProfileTab() {
     setProfileDesign((prev: any) => ({ ...prev, profile: { ...prev.profile, website: normalized } }));
   };
 
+  // resume download preview handling
+
+  useEffect(() => {
+    let toRevoke: string | null = null;
+
+    async function syncPreview() {
+      const src = formProfile.resumeUrl || '';
+      if (!src) { setResumePreviewUrl(null); return; }
+
+      if (src.startsWith('data:application/pdf')) {
+        const blob = await (await fetch(src)).blob();
+        const url = URL.createObjectURL(blob);
+        toRevoke = url;
+        setResumePreviewUrl(url);
+      } else {
+        setResumePreviewUrl(src);
+      }
+    }
+
+    syncPreview();
+    return () => { if (toRevoke) URL.revokeObjectURL(toRevoke); };
+  }, [formProfile.resumeUrl]);
+
+
+  const handleViewResume = () => {
+    if (!resumePreviewUrl) return;
+    window.open(resumePreviewUrl, '_blank', 'noopener,noreferrer');
+  };
+
+  const downloadViaFetch = async (url: string, filename: string) => {
+    const res = await fetch(url, { credentials: 'omit', cache: 'no-store' });
+    if (!res.ok) throw new Error('Download failed');
+    const blob = await res.blob();
+    const objectUrl = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = objectUrl;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(() => URL.revokeObjectURL(objectUrl), 0);
+  };
+  const handleDownloadResume = async () => {
+    const src = formProfile.resumeUrl || '';
+    if (!src) return;
+
+    try {
+      if (src.startsWith('http')) {
+        await downloadViaFetch(src, 'resume.pdf');
+      } else {
+        const href = resumePreviewUrl ?? src;
+        const a = document.createElement('a');
+        a.href = href;
+        a.download = 'resume.pdf';
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+      }
+    } catch { }
+  }
+
+
   return (
     <div className={styles.TabPageMain}>
       <div className={styles.sectionHead}>
@@ -663,21 +726,19 @@ export default function ProfileTab() {
                       onSelectFile={(file) => {
                         (async () => {
                           const isPdfType = file.type === 'application/pdf' || file.name.toLowerCase().endsWith('.pdf');
-                          if (!isPdfType) {
-                            showToast('Please upload a PDF resume.', 'error');
-                            return;
-                          }
+                          if (!isPdfType) { showToast('Please upload a PDF resume.', 'error'); return; }
                           const max = 5 * 1024 * 1024;
-                          if (file.size > max) {
-                            showToast('File must be less than 5MB.', 'error');
-                            return;
-                          }
+                          if (file.size > max) { showToast('File must be less than 5MB.', 'error'); return; }
                           const sig = new Uint8Array(await file.slice(0, 5).arrayBuffer());
                           const isPdfMagic = sig[0] === 0x25 && sig[1] === 0x50 && sig[2] === 0x44 && sig[3] === 0x46 && sig[4] === 0x2D;
-                          if (!isPdfMagic) {
-                            showToast('Corrupted PDF file. Please re-export the PDF.', 'error');
-                            return;
-                          }
+                          if (!isPdfMagic) { showToast('Corrupted PDF file. Please re-export the PDF.', 'error'); return; }
+
+                          const objectUrl = URL.createObjectURL(file);
+                          setResumePreviewUrl(prev => {
+                            if (prev && prev.startsWith('blob:')) URL.revokeObjectURL(prev);
+                            return objectUrl;
+                          });
+
                           const reader = new FileReader();
                           reader.onloadend = () => {
                             const result = reader.result;
@@ -695,26 +756,20 @@ export default function ProfileTab() {
                         })();
                       }}
                     />
+
                     {!!formProfile.resumeUrl && (
                       <div className={styles.resumeActions}>
-                        <a
-                          href={formProfile.resumeUrl}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="btn-secondary"
-                        >
+                        <button type="button" className="btn-secondary" onClick={handleViewResume}>
                           View
-                        </a>
-                        <a
-                          href={formProfile.resumeUrl.replace('data:application/pdf', 'data:application/octet-stream')}
-                          download="resume.pdf"
-                          className="btn-primary"
-                        >
+                        </button>
+                        <button type="button" className="btn-primary" onClick={handleDownloadResume}>
                           Download
-                        </a>
+                        </button>
                         <button
                           className="btn-destructive"
                           onClick={() => {
+                            if (resumePreviewUrl && resumePreviewUrl.startsWith('blob:')) URL.revokeObjectURL(resumePreviewUrl);
+                            setResumePreviewUrl(null);
                             setProfileDesign((prev: any) => ({
                               ...prev,
                               profile: { ...prev.profile, resumeUrl: '' }

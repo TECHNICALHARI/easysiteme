@@ -44,7 +44,6 @@ export function usePreviewBus(form: FormData, plan: PlanType) {
   const lastPlan = useRef<PlanType | null>(null);
 
   useEffect(() => {
-    // Only send profile+design
     const minimal = { profile: form.profile, design: form.design };
     const formJson = JSON.stringify({ ...minimal, previewMode: true });
 
