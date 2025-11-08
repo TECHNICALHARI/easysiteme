@@ -1,7 +1,9 @@
 "use client";
 import { motion } from "framer-motion";
+import { FileText, Download } from "lucide-react";
 import styles from "@/styles/preview.module.css";
 import type { ProfileTabData } from "@/lib/frontend/types/form";
+import { handleDownloadResume, handleViewResume } from "../../utils/common";
 
 export default function HeaderSection({ profile }: { profile: ProfileTabData | any }) {
   const name = profile?.fullName ?? "";
@@ -14,14 +16,18 @@ export default function HeaderSection({ profile }: { profile: ProfileTabData | a
       .join("") || "•";
 
   const hasBanner = Boolean(profile?.bannerImage);
-  const hasTitle = Boolean(profile?.title);
   const hasBio = Boolean(profile?.bio);
   const hasTags = Array.isArray(profile?.tags) && profile.tags.length > 0;
   const hasHeaders = Array.isArray(profile?.headers) && profile.headers.length > 0;
   const hasAbout = Boolean(profile?.about);
-  const hasAnyMeta = hasTitle || hasBio || hasTags || hasHeaders || hasAbout;
+  const hasAnyMeta = hasBio || hasTags || hasHeaders || hasAbout;
 
-  const fadeInUp = { hidden: { opacity: 0, y: 16 }, visible: { opacity: 1, y: 0 } };
+  const resumeUrl: string | null =
+    typeof profile?.resumeUrl === "string" && profile.resumeUrl
+      ? profile.resumeUrl
+      : typeof profile?.resume?.resumeUrl === "string" && profile.resume?.resumeUrl
+        ? profile.resume.resumeUrl
+        : null;
 
   return (
     <section className={styles.profileSection}>
@@ -33,17 +39,16 @@ export default function HeaderSection({ profile }: { profile: ProfileTabData | a
           transition={{ duration: 0.36, ease: "easeOut" }}
           className={styles.bannerWrapper}
         >
-          <img src={profile.bannerImage} alt="Banner"  className={styles.bannerImage} />
+          <img src={profile.bannerImage} alt="Banner" className={styles.bannerImage} />
           <div className={styles.bannerOverlay} />
         </motion.div>
       )}
 
       <motion.div
-        variants={fadeInUp}
-        initial="hidden"
-        whileInView="visible"
+        key={name + String(hasBanner)}
+        initial={{ opacity: 0, y: 16 }}
+        animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.55 }}
-        viewport={{ once: true }}
         className={hasBanner ? styles.profileInfoCard : styles.profileInfoFrameless}
       >
         {profile?.avatar ? (
@@ -68,24 +73,28 @@ export default function HeaderSection({ profile }: { profile: ProfileTabData | a
           </motion.div>
         )}
 
-        <motion.h1 variants={fadeInUp} className={styles.avatarName}>
+        <motion.h1 initial={false} animate={{ opacity: 1 }} className={styles.avatarName}>
           {name || profile?.settings?.subdomain || "Anonymous"}
         </motion.h1>
 
-        {hasTitle && (
-          <motion.p variants={fadeInUp} className={styles.tagline}>
-            {profile.title}
-          </motion.p>
-        )}
-
         {hasBio && (
-          <motion.p variants={fadeInUp} className={styles.bio}>
+          <motion.p
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.3 }}
+            className={styles.bio}
+          >
             {profile.bio}
           </motion.p>
         )}
 
         {hasTags && (
-          <motion.div variants={fadeInUp} className={styles.tagsWrapper}>
+          <motion.div
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.3 }}
+            className={styles.tagsWrapper}
+          >
             {profile.tags.slice(0, 6).map((tag: string, idx: number) => (
               <span key={`${tag}-${idx}`} className={styles.tag}>
                 #{tag}
@@ -93,9 +102,43 @@ export default function HeaderSection({ profile }: { profile: ProfileTabData | a
             ))}
           </motion.div>
         )}
+        {resumeUrl && (
+          <motion.div
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.3 }}
+            className={styles.headerActions}
+          >
+            <button
+              type="button"
+              onClick={() => handleViewResume(resumeUrl)}
+              className={styles.headerAction}
+              aria-label="View Resume"
+              title="View Resume"
+            >
+              <FileText size={16} className={styles.headerActionIcon} />
+              <span>View Resume</span>
+            </button>
+            <button
+              type="button"
+              className={styles.headerActionSecondary}
+              aria-label="Download Resume"
+              title="Download Resume"
+              onClick={() => handleDownloadResume(resumeUrl)}
+            >
+              <Download size={16} className={styles.headerActionIcon} />
+              <span>Download</span>
+            </button>
+          </motion.div>
+        )}
 
         {hasHeaders && (
-          <motion.div variants={fadeInUp} className={styles.headersWrapper}>
+          <motion.div
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.3 }}
+            className={styles.headersWrapper}
+          >
             {profile.headers.map((h: any) => (
               <h2 key={h.id} className={styles.profileSubheader}>
                 {h.title}
@@ -106,7 +149,9 @@ export default function HeaderSection({ profile }: { profile: ProfileTabData | a
 
         {hasAbout && (
           <motion.div
-            variants={fadeInUp}
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.3 }}
             className={styles.about}
             dangerouslySetInnerHTML={{ __html: profile.about }}
           />

@@ -2,45 +2,46 @@
 
 import { motion } from "framer-motion";
 import styles from "@/styles/preview.module.css";
-import { FormData, Link as LinkType } from "@/lib/frontend/types/form";
+import type { FormData, Link as LinkType } from "@/lib/frontend/types/form";
 
+import PreviewContainer from "./layout/PreviewContainer";
 import HeaderSection from "./components/HeaderSection";
-import LinkSection from "./components/LinkSection";
 import SocialSection from "./components/SocialSection";
+import LinkSection from "./components/LinkSection";
 import FeaturedSection from "./components/FeaturedSection";
 import EmbedSection from "./components/EmbedSection";
-import ResumeSection from "./components/ResumeSection";
 import ServiceSection from "./components/ServiceSection";
 import TestimonialSection from "./components/TestimonialSection";
-import FAQSection from "./components/FAQSection";
 import PostsSection from "./components/PostsSection";
 import MapSection from "./components/MapSection";
-import PreviewContainer from "./layout/PreviewContainer";
+import FAQSection from "./components/FAQSection";
 import ContactSection from "./components/ContactSection";
 import SubscribeSection from "./components/SubscribeSection";
 
 function sortLinks(links: LinkType[] = []) {
   return [...links].sort((a, b) => Number(b.highlighted) - Number(a.highlighted));
 }
+function hasAnySocial(socials: Record<string, any> = {}) {
+  return Object.values(socials).some(v => {
+    if (typeof v === "string") return v.trim().length > 0;
+    return Boolean(v);
+  });
+}
 
 export default function WebsiteLayout({ form }: { form: FormData }) {
+  const profile = form.profile ?? {};
+  const posts = form.posts ?? { posts: [] };
+  const socials = profile.socials ?? {};
   const themeClass = form.design.theme || "brand";
-  const profile = form.profile || ({} as any);
-  const posts = form.posts;
-  const socials = profile?.socials || {};
-
-  const hasLinks = Boolean(profile?.links?.length);
-  const hasSocials = Boolean(socials && Object.keys(socials).length > 0);
-  const hasFeatured = Boolean(profile?.featured?.length);
-  const hasEmbeds = Boolean(profile?.embeds?.length);
-  const hasResume =
-    !!(profile?.resumeUrl);
-  const hasServices = Boolean(profile?.services?.length);
-  const hasTestimonials = Boolean(profile?.testimonials?.length);
-  const hasPosts = Boolean(posts?.posts?.length);
-  const hasMap =
-    Boolean((profile?.latitude && profile?.longitude) || profile?.fullAddress);
-  const hasFaqs = Boolean(profile?.faqs?.length);
+  const hasLinks = Array.isArray(profile.links) && profile.links.length > 0;
+  const hasSocials = hasAnySocial(socials);
+  const hasFeatured = Array.isArray(profile.featured) && profile.featured.length > 0;
+  const hasEmbeds = Array.isArray(profile.embeds) && profile.embeds.length > 0;
+  const hasServices = Array.isArray(profile.services) && profile.services.length > 0;
+  const hasTestimonials = Array.isArray(profile.testimonials) && profile.testimonials.length > 0;
+  const hasPosts = Array.isArray(posts.posts) && posts.posts.length > 0;
+  const hasFaqs = Array.isArray(profile.faqs) && profile.faqs.length > 0;
+  const hasMap = Boolean((profile.latitude && profile.longitude) || profile.fullAddress);
   const hasSubscribe = !form.subscriberSettings?.subscriberSettings?.hideSubscribeButton;
 
   const sortedLinks = hasLinks ? sortLinks(profile.links) : [];
@@ -56,22 +57,16 @@ export default function WebsiteLayout({ form }: { form: FormData }) {
           <HeaderSection profile={profile} />
         </motion.div>
 
-        {hasLinks && <LinkSection links={sortedLinks} />}
         {hasSocials && <SocialSection socials={socials} />}
-
+        {hasLinks && <LinkSection links={sortedLinks} />}
         {hasFeatured && <FeaturedSection featured={profile.featured} />}
         {hasEmbeds && <EmbedSection embeds={profile.embeds} />}
-        {hasResume && <ResumeSection profile={profile} />}
-
         {hasServices && <ServiceSection services={profile.services} />}
         {hasTestimonials && <TestimonialSection testimonials={profile.testimonials} />}
-
         {hasPosts && <PostsSection posts={posts.posts} />}
         {hasMap && <MapSection profile={profile} />}
-
         {hasFaqs && <FAQSection faqs={profile.faqs} />}
-
-        <ContactSection profile={form.profile} />
+        <ContactSection profile={profile} />
       </PreviewContainer>
 
       {hasSubscribe && <SubscribeSection form={form} />}

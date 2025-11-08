@@ -53,6 +53,7 @@ import { useAdminForm } from '@/lib/frontend/admin/context/AdminFormContext';
 import { useToast } from '@/lib/frontend/common/ToastProvider';
 import Loader from '@/lib/frontend/common/Loader';
 import { isValidHttpUrl, normalizeHttpUrl } from '@/lib/frontend/utils/url';
+import { handleDownloadResume, handleViewResume } from '@/lib/frontend/utils/common';
 
 const Section: FC<{
   title?: string | React.ReactNode;
@@ -485,42 +486,7 @@ export default function ProfileTab() {
   }, [formProfile.resumeUrl]);
 
 
-  const handleViewResume = () => {
-    if (!resumePreviewUrl) return;
-    window.open(resumePreviewUrl, '_blank', 'noopener,noreferrer');
-  };
 
-  const downloadViaFetch = async (url: string, filename: string) => {
-    const res = await fetch(url, { credentials: 'omit', cache: 'no-store' });
-    if (!res.ok) throw new Error('Download failed');
-    const blob = await res.blob();
-    const objectUrl = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = objectUrl;
-    a.download = filename;
-    document.body.appendChild(a);
-    a.click();
-    a.remove();
-    setTimeout(() => URL.revokeObjectURL(objectUrl), 0);
-  };
-  const handleDownloadResume = async () => {
-    const src = formProfile.resumeUrl || '';
-    if (!src) return;
-
-    try {
-      if (src.startsWith('http')) {
-        await downloadViaFetch(src, 'resume.pdf');
-      } else {
-        const href = resumePreviewUrl ?? src;
-        const a = document.createElement('a');
-        a.href = href;
-        a.download = 'resume.pdf';
-        document.body.appendChild(a);
-        a.click();
-        a.remove();
-      }
-    } catch { }
-  }
 
 
   return (
@@ -759,10 +725,10 @@ export default function ProfileTab() {
 
                     {!!formProfile.resumeUrl && (
                       <div className={styles.resumeActions}>
-                        <button type="button" className="btn-secondary" onClick={handleViewResume}>
+                        <button type="button" className="btn-secondary" onClick={() => handleViewResume(resumePreviewUrl!)}>
                           View
                         </button>
-                        <button type="button" className="btn-primary" onClick={handleDownloadResume}>
+                        <button type="button" className="btn-primary" onClick={() => handleDownloadResume((formProfile.resumeUrl || ""), resumePreviewUrl)}>
                           Download
                         </button>
                         <button
