@@ -1,12 +1,13 @@
-'use client';
+"use client";
 
-import { useEffect, useMemo, useState } from 'react';
-import { motion, useReducedMotion } from 'framer-motion';
-import Link from 'next/link';
-import Image from 'next/image';
-import styles from '@/styles/main.module.css';
+import { useEffect, useMemo, useState } from "react";
+import { motion, useReducedMotion } from "framer-motion";
+import Link from "next/link";
+import Image from "next/image";
+import styles from "@/styles/main.module.css";
+import { getFeaturedMakersPublicApi } from "@/lib/frontend/api/services";
 
-type LayoutType = 'bio' | 'website';
+type LayoutType = "bio" | "website";
 
 export type FeaturedUser = {
   username: string;
@@ -19,18 +20,16 @@ export type FeaturedUser = {
   customDomain?: string;
 };
 
-function publicUrl(u: FeaturedUser) {
-  if (u.customDomain && /^https?:\/\//i.test(u.customDomain)) return u.customDomain;
-  if (u.customDomain && !/^https?:\/\//i.test(u.customDomain)) return `https://${u.customDomain}`;
-  return `https://${u.username}.myeasypage.com`;
+function publicUrl(u: { subdomain?: string }) {
+  return `https://${u.subdomain}.myeasypage.com`;
 }
 
-function smallLine(u: FeaturedUser) {
-  return u.title?.trim() || u.tags?.[0] || `@${u.username}`;
+function smallLine(u: { title?: string; subdomain?: string }) {
+  return u.title?.trim() || `@${u.subdomain}`;
 }
 
-function pillText(u: FeaturedUser) {
-  return (u.layoutType === 'website' ? 'Website' : 'Bio');
+function pillText(layoutType?: LayoutType) {
+  return layoutType === "website" ? "Website" : "Bio";
 }
 
 export default function UserShowcase() {
@@ -38,81 +37,25 @@ export default function UserShowcase() {
   const reduceMotion = useReducedMotion();
 
   useEffect(() => {
-    let ignore = false;
-    (async () => {
-      try {
-        const res = await fetch('/api/public/featured', { cache: 'no-store' });
-        if (!res.ok) throw new Error('failed');
-        const data: FeaturedUser[] = await res.json();
-        if (!ignore) setItems(data?.length ? data : []);
-      } catch {
-        // optional: fallback curated examples till you wire the API
-        if (!ignore) {
-          setItems([
-            {
-              username: 'raj',
-              fullName: 'Raj Verma',
-              title: 'Freelance Developer',
-              avatar: 'https://patientportalapi.akosmd.in/assets/patient/2025/fcab01f1b13fc6d8095431d56da4aabd.png',
-              bannerImage: 'https://patientportalapi.akosmd.in/assets/patient/2025/571402977de4c6c762df1f903668d7f7.jpeg',
-              tags: ['freelancer', 'developer'],
-              layoutType: 'website',
-            },
-            {
-              username: 'aisha',
-              fullName: 'Aisha Khan',
-              title: 'Artist & Shop',
-              avatar: 'https://patientportalapi.akosmd.in/assets/patient/2025/fcab01f1b13fc6d8095431d56da4aabd.png',
-              bannerImage: 'https://patientportalapi.akosmd.in/assets/patient/2025/20655a3b5329a87b9862d05d774502c8.jpeg',
-              tags: ['artist'],
-              layoutType: 'bio',
-            },
-            {
-              username: 'startupdeck',
-              fullName: 'StartupDeck',
-              title: 'Product Landing',
-              avatar: 'https://patientportalapi.akosmd.in/assets/patient/2025/fcab01f1b13fc6d8095431d56da4aabd.png',
-              bannerImage: 'https://patientportalapi.akosmd.in/assets/patient/2025/20655a3b5329a87b9862d05d774502c8.jpeg',
-              tags: ['startup'],
-              layoutType: 'website',
-            },
-            {
-              username: 'reelsbyzoe',
-              fullName: 'Zoe',
-              title: 'Creator / Reels',
-              avatar: 'https://patientportalapi.akosmd.in/assets/patient/2025/fcab01f1b13fc6d8095431d56da4aabd.png',
-              bannerImage: 'https://patientportalapi.akosmd.in/assets/patient/2025/571402977de4c6c762df1f903668d7f7.jpeg',
-              tags: ['creator'],
-              layoutType: 'bio',
-            },
-            {
-              username: 'techhub',
-              fullName: 'Tech Hub',
-              title: 'Tech Blog',
-              avatar: 'https://patientportalapi.akosmd.in/assets/patient/2025/fcab01f1b13fc6d8095431d56da4aabd.png',
-              bannerImage: 'https://patientportalapi.akosmd.in/assets/patient/2025/20655a3b5329a87b9862d05d774502c8.jpeg',
-              tags: ['blog'],
-              layoutType: 'website',
-            },
-            {
-              username: 'chefamy',
-              fullName: 'Chef Amy',
-              title: 'Recipes & Videos',
-              avatar: 'https://patientportalapi.akosmd.in/assets/patient/2025/fcab01f1b13fc6d8095431d56da4aabd.png',
-              bannerImage: 'https://patientportalapi.akosmd.in/assets/patient/2025/571402977de4c6c762df1f903668d7f7.jpeg',
-              tags: ['food'],
-              layoutType: 'bio',
-            },
-          ]);
-        }
-      }
-    })();
-    return () => {
-      ignore = true;
-    };
+    const c = new AbortController();
+    getFeaturedMakersPublicApi({ limit: 12, signal: c.signal })
+      .then((rows) => {
+        const mapped: FeaturedUser[] = rows.map((r) => ({
+          username: r.subdomain,
+          fullName: r.fullName || "",
+          avatar: r.avatar || "",
+          bannerImage: r.bannerImage || "",
+          layoutType: (r.layoutType as LayoutType) || "bio",
+        }));
+        setItems(mapped);
+      })
+      .catch(() => setItems([]));
+    return () => c.abort();
   }, []);
 
-  const loop = useMemo(() => (items ? [...items, ...items] : []), [items]);
+  if (!items || items.length === 0) return null;
+
+  const loop = [...items, ...items];
 
   return (
     <section id="examples" className="section" aria-labelledby="examples-title">
@@ -128,12 +71,12 @@ export default function UserShowcase() {
         <div className={styles.userCarousel} aria-label="User site examples">
           <motion.div
             className={styles.userTrack}
-            animate={reduceMotion ? undefined : { x: ['0%', '-50%'] }}
-            transition={reduceMotion ? undefined : { ease: 'linear', duration: 25, repeat: Infinity }}
+            animate={reduceMotion ? undefined : { x: ["0%", "-50%"] }}
+            transition={reduceMotion ? undefined : { ease: "linear", duration: 24, repeat: Infinity }}
           >
             {loop.map((u, i) => {
-              const href = publicUrl(u);
-              const bg = u.bannerImage || u.avatar || '';
+              const href = publicUrl({ subdomain: u.username });
+              const bg = u.bannerImage || u.avatar || "";
               return (
                 <Link
                   key={`${u.username}-${i}`}
@@ -155,14 +98,12 @@ export default function UserShowcase() {
                   ) : (
                     <div className={styles.userBgFallback} aria-hidden="true" />
                   )}
-
                   <div className={styles.userOverlay} aria-hidden="true" />
-
                   <div className={styles.userBottom}>
                     <div className={styles.userName}>{u.fullName}</div>
                     <div className={styles.userSub}>
-                      <span className={styles.userSubText}>{smallLine(u)}</span>
-                      <span className={styles.userPill}>{pillText(u)}</span>
+                      <span className={styles.userSubText}>{smallLine({ title: u.title, subdomain: u.username })}</span>
+                      <span className={styles.userPill}>{pillText(u.layoutType)}</span>
                     </div>
                   </div>
                 </Link>

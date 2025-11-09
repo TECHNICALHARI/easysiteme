@@ -26,7 +26,6 @@ export async function GET(req: NextRequest) {
     };
     return successResponse({ user: userPublic }, "OK", 200, req);
   } catch (err: any) {
-    console.error("GET /api/user/me error:", err);
     return errorResponse(
       err instanceof Error ? err.message : "Internal server error",
       500,

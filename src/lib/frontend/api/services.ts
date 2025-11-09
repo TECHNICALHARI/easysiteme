@@ -302,7 +302,6 @@ export async function saveStatsServiceAPI(data: any) {
   return apiFetch<any>("/admin/stats", { method: "POST", body: data });
 }
 
-
 export async function createOrderServiceAPI(data: any) {
   return apiFetch<any>(CREATE_ORDER, {
     method: "POST",
@@ -316,4 +315,47 @@ export async function verifyPaymentServiceAPI(data: any) {
     authRequired: true,
     body: data,
   });
+}
+
+import { FEATURED_MAKERS_PUBLIC } from "./routes";
+
+export type FeaturedMakerPublic = {
+  owner: string;
+  fullName: string;
+  avatar: string;
+  bannerImage: string;
+  layoutType: "bio" | "website";
+  subdomain: string;
+  headline: string;
+  rank: number;
+};
+
+export async function getFeaturedMakersPublicApi(params?: {
+  limit?: number;
+  skip?: number;
+  signal?: AbortSignal;
+}) {
+  const qs = new URLSearchParams();
+  if (params?.limit) qs.set("limit", String(params.limit));
+  if (params?.skip) qs.set("skip", String(params.skip));
+  const url = `${FEATURED_MAKERS_PUBLIC}${
+    qs.toString() ? `?${qs.toString()}` : ""
+  }`;
+  const res = await fetch(`/api${url}`, {
+    method: "GET",
+    credentials: "include",
+    cache: "no-store",
+    signal: params?.signal,
+  });
+  if (!res.ok) {
+    try {
+      const e = await res.json();
+      throw new Error(e?.message || "Failed");
+    } catch {
+      throw new Error("Failed");
+    }
+  }
+  const json = await res.json();
+  const arr = (json?.data ?? json ?? []) as FeaturedMakerPublic[];
+  return Array.isArray(arr) ? arr : [];
 }

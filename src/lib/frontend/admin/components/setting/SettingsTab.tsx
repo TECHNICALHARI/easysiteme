@@ -29,8 +29,6 @@ export default function SettingsTab() {
     const [subdomainError, setSubdomainError] = useState<string | null>(null);
     const [changing, setChanging] = useState(false);
 
-    console.log(settings, "settings");
-
     const handleSettingsChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const { name, value, type, checked } = e.target;
         setSettings((prev: any) => ({ ...prev, [name]: type === 'checkbox' ? checked : value }));

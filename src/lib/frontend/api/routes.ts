@@ -33,3 +33,4 @@ export const DELETE_IMAGE = "/uploads/delete";
 export const CONTACT = "/contact";
 export const CREATE_ORDER = "/payments/create-order";
 export const VERIFY_PAYMENT = "/payments/verify";
+export const FEATURED_MAKERS_PUBLIC = "/public/featured-makers";
