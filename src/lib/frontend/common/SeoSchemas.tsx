@@ -100,7 +100,7 @@ export default function SeoSchemas({ page }: Props) {
       "https://myeasypage.com/#faq",
       "https://myeasypage.com/about",
       "https://myeasypage.com/#contact",
-      "https://myeasypage.com/create"
+      "https://myeasypage.com/signup"
     ]
   };
 

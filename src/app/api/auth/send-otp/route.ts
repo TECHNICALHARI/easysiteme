@@ -41,7 +41,7 @@ export async function POST(req: NextRequest) {
         const u = await UserService.findByMobile(target);
         if (u && u.mobileVerified) userVerified = true;
       }
-    } catch (e) {
+    } catch {
       userVerified = userVerified || false;
     }
 
@@ -66,7 +66,17 @@ export async function POST(req: NextRequest) {
     );
     if (limiter) return limiter;
 
-    const rate = await limitForOtp(String(target));
+    let rate;
+    try {
+      rate = await limitForOtp(String(target));
+    } catch {
+      rate = {
+        allowed: true,
+        count: 1,
+        remaining: 0,
+        reset: Math.floor(Date.now() / 1000) + 60,
+      };
+    }
 
     const otpDoc = await OtpService.createOtp(target, channel);
 

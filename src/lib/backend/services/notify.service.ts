@@ -30,7 +30,7 @@ function renderOtpEmailHtml({
   code,
   ttlMinutes = 10,
   appName = "myeasypage",
-  logoUrl = "https://carenavigator.akosmd.in/static/media/sidebarlogo.b5ea315f1aebbe35829a.png",
+  logoUrl = "https://res.cloudinary.com/dlzhyrofc/image/upload/v1762664393/file_radq3o.webp",
   supportUrl = "https://myeasypage.com/#contact",
 }: {
   code: string;

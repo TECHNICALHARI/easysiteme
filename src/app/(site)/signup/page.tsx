@@ -1,12 +1,12 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import styles from '@/styles/main.module.css';
 import SignupForm from '@/lib/frontend/main/auth/SignupForm';
 import { useToast } from '@/lib/frontend/common/ToastProvider';
 import { formatPhoneToE164 } from '@/lib/frontend/utils/common';
 import { signupApi, checkSubdomainApi } from '@/lib/frontend/api/services';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 
 export default function SignupPage() {
   const { showToast } = useToast();
@@ -28,6 +28,15 @@ export default function SignupPage() {
   const [subdomainAvailable, setSubdomainAvailable] = useState<null | boolean>(null);
   const [loading, setLoading] = useState(false);
   const router = useRouter();
+  const searchParams = useSearchParams();
+
+  useEffect(() => {
+    const defaultSub = searchParams.get('u');
+    if (defaultSub) {
+      setFormData((prev) => ({ ...prev, subdomain: defaultSub.toLowerCase() }));
+      checkSubdomain(defaultSub.toLowerCase());
+    }
+  }, [searchParams]);
 
   const checkSubdomain = async (name: string) => {
     if (!name) return setSubdomainAvailable(null);

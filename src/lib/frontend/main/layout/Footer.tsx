@@ -40,7 +40,7 @@ export default function Footer() {
               <li><Link className={styles.footerLink} href="/#trust">Trust</Link></li>
               <li><Link className={styles.footerLink} href="/#faq">FAQ</Link></li>
               <li><Link className={styles.footerLink} href="/#contact">Contact</Link></li>
-              <li><Link className={styles.footerLink} href="/create">Get Started</Link></li>
+              <li><Link className={styles.footerLink} href="/signup">Get Started</Link></li>
             </ul>
           </div>
 

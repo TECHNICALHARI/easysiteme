@@ -145,7 +145,7 @@ export default function AboutPage() {
             and upgrade anytime for a custom domain and premium layouts.
           </p>
           <div className={styles.ctaActions}>
-            <a href="/create" className="btn-primary">Create your page</a>
+            <a href="/signup" className="btn-primary">Create your page</a>
             <a href="/#plans" className="btn-white">See pricing</a>
           </div>
           <p className={styles.ctaNote}>

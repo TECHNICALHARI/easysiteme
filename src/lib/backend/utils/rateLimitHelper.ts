@@ -23,18 +23,22 @@ export async function enforceRateLimit(
   req: NextRequest,
   message?: string
 ): Promise<NextResponse | null> {
-  const cfg = RATE_CONFIG[type];
-  const rl = await rateLimit(
-    `${type.toLowerCase()}:${identifier}`,
-    cfg.LIMIT,
-    cfg.WINDOW_SECONDS
-  );
-  if (!rl.allowed) {
-    return buildRateLimitResponse(
-      message ?? `Too many ${type.toLowerCase()} requests`,
+  try {
+    const cfg = RATE_CONFIG[type];
+    const rl = await rateLimit(
+      `${type.toLowerCase()}:${identifier}`,
       cfg.LIMIT,
-      rl
+      cfg.WINDOW_SECONDS
     );
+    if (!rl.allowed) {
+      return buildRateLimitResponse(
+        message ?? `Too many ${type.toLowerCase()} requests`,
+        cfg.LIMIT,
+        rl
+      );
+    }
+    return null;
+  } catch {
+    return null;
   }
-  return null;
 }

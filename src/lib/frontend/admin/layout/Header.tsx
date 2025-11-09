@@ -1,4 +1,3 @@
-// src/lib/frontend/admin/layout/Header.tsx
 'use client';
 
 import { useMemo, useState, useRef, useEffect } from 'react';

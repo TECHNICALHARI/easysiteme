@@ -43,7 +43,7 @@ export const PLAN_FEATURES: Record<PlanType, PlanFeatureConfig> = {
     tags: 5,
     posts: 0,
     brandingOff: false,
-    layoutType: false,
+    layoutType: true,
     showSubscribers: false,
     customDomain: false,
     stats: false,

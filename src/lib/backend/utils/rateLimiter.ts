@@ -9,12 +9,16 @@ export type RateResult = {
 };
 
 async function incrWithExpire(key: string, windowSec: number) {
-  const tx = redis.multi();
-  tx.incr(key);
-  tx.expire(key, windowSec);
-  const res = (await tx.exec()) as any[];
-  const count = Number(res?.[0] ?? 0);
-  return count;
+  try {
+    const tx = redis.multi();
+    tx.incr(key);
+    tx.expire(key, windowSec);
+    const res = (await tx.exec()) as any[];
+    const count = Number(res?.[0] ?? 0);
+    return count;
+  } catch {
+    return 1;
+  }
 }
 
 export async function rateLimit(
@@ -22,12 +26,21 @@ export async function rateLimit(
   limit: number,
   windowSec: number
 ): Promise<RateResult> {
-  const redisKey = `ratelimit:${key}`;
-  const count = await incrWithExpire(redisKey, windowSec);
-  const allowed = count <= limit;
-  const remaining = Math.max(0, limit - count);
-  const reset = Math.floor(Date.now() / 1000) + windowSec;
-  return { allowed, count, remaining, reset };
+  try {
+    const redisKey = `ratelimit:${key}`;
+    const count = await incrWithExpire(redisKey, windowSec);
+    const allowed = count <= limit;
+    const remaining = Math.max(0, limit - count);
+    const reset = Math.floor(Date.now() / 1000) + windowSec;
+    return { allowed, count, remaining, reset };
+  } catch {
+    const now = Math.floor(Date.now() / 1000);
+    const count = 1;
+    const allowed = true;
+    const remaining = Math.max(0, limit - count);
+    const reset = now + 60;
+    return { allowed, count, remaining, reset };
+  }
 }
 
 export async function limitForContact(identifierKey: string) {

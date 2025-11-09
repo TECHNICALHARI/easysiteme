@@ -36,7 +36,7 @@ export default function CallToAction() {
           transition={{ delay: 0.25, duration: 0.4 }}
           viewport={{ once: true }}
         >
-          <Link href="/create" className="btn-primary" aria-label="Create your free website on myeasypage">
+          <Link href="/signup" className="btn-primary" aria-label="Create your free website on myeasypage">
             Create my site
           </Link>
           <Link href="#plans" className="btn-white" aria-label="View pricing plans on myeasypage">
