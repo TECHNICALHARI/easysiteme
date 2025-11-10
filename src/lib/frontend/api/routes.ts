@@ -3,6 +3,8 @@ export const LOGIN = "/auth/login";
 export const SEND_OTP = "/auth/send-otp";
 export const VERIFY_OTP = "/auth/verify-otp";
 export const CHANGE_PASSWORD = "/auth/change-password";
+export const FORGOT_PASSWORD = "/auth/forgot-password";
+export const RESET_PASSWORD = "/auth/reset-password";
 
 export const ADMIN_FORM = "/admin/form";
 export const CHANGE_SUBDOMAIN = "/admin/change-subdomain";

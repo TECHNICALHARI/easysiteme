@@ -1,4 +1,3 @@
-// lib/frontend/main/auth/LoginForm.tsx
 'use client';
 
 import {
@@ -164,7 +163,7 @@ export default function LoginForm({
       )}
       {errors.otp && <p className="text-red-500 text-sm mb-2">{errors.otp}</p>}
 
-      {!formData.useOtp && (
+      {/* {!formData.useOtp && (
         <button
           type="button"
           className="btn-secondary w-full mt-3"
@@ -173,18 +172,23 @@ export default function LoginForm({
         >
           {loading ? 'Sending OTP...' : 'Sign in with OTP'}
         </button>
-      )}
-
+      )} */}
+      <div className="flex justify-end items-center mt-3">
+        <a href="/forgot-password" className="text-sm text-brand font-medium">
+          Forgot password?
+        </a>
+      </div>
       <button type="submit" className="btn-primary w-full mt-4" disabled={loading}>
         {loading ? 'Signing in...' : 'Sign in'}
       </button>
-
       <p className={styles.authBottomText}>
         Don’t have an account?{' '}
         <Link href="/signup" className="text-brand font-medium">
           Sign up
         </Link>
       </p>
+
+
     </form>
   );
 }

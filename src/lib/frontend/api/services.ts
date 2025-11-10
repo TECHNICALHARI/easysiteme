@@ -23,6 +23,8 @@ import {
   SUPERADMIN_CONTACT,
   SUPERADMIN_FEATURED_MAKERS,
   SUPERADMIN_USERS,
+  FORGOT_PASSWORD,
+  RESET_PASSWORD,
 } from "./routes";
 
 export interface ApiResponse<T = any> {
@@ -115,6 +117,20 @@ export function sendOtpApi(data: any) {
 
 export function verifyOtpApi(data: any) {
   return apiFetch<any>(VERIFY_OTP, {
+    method: "POST",
+    body: data,
+    authRequired: false,
+  });
+}
+export function forgotPasswordApi(data: any) {
+  return apiFetch<any>(FORGOT_PASSWORD, {
+    method: "POST",
+    body: data,
+    authRequired: false,
+  });
+}
+export function resetPasswordApi(data: any) {
+  return apiFetch<any>(RESET_PASSWORD, {
     method: "POST",
     body: data,
     authRequired: false,
@@ -404,4 +420,3 @@ export async function getUsersSuperAdmin(opts?: {
   const url = `${SUPERADMIN_USERS}?${qs.toString()}`;
   return apiFetch<any>(url, { method: "GET" });
 }
-
