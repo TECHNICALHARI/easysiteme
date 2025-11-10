@@ -106,7 +106,7 @@ export default function AdminHeader() {
                 className={`btn-primary shadow-md ${styles.upgradeButton}`}
                 aria-label="Upgrade"
                 title="Upgrade"
-                onClick={() => router.push('/pricing')}
+                onClick={() => router.push('/admin/plan')}
               >
                 <Sparkles size={16} className={styles.icon} />
                 <span className={styles.btnLabel}>

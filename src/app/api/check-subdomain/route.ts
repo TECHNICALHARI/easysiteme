@@ -32,6 +32,7 @@ export async function GET(req: NextRequest) {
       "support",
       "help",
       "dashboard",
+      "superadmin",
     ]);
     if (reserved.has(subdomain)) {
       return successResponse(

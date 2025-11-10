@@ -142,70 +142,70 @@ export default function SignupForm({
         }
     };
 
-    const handleMobileVerifyClick = async () => {
-        if (!formData.mobile) {
-            showToast('Enter a valid mobile first', 'error');
-            return;
-        }
-        setMobileSending(true);
-        try {
-            const identifier = formatPhoneToE164(formData.mobile);
-            const r = await sendOtpApi({ target: identifier, purpose: 'signup_phone' });
-            if (r?.success) {
-                showToast('OTP sent to mobile', 'success');
-                setShowMobileOtpBox(true);
-                setMobileResendLeft(RESEND_COOLDOWN);
-            } else {
-                showToast(r?.message || 'Failed to send mobile OTP', 'error');
-            }
-        } catch (error: any) {
-            showToast(error.message || 'Something went wrong. Try again later.', 'error');
-        } finally {
-            setMobileSending(false);
-        }
-    };
+    // const handleMobileVerifyClick = async () => {
+    //     if (!formData.mobile) {
+    //         showToast('Enter a valid mobile first', 'error');
+    //         return;
+    //     }
+    //     setMobileSending(true);
+    //     try {
+    //         const identifier = formatPhoneToE164(formData.mobile);
+    //         const r = await sendOtpApi({ target: identifier, purpose: 'signup_phone' });
+    //         if (r?.success) {
+    //             showToast('OTP sent to mobile', 'success');
+    //             setShowMobileOtpBox(true);
+    //             setMobileResendLeft(RESEND_COOLDOWN);
+    //         } else {
+    //             showToast(r?.message || 'Failed to send mobile OTP', 'error');
+    //         }
+    //     } catch (error: any) {
+    //         showToast(error.message || 'Something went wrong. Try again later.', 'error');
+    //     } finally {
+    //         setMobileSending(false);
+    //     }
+    // };
 
-    const handleResendMobile = async () => {
-        if (mobileResendLeft > 0) return;
-        setMobileSending(true);
-        try {
-            const identifier = formatPhoneToE164(formData.mobile);
-            const r = await sendOtpApi({ target: identifier, purpose: 'signup_phone' });
-            if (r?.success) {
-                showToast('OTP resent to mobile', 'success');
-                setMobileResendLeft(RESEND_COOLDOWN);
-            } else {
-                showToast(r?.message || 'Failed to resend mobile OTP', 'error');
-            }
-        } catch (error: any) {
-            showToast(error.message || 'Something went wrong. Try again later.', 'error');
-        } finally {
-            setMobileSending(false);
-        }
-    };
+    // const handleResendMobile = async () => {
+    //     if (mobileResendLeft > 0) return;
+    //     setMobileSending(true);
+    //     try {
+    //         const identifier = formatPhoneToE164(formData.mobile);
+    //         const r = await sendOtpApi({ target: identifier, purpose: 'signup_phone' });
+    //         if (r?.success) {
+    //             showToast('OTP resent to mobile', 'success');
+    //             setMobileResendLeft(RESEND_COOLDOWN);
+    //         } else {
+    //             showToast(r?.message || 'Failed to resend mobile OTP', 'error');
+    //         }
+    //     } catch (error: any) {
+    //         showToast(error.message || 'Something went wrong. Try again later.', 'error');
+    //     } finally {
+    //         setMobileSending(false);
+    //     }
+    // };
 
-    const handleConfirmMobileOtp = async () => {
-        if (!formData.mobileOtp) {
-            showToast('Enter OTP', 'error');
-            return;
-        }
-        setMobileVerifying(true);
-        try {
-            const identifier = formatPhoneToE164(formData.mobile);
-            const r = await verifyOtpApi({ target: identifier, code: formData.mobileOtp, purpose: 'verify_phone' });
-            if (r?.success) {
-                showToast( r.message || 'Mobile verified', 'success');
-                setFormData({ ...formData, mobileVerified: true });
-                setShowMobileOtpBox(false);
-            } else {
-                showToast(r?.message || 'Invalid OTP', 'error');
-            }
-        } catch (error: any) {
-            showToast(error.message || 'Something went wrong. Try again later.', 'error');
-        } finally {
-            setMobileVerifying(false);
-        }
-    };
+    // const handleConfirmMobileOtp = async () => {
+    //     if (!formData.mobileOtp) {
+    //         showToast('Enter OTP', 'error');
+    //         return;
+    //     }
+    //     setMobileVerifying(true);
+    //     try {
+    //         const identifier = formatPhoneToE164(formData.mobile);
+    //         const r = await verifyOtpApi({ target: identifier, code: formData.mobileOtp, purpose: 'verify_phone' });
+    //         if (r?.success) {
+    //             showToast(r.message || 'Mobile verified', 'success');
+    //             setFormData({ ...formData, mobileVerified: true });
+    //             setShowMobileOtpBox(false);
+    //         } else {
+    //             showToast(r?.message || 'Invalid OTP', 'error');
+    //         }
+    //     } catch (error: any) {
+    //         showToast(error.message || 'Something went wrong. Try again later.', 'error');
+    //     } finally {
+    //         setMobileVerifying(false);
+    //     }
+    // };
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
@@ -215,7 +215,8 @@ export default function SignupForm({
         else if (subdomainAvailable === false) newErrors.subdomain = 'Subdomain is already taken';
         if (!formData.password) newErrors.password = 'Password is required';
         else if (formData.password.length < 8) newErrors.password = 'Password must be at least 8 characters';
-        if (!formData.emailVerified && !formData.mobileVerified) newErrors.contact = 'Verify at least email or mobile';
+        // if (!formData.emailVerified && !formData.mobileVerified) newErrors.contact = 'Verify at least email or mobile';
+        if (!formData.emailVerified) newErrors.contact = 'Please verify your email before continuing';
         setErrors(newErrors);
         if (Object.keys(newErrors).length === 0) onNext();
     };
@@ -330,7 +331,7 @@ export default function SignupForm({
                     </div>
                 </div>
             )}
-
+            {errors.contact && <p className="text-red-500 text-sm mb-2">{errors.contact}</p>}
             <div className="inputGroup relative flex gap-2 items-center">
                 <div className="flex-1 relative">
                     <Phone className="input-icon" size={18} />
@@ -348,17 +349,17 @@ export default function SignupForm({
                     />
                     {formData.mobile && (mobileValid ? <Check className="absolute right-2 top-1/2 -translate-y-1/2 text-green-600" size={18} /> : <X className="absolute right-2 top-1/2 -translate-y-1/2 text-red-500" size={18} />)}
                 </div>
-                {mobileValid && !formData.mobileVerified && (
+                {/* {mobileValid && !formData.mobileVerified && (
                     <div className="flex items-center gap-2">
                         <button type="button" className="px-4 cursor-pointer bg-gray-100 dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg text-sm font-medium h-[46px]" onClick={handleMobileVerifyClick} disabled={mobileSending || mobileResendLeft > 0}>
                             {mobileSending ? 'Sending...' : mobileResendLeft > 0 ? `Resend in ${mobileResendLeft}s` : 'Verify'}
                         </button>
                     </div>
                 )}
-                {formData.mobileVerified && <span className="text-green-600 text-sm">Verified</span>}
+                {formData.mobileVerified && <span className="text-green-600 text-sm">Verified</span>} */}
             </div>
 
-            {showMobileOtpBox && !formData.mobileVerified && (
+            {/* {showMobileOtpBox && !formData.mobileVerified && (
                 <div className="my-3 p-3 rounded-md border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900">
                     <OTPInput
                         value={String(formData.mobileOtp || '')}
@@ -377,8 +378,8 @@ export default function SignupForm({
                         </button>
                     </div>
                 </div>
-            )}
-            {errors.contact && <p className="text-red-500 text-sm mb-2">{errors.contact}</p>}
+            )} */}
+
 
             <div className="inputGroup relative">
                 <Lock className="input-icon" size={18} />

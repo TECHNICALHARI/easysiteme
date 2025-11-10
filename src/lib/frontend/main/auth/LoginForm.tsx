@@ -52,7 +52,7 @@ export default function LoginForm({
         Sign in with your {formData.loginWith === 'email' ? 'email' : 'mobile'} to access your dashboard.
       </p>
 
-      {!formData.useOtp && !formData.otpSent && (
+      {/* {!formData.useOtp && !formData.otpSent && (
         <div className="flex gap-2 mb-4">
           <button
             type="button"
@@ -75,7 +75,7 @@ export default function LoginForm({
             Use Mobile
           </button>
         </div>
-      )}
+      )} */}
 
       {formData.loginWith === 'email' && (
         <>

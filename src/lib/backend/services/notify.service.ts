@@ -30,7 +30,7 @@ function renderOtpEmailHtml({
   code,
   ttlMinutes = 10,
   appName = "myeasypage",
-  logoUrl = "https://res.cloudinary.com/dlzhyrofc/image/upload/v1762664393/file_radq3o.webp",
+  logoUrl = "https://res.cloudinary.com/dlzhyrofc/image/upload/v1762794751/logo_eed2sk.png",
   supportUrl = "https://myeasypage.com/#contact",
 }: {
   code: string;
@@ -43,6 +43,14 @@ function renderOtpEmailHtml({
   const prettyYear = new Date().getFullYear();
   const codeEsc = escapeHtml(code);
   const expiresText = `${ttlMinutes} minute${ttlMinutes === 1 ? "" : "s"}`;
+  const logoHtml = `<img
+    src="${escapeHtml(logoUrl)}"
+    alt="${prettyApp} logo"
+    width="120"
+    style="display:block; width:120px; max-width:45%; height:auto; object-fit:contain; border:0; outline:none; text-decoration:none; -ms-interpolation-mode:bicubic;"
+    />`;
+
+  const logoFallback = `<div style="font-size:0;line-height:0;color:transparent;visibility:hidden;height:0;overflow:hidden;">${prettyApp}</div>`;
 
   return `<!doctype html>
 <html>
@@ -56,11 +64,10 @@ function renderOtpEmailHtml({
         <td align="center">
           <table width="100%" style="max-width:520px;background:#ffffff;border-radius:12px;box-shadow:0 6px 20px rgba(0,0,0,0.06);padding:32px;">
             
-            <tr>
-              <td align="center" style="padding-bottom:20px;">
-                <img src="${escapeHtml(
-                  logoUrl
-                )}" alt="${prettyApp}" style="height:40px;object-fit:contain;" />
+           <tr>
+              <td align="center" style="padding-bottom:20px;line-height:0;">
+                ${logoHtml}
+                ${logoFallback}
               </td>
             </tr>
 

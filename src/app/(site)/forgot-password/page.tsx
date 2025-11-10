@@ -15,7 +15,7 @@ export default function ForgotPasswordPage() {
     const { showToast } = useToast();
     const router = useRouter();
 
-    const [mode, setMode] = useState<'email' | 'mobile'>('email'); 
+    const [mode, setMode] = useState<'email' | 'mobile'>('email');
     const [email, setEmail] = useState('');
     const [mobile, setMobile] = useState('');
     const [countryCode, setCountryCode] = useState('+91');
@@ -106,7 +106,7 @@ export default function ForgotPasswordPage() {
                         Receive a one-time code to reset your password.
                     </p>
 
-                    <div className="flex gap-2 mb-4">
+                    {/* <div className="flex gap-2 mb-4">
                         <button
                             type="button"
                             className={`flex-1 cursor-pointer py-2 rounded-lg border text-sm font-medium transition ${mode === 'email' ? 'border-brand text-brand bg-brand/5' : 'border-gray-300 dark:border-gray-600'
@@ -123,7 +123,7 @@ export default function ForgotPasswordPage() {
                         >
                             Use Mobile
                         </button>
-                    </div>
+                    </div> */}
 
                     {step === 'request' && (
                         <>

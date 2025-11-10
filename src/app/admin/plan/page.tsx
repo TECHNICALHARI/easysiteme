@@ -101,7 +101,6 @@ export default function AdminUpgradePage() {
             Unlock premium layouts, custom domains, and pro-level tools to make your page stand out.
           </p>
         </div>
-
         <div className="max-w-4xl mx-auto text-center mb-8">
           <div className="inline-block px-6 py-3 rounded-lg bg-white shadow-sm border border-gray-100">
             <div className="text-sm text-gray-500">Start</div>
@@ -109,6 +108,29 @@ export default function AdminUpgradePage() {
             <div className="mt-1 text-indigo-600 font-bold">Offer ₹199 / ₹499 early-bird discount</div>
           </div>
         </div>
+        <div className="mt-4 mb-10 text-center">
+          <button
+            onClick={() => router.push('/admin')}
+            className="inline-flex items-center cursor-pointer gap-1 px-5 py-2.5 rounded-lg border border-gray-300 text-sm font-medium text-gray-700 hover:bg-gray-50 transition"
+          >
+            Skip for now — use Free Plan
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              className="h-4 w-4 text-gray-500"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              strokeWidth={2}
+            >
+              <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+            </svg>
+          </button>
+          <p className="text-xs text-gray-400 mt-1">
+            You can upgrade anytime from your dashboard.
+          </p>
+        </div>
+
+
 
         <div className="mb-6">
           <div className="text-sm text-gray-600">Current plan</div>
