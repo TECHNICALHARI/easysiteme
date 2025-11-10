@@ -30,7 +30,10 @@ export const USER_PAGE = (username: string) =>
 
 export const UPLOAD_IMAGE = "/uploads/image";
 export const DELETE_IMAGE = "/uploads/delete";
-export const CONTACT = "/contact";
+export const CONTACT = "/public/contact";
 export const CREATE_ORDER = "/payments/create-order";
 export const VERIFY_PAYMENT = "/payments/verify";
 export const FEATURED_MAKERS_PUBLIC = "/public/featured-makers";
+export const SUPERADMIN_CONTACT = "/superadmin/contact";
+export const SUPERADMIN_FEATURED_MAKERS = "/superadmin/featured-makers";
+export const SUPERADMIN_USERS = "/superadmin/users";

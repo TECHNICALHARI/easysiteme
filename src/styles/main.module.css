@@ -772,25 +772,17 @@
 
 
 /* ========== USER SHOWCASE start ========== */
-.blockHead {
-  text-align: center;
-}
-
-.blockHead .section-title {
-  margin-bottom: .25rem;
-}
-
 .userCarousel {
   position: relative;
   overflow-x: clip;
   overflow-y: hidden;
-  inline-size: 100%;
+  width: 100%;
   margin-inline: calc(50% - 50vw);
-  padding-block: 10px;
+  padding-block: 12px;
+  margin-top: 2rem;
   contain: content;
-  --fade: 12%;
-  mask-image: linear-gradient(to right, transparent, #000 var(--fade), #000 calc(100% - var(--fade)), transparent);
-  -webkit-mask-image: linear-gradient(to right, transparent, #000 var(--fade), #000 calc(100% - var(--fade)), transparent);
+  -webkit-mask-image: linear-gradient(to right, transparent, #000 12%, #000 calc(100% - 12%), transparent);
+  mask-image: linear-gradient(to right, transparent, #000 12%, #000 calc(100% - 12%), transparent);
 }
 
 @supports not (overflow: clip) {
@@ -801,137 +793,234 @@
 
 .userTrack {
   display: inline-flex;
-  gap: 1rem;
+  gap: 1.25rem;
+  align-items: stretch;
+  justify-content: center;
   min-width: max-content;
   will-change: transform;
+  transition: transform .3s ease;
 }
 
 .userCardFull {
   position: relative;
   overflow: hidden;
-  padding: 0;
   flex: 0 0 320px;
   height: 200px;
-  border-radius: 22px;
-  background: #0f1115;
-  border: 1px solid rgba(0, 0, 0, .06);
-  box-shadow: 0 12px 28px rgba(16, 24, 40, .10);
-  transition: transform .18s ease, box-shadow .22s ease, border-color .22s ease, filter .2s ease;
+  border-radius: 20px;
+  background: color-mix(in srgb, var(--color-bg) 96%, transparent);
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  box-shadow: 0 14px 36px rgba(16, 24, 40, 0.08);
+  transition: transform .32s ease, box-shadow .32s ease, border-color .28s ease, filter .28s ease;
+  isolation: isolate;
 }
 
-.userCardFull\:hover {
-  transform: translateY(-6px);
-  box-shadow: 0 20px 44px rgba(16, 24, 40, .14);
-  border-color: color-mix(in srgb, var(--color-brand) 22%, rgba(0, 0, 0, .06));
-  filter: saturate(1.02);
+.userCardFull:hover {
+  transform: translateY(-8px) scale(1.02);
+  box-shadow: 0 26px 60px rgba(17, 24, 39, 0.14);
+  border-color: color-mix(in srgb, var(--color-brand) 22%, rgba(0, 0, 0, 0.06));
 }
 
-\:root .userCardFull {
-  background: #0b0e12;
-  border-color: rgba(255, 255, 255, .06);
-  box-shadow: 0 16px 36px rgba(0, 0, 0, .45);
-}
-
-.userBgImg {
+.userBgImg,
+.userBgFallback {
   position: absolute !important;
   inset: 0 !important;
+  width: 100%;
+  height: 100%;
   object-fit: cover;
   z-index: 0;
+  transition: transform .45s ease;
+}
+
+.userCardFull:hover .userBgImg {
+  transform: scale(1.04);
 }
 
 .userBgFallback {
-  position: absolute;
-  inset: 0;
   background:
-    radial-gradient(120% 120% at 20% 10%, rgba(255, 255, 255, .14), transparent 60%),
-    linear-gradient(145deg, #1f2937, #0f172a);
-  z-index: 0;
+    radial-gradient(120% 120% at 20% 10%, color-mix(in srgb, var(--color-bg) 86%, transparent), transparent 60%),
+    linear-gradient(145deg, color-mix(in srgb, var(--color-bg) 88%, transparent), color-mix(in srgb, var(--color-bg) 96%, transparent));
 }
 
 .userOverlay {
   position: absolute;
   inset: 0;
   z-index: 1;
-  background:
-    linear-gradient(180deg, rgba(0, 0, 0, 0) 40%, rgba(0, 0, 0, .78) 100%),
-    radial-gradient(60% 60% at 0% 0%, rgba(0, 0, 0, .35), transparent 60%);
+  background: linear-gradient(180deg, rgba(0, 0, 0, 0) 36%, rgba(0, 0, 0, 0.68) 100%);
   pointer-events: none;
 }
 
 .userBottom {
   position: absolute;
-  left: 14px;
-  right: 14px;
-  bottom: 12px;
+  left: 16px;
+  right: 16px;
+  bottom: 14px;
   z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.userLeft {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.userAvatarWrap {
+  width: 52px;
+  height: 52px;
+  border-radius: 12px;
+  overflow: hidden;
+  border: 2px solid rgba(255, 255, 255, 0.85);
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.2);
+}
+
+.userAvatar {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.avatarFallback {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 800;
+  color: #fff;
+  background: color-mix(in srgb, var(--color-brand) 28%, #222);
+  width: 100%;
+  height: 100%;
+}
+
+.userCardText {
   display: grid;
-  gap: 6px;
+  gap: 2px;
 }
 
 .userName {
   color: #fff;
-  font-weight: 900;
+  font-weight: 800;
   font-size: 1.06rem;
-  letter-spacing: .2px;
-  text-shadow: 0 2px 10px rgba(0, 0, 0, .45);
-  line-height: 1.1;
-}
-
-.userSub {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px;
-}
-
-.userSubText {
-  color: rgba(255, 255, 255, .92);
-  font-size: .8rem;
   line-height: 1;
-  text-overflow: ellipsis;
+  letter-spacing: -0.01em;
+  text-shadow: 0 3px 12px rgba(0, 0, 0, 0.45);
+  max-width: 220px;
   white-space: nowrap;
   overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.userSubtitle {
+  color: rgba(255, 255, 255, 0.88);
+  font-size: 0.82rem;
+  line-height: 1;
+  opacity: 0.95;
+  max-width: 260px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .userPill {
-  flex: 0 0 auto;
-  font-size: .72rem;
+  background: linear-gradient(135deg, var(--color-brand), var(--color-brand-dark));
+  color: #fff;
   font-weight: 800;
-  color: #0b1220;
-  background: #fff;
+  font-size: 0.72rem;
   border-radius: 9999px;
-  padding: 4px 10px;
-  letter-spacing: .02em;
-  box-shadow: 0 8px 18px rgba(0, 0, 0, .18);
-  border: 1px solid rgba(255, 255, 255, .86);
+  padding: 6px 12px;
+  box-shadow: 0 8px 20px color-mix(in srgb, var(--color-brand) 25%, transparent);
+  border: 1px solid rgba(255, 255, 255, 0.9);
+  flex-shrink: 0;
 }
 
-.userCardFull\:hover .userPill {
-  box-shadow: 0 10px 24px rgba(0, 0, 0, .24);
-}
-
-@media (max-width: 600px) {
+@media (max-width: 900px) {
   .userCardFull {
-    flex-basis: 260px;
-    height: 180px;
-    border-radius: 18px;
+    width: 280px;
+    height: 190px;
+    border-radius: 16px;
+  }
+
+  .userAvatarWrap {
+    width: 46px;
+    height: 46px;
+    border-radius: 10px;
   }
 
   .userName {
     font-size: 1rem;
+    max-width: 180px;
+  }
+}
+
+@media (max-width: 640px) {
+  .userTrack {
+    gap: 1rem;
   }
 
-  .userPill {
-    padding: 3px 9px;
-    font-size: .7rem;
+  .userCardFull {
+    width: 92%;
+    max-width: 360px;
+    height: 200px;
+    margin-inline: auto;
   }
+
+  .userBottom {
+    left: 14px;
+    right: 14px;
+    bottom: 12px;
+  }
+}
+
+[data-theme='light'] .userCardFull {
+  background: color-mix(in srgb, var(--color-bg) 98%, transparent);
+  border-color: rgba(0, 0, 0, 0.06);
+  box-shadow: 0 12px 32px rgba(16, 24, 40, 0.06);
+}
+
+[data-theme='dark'] .userCardFull {
+  background: linear-gradient(180deg, color-mix(in srgb, #0b0e12 88%, transparent), color-mix(in srgb, #0b0e12 96%, transparent));
+  border-color: rgba(255, 255, 255, 0.06);
+  box-shadow: 0 18px 44px rgba(0, 0, 0, 0.45);
+}
+
+[data-theme='dark'] .userPill {
+  background: linear-gradient(135deg, #7c3aed, #4f46e5);
+  border-color: rgba(255, 255, 255, 0.06);
+  box-shadow: 0 10px 28px rgba(79, 70, 229, 0.18);
+}
+
+.userTrack {
+  flex-wrap: nowrap;
+  justify-content: center;
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .userTrack {
+
+  .userTrack,
+  .userBgImg,
+  .userCardFull {
+    transition: none !important;
     transform: none !important;
   }
 }
+
+.userShowcaseSection {
+  padding: 5rem 1.5rem 4rem;
+  text-align: center;
+  background: color-mix(in srgb, var(--color-bg) 96%, transparent);
+}
+
+[data-theme='dark'] .userShowcaseSection {
+  background: linear-gradient(180deg, #0b0b10, #0f1115);
+}
+
+.centeredTrack {
+  justify-content: center !important;
+  margin: 0 auto;
+  flex-wrap: wrap;
+}
+
 
 /* ========== USER SHOWCASE end ========== */
 

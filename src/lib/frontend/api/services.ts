@@ -20,6 +20,9 @@ import {
   CHANGE_SUBDOMAIN,
   CREATE_ORDER,
   VERIFY_PAYMENT,
+  SUPERADMIN_CONTACT,
+  SUPERADMIN_FEATURED_MAKERS,
+  SUPERADMIN_USERS,
 } from "./routes";
 
 export interface ApiResponse<T = any> {
@@ -359,3 +362,46 @@ export async function getFeaturedMakersPublicApi(params?: {
   const arr = (json?.data ?? json ?? []) as FeaturedMakerPublic[];
   return Array.isArray(arr) ? arr : [];
 }
+
+export async function getContactsSuperAdmin(
+  page: number = 1,
+  limit: number = 20
+) {
+  const url = `${SUPERADMIN_CONTACT}?page=${encodeURIComponent(
+    page
+  )}&limit=${encodeURIComponent(limit)}`;
+  return apiFetch<any>(url, { method: "GET" });
+}
+
+export async function listFeaturedSuperAdmin() {
+  return apiFetch<any>(SUPERADMIN_FEATURED_MAKERS, { method: "GET" });
+}
+
+export async function setFeaturedSuperAdmin(payload: {
+  subdomain: string;
+  featured: boolean;
+  rank?: number;
+}) {
+  return apiFetch<any>(SUPERADMIN_FEATURED_MAKERS, {
+    method: "POST",
+    body: payload,
+  });
+}
+
+export async function getUsersSuperAdmin(opts?: {
+  page?: number;
+  limit?: number;
+  q?: string;
+  plan?: string;
+}) {
+  const page = opts?.page ?? 1;
+  const limit = opts?.limit ?? 20;
+  const qs = new URLSearchParams();
+  qs.set("page", String(page));
+  qs.set("limit", String(limit));
+  if (opts?.q) qs.set("q", String(opts.q));
+  if (opts?.plan) qs.set("plan", String(opts.plan));
+  const url = `${SUPERADMIN_USERS}?${qs.toString()}`;
+  return apiFetch<any>(url, { method: "GET" });
+}
+

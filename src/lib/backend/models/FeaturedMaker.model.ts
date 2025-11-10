@@ -25,6 +25,5 @@ export type IFeaturedMakerDoc = Document & {
 };
 
 export const FeaturedMaker =
-  (mongoose.models &&
-    (mongoose.models.FeaturedMaker as mongoose.Model<IFeaturedMakerDoc>)) ||
+  (mongoose.models.FeaturedMaker as mongoose.Model<IFeaturedMakerDoc>) ||
   mongoose.model<IFeaturedMakerDoc>("FeaturedMaker", FeaturedMakerSchema);

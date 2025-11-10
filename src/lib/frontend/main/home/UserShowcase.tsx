@@ -1,4 +1,4 @@
-"use client";
+'use client';
 
 import { useEffect, useMemo, useState } from "react";
 import { motion, useReducedMotion } from "framer-motion";
@@ -15,7 +15,6 @@ export type FeaturedUser = {
   title?: string;
   avatar?: string;
   bannerImage?: string;
-  tags?: string[];
   layoutType?: LayoutType;
   customDomain?: string;
 };
@@ -40,25 +39,44 @@ export default function UserShowcase() {
     const c = new AbortController();
     getFeaturedMakersPublicApi({ limit: 12, signal: c.signal })
       .then((rows) => {
-        const mapped: FeaturedUser[] = rows.map((r) => ({
+        const mapped = (rows || []).map((r) => ({
           username: r.subdomain,
           fullName: r.fullName || "",
+          title: (r.headline as string) || "",
           avatar: r.avatar || "",
           bannerImage: r.bannerImage || "",
           layoutType: (r.layoutType as LayoutType) || "bio",
-        }));
-        setItems(mapped);
+        })) as FeaturedUser[];
+
+        const seen = new Set<string>();
+        const deduped: FeaturedUser[] = [];
+        for (const m of mapped) {
+          const key = (m.username || "").toLowerCase();
+          if (!key) continue;
+          if (seen.has(key)) continue;
+          seen.add(key);
+          deduped.push(m);
+        }
+        setItems(deduped);
       })
       .catch(() => setItems([]));
     return () => c.abort();
   }, []);
 
+  const shouldScroll = useMemo(() => {
+    if (!items) return false;
+    return items.length > 4 && !reduceMotion;
+  }, [items, reduceMotion]);
+
+  const displayItems = useMemo(() => {
+    if (!items) return [];
+    return shouldScroll ? [...items, ...items] : items;
+  }, [items, shouldScroll]);
+
   if (!items || items.length === 0) return null;
 
-  const loop = [...items, ...items];
-
   return (
-    <section id="examples" className="section" aria-labelledby="examples-title">
+    <section id="examples" className={`section ${styles.userShowcaseSection}`}>
       <div className="container-fluid">
         <div className={styles.blockHead}>
           <h2 id="examples-title" className="section-title">Loved by makers</h2>
@@ -70,40 +88,73 @@ export default function UserShowcase() {
 
         <div className={styles.userCarousel} aria-label="User site examples">
           <motion.div
-            className={styles.userTrack}
-            animate={reduceMotion ? undefined : { x: ["0%", "-50%"] }}
-            transition={reduceMotion ? undefined : { ease: "linear", duration: 24, repeat: Infinity }}
+            className={`${styles.userTrack} ${
+              !shouldScroll ? styles.centeredTrack : ""
+            }`}
+            animate={shouldScroll ? { x: ["0%", "-50%"] } : undefined}
+            transition={
+              shouldScroll
+                ? { ease: "linear", duration: 28, repeat: Infinity }
+                : undefined
+            }
           >
-            {loop.map((u, i) => {
+            {displayItems.map((u, i) => {
               const href = publicUrl({ subdomain: u.username });
               const bg = u.bannerImage || u.avatar || "";
+              const key = `${u.username}-${i}`;
+
               return (
                 <Link
-                  key={`${u.username}-${i}`}
+                  key={key}
                   href={href}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className={`${styles.userCard} ${styles.userCardFull}`}
-                  aria-label={`Open ${u.fullName} site`}
+                  className={styles.userCardFull}
+                  aria-label={`Open ${u.fullName || u.username} site`}
                 >
                   {bg ? (
                     <Image
                       src={bg}
-                      alt=""
+                      alt={u.fullName || u.username}
                       fill
                       sizes="(max-width: 600px) 260px, 320px"
                       className={styles.userBgImg}
                       priority={i < 4}
                     />
                   ) : (
-                    <div className={styles.userBgFallback} aria-hidden="true" />
+                    <div className={styles.userBgFallback} />
                   )}
-                  <div className={styles.userOverlay} aria-hidden="true" />
+                  <div className={styles.userOverlay} />
                   <div className={styles.userBottom}>
-                    <div className={styles.userName}>{u.fullName}</div>
-                    <div className={styles.userSub}>
-                      <span className={styles.userSubText}>{smallLine({ title: u.title, subdomain: u.username })}</span>
-                      <span className={styles.userPill}>{pillText(u.layoutType)}</span>
+                    <div className={styles.userLeft}>
+                      {u.avatar ? (
+                        <div className={styles.userAvatarWrap}>
+                          <Image
+                            src={u.avatar}
+                            alt={u.fullName || u.username}
+                            width={52}
+                            height={52}
+                            className={styles.userAvatar}
+                          />
+                        </div>
+                      ) : (
+                        <div className={styles.userAvatarWrap}>
+                          <div className={styles.avatarFallback}>
+                            {u.fullName?.[0] || u.username?.[0] || "?"}
+                          </div>
+                        </div>
+                      )}
+                      <div className={styles.userCardText}>
+                        <div className={styles.userName}>
+                          {u.fullName || u.username}
+                        </div>
+                        <div className={styles.userSubtitle}>
+                          {smallLine({ title: u.title, subdomain: u.username })}
+                        </div>
+                      </div>
+                    </div>
+                    <div className={styles.userPill}>
+                      {pillText(u.layoutType)}
                     </div>
                   </div>
                 </Link>

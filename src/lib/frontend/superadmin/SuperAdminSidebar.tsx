@@ -9,6 +9,7 @@ const navLinks = [
   { href: '/superadmin/users', label: 'Users' },
   { href: '/superadmin/plans', label: 'Plans' },
   { href: '/superadmin/payments', label: 'Payments' },
+  { href: '/superadmin/contacts', label: 'Contacts' },
   { href: '/superadmin/reports', label: 'Reports' },
   { href: '/superadmin/settings', label: 'Settings' },
 ];
