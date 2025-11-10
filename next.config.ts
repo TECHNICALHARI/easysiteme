@@ -10,10 +10,8 @@ const nextConfig: NextConfig = {
   
   images: {
     domains: [
-      "patientportalapi.akosmd.in",
       "myeasypage.com",
       "res.cloudinary.com",
-      "picsum.photos"
     ],
   },
 };

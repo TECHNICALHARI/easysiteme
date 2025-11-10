@@ -10,11 +10,10 @@ export type RateResult = {
 
 async function incrWithExpire(key: string, windowSec: number) {
   try {
-    const tx = redis.multi();
-    tx.incr(key);
-    tx.expire(key, windowSec);
-    const res = (await tx.exec()) as any[];
-    const count = Number(res?.[0] ?? 0);
+    const count = Number(await redis.incr(key));
+    if (count === 1) {
+      await redis.expire(key, windowSec);
+    }
     return count;
   } catch {
     return 1;
@@ -26,19 +25,28 @@ export async function rateLimit(
   limit: number,
   windowSec: number
 ): Promise<RateResult> {
+  const redisKey = `ratelimit:${key}`;
   try {
-    const redisKey = `ratelimit:${key}`;
     const count = await incrWithExpire(redisKey, windowSec);
+    let ttl = -1;
+    try {
+      ttl = Number(await redis.ttl(redisKey));
+    } catch {
+      ttl = -1;
+    }
+    if (!Number.isFinite(ttl) || ttl <= 0) {
+      ttl = windowSec;
+    }
     const allowed = count <= limit;
     const remaining = Math.max(0, limit - count);
-    const reset = Math.floor(Date.now() / 1000) + windowSec;
+    const reset = Math.floor(Date.now() / 1000) + ttl;
     return { allowed, count, remaining, reset };
   } catch {
     const now = Math.floor(Date.now() / 1000);
     const count = 1;
     const allowed = true;
     const remaining = Math.max(0, limit - count);
-    const reset = now + 60;
+    const reset = now + windowSec;
     return { allowed, count, remaining, reset };
   }
 }

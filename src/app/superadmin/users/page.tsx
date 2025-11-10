@@ -6,7 +6,7 @@ import { Eye, ShieldCheck, UserX, Search } from 'lucide-react';
 import AdminTable from '@/lib/frontend/superadmin/AdminTable';
 import AdminPagination from '@/lib/frontend/superadmin/AdminPagination';
 import CustomModal from '@/lib/frontend/common/CustomModal';
-import { getUsersSuperAdmin, setFeaturedSuperAdmin } from '@/lib/frontend/api/services';
+import { getUsersSuperAdmin, setFeaturedSuperAdmin, getFeaturedMakersPublicApi } from '@/lib/frontend/api/services';
 import { useToast } from '@/lib/frontend/common/ToastProvider';
 
 type UserRow = {
@@ -50,6 +50,7 @@ export default function AdminUsersPage() {
     { key: 'rank', label: 'Rank' },
   ];
 
+
   const fetchPage = async (opts?: { p?: number; lim?: number; q?: string; plan?: string }) => {
     const p = opts?.p ?? page;
     const lim = opts?.lim ?? limit;
@@ -67,17 +68,42 @@ export default function AdminUsersPage() {
       if (!res || !res.success) throw new Error(res?.message || 'Failed to fetch users');
       const d = res.data ?? {};
       const rows = Array.isArray(d.users) ? d.users : [];
+
+      let featuredRows: any[] = [];
+      try {
+        const f = await getFeaturedMakersPublicApi({ limit: 200 });
+        if (Array.isArray(f)) featuredRows = f;
+      } catch (e) {
+        featuredRows = [];
+      }
+
+      const featuredMap: Record<string, { featured: boolean; rank: number }> = {};
+      for (const fr of featuredRows) {
+        const sd = (fr.subdomain || '').toString().toLowerCase().trim();
+        if (!sd) continue;
+        featuredMap[sd] = { featured: true, rank: typeof fr.rank === 'number' ? fr.rank : 0 };
+      }
+
       setUsers(
-        rows.map((u: any) => ({
-          _id: u._id,
-          email: u.email || '',
-          subdomain: u.subdomain || (u.settings?.subdomain || ''),
-          plan: u.plan || '',
-          createdAt: u.createdAt ? new Date(u.createdAt).toLocaleString() : '',
-          roles: Array.isArray(u.roles) ? u.roles : [],
-          profile: u.profile || {},
-          settings: u.settings || {},
-        }))
+        rows.map((u: any) => {
+          const sub = (u.subdomain || (u.settings?.subdomain || '') || '').toString().toLowerCase();
+          const fm = featuredMap[sub] || { featured: false, rank: 0 };
+          return {
+            _id: u._id,
+            email: u.email || '',
+            subdomain: u.subdomain || (u.settings?.subdomain || ''),
+            plan: u.plan || '',
+            createdAt: u.createdAt ? new Date(u.createdAt).toLocaleString() : '',
+            roles: Array.isArray(u.roles) ? u.roles : [],
+            profile: u.profile || {},
+            settings: {
+              ...(u.settings || {}),
+              featured: fm.featured,
+              featuredRank: fm.rank,
+              subdomain: u.subdomain || (u.settings?.subdomain || ''),
+            },
+          } as UserRow;
+        })
       );
       setTotal(typeof d.total === 'number' ? d.total : Number(d.total || rows.length));
       setPage(typeof d.page === 'number' ? d.page : p);
@@ -117,7 +143,7 @@ export default function AdminUsersPage() {
   const totalPages = Math.max(1, Math.ceil(total / Math.max(1, limit)));
 
   const toggleFeatured = async (u: UserRow) => {
-    const sub = u.subdomain || u.settings?.subdomain || '';
+    const sub = (u.subdomain || u.settings?.subdomain || '').toString().trim();
     if (!sub) {
       showToast('User has no subdomain', 'error');
       return;
@@ -144,7 +170,7 @@ export default function AdminUsersPage() {
 
   const saveRank = async () => {
     if (!editingRankUser) return;
-    const sub = editingRankUser.subdomain || editingRankUser.settings?.subdomain || '';
+    const sub = (editingRankUser.subdomain || editingRankUser.settings?.subdomain || '').toString().trim();
     if (!sub) {
       showToast('No subdomain', 'error');
       return;

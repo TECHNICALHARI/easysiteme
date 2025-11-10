@@ -20,16 +20,11 @@ export const viewport: Viewport = {
 };
 
 export const metadata: Metadata = {
-  // title: {
-  //   default: "Admin Dashboard | myeasypage",
-  //   template: "%s | Admin | myeasypage",
-  // },
   title: {
-    default: "Akosmd Patient Portal",
-    template: "%s | Akosmd Patient Portal",
+    default: "Admin Dashboard | myeasypage",
+    template: "%s | Admin | myeasypage",
   },
-  // description: "Admin panel for myeasypage SaaS platform.",
-  description: "Akosmd Patient Portal",
+  description: "Admin panel for myeasypage SaaS platform.",
   robots: {
     index: false,
     follow: false,
