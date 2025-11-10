@@ -36,7 +36,7 @@ export default function MobilePreview({ form }: Props) {
     window.addEventListener('message', onReady);
     iframe.addEventListener('load', onLoad);
 
-    send(); // first fire
+    send(); 
 
     return () => {
       window.removeEventListener('message', onReady);

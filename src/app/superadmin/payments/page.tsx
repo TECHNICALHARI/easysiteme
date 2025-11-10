@@ -8,7 +8,6 @@ import DateRangePicker from '@/lib/frontend/superadmin/DateRangePicker';
 import ChartBlock from '@/lib/frontend/superadmin/ChartBlock';
 import { Download } from 'lucide-react';
 
-// 🧪 Full Payments Dataset
 const paymentsData = [
   { id: '1', name: 'Aman Verma', email: 'aman@gmail.com', plan: 'Pro', amount: 199, date: '2025-07-10', status: 'Success' },
   { id: '2', name: 'Riya Sharma', email: 'riya@gmail.com', plan: 'Premium', amount: 499, date: '2025-07-08', status: 'Success' },
@@ -43,7 +42,6 @@ export default function PaymentsPage() {
     });
   }, [planFilter, dateRange]);
 
-  // 🔢 Totals
   const monthlyRevenue = useMemo(() => {
     return filtered
       .filter((p) => p.status === 'Success')
@@ -54,7 +52,6 @@ export default function PaymentsPage() {
     return filtered.filter((p) => p.status === 'Success' && p.plan !== 'Free').length;
   }, [filtered]);
 
-  // 📊 Charts
   const revenueByPlan = useMemo(() => {
     const totals: Record<string, number> = { Free: 0, Pro: 0, Premium: 0 };
     filtered.forEach((p) => (totals[p.plan] += p.amount));
@@ -78,7 +75,6 @@ export default function PaymentsPage() {
     return Object.entries(counts).map(([name, value]) => ({ name, value }));
   }, [filtered]);
 
-  // 📤 Export to CSV
   const exportCSV = () => {
     const header = columns.map(c => c.label).join(',');
     const rows = filtered.map((p) =>

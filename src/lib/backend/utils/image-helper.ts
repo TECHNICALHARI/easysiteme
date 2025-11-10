@@ -33,7 +33,6 @@ export async function replaceBase64Images<T extends AnyObject>(
     const val = payload?.[field];
 
     if (!val) {
-      // do nothing, but ensure public id remains if already present in payload
       if (payload && typeof payload[`${field}PublicId`] === "string") {
         out[`${field}PublicId`] = payload[`${field}PublicId`];
       }

@@ -1,4 +1,3 @@
-// src/lib/frontend/admin/components/subscribe/SubscribersTab.tsx
 'use client';
 
 import { useEffect, useState } from 'react';

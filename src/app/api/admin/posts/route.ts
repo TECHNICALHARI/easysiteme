@@ -52,7 +52,6 @@ export async function PUT(req: NextRequest) {
     const postId = body?.postId;
     if (!postId) return errorResponse("postId required", 400, req);
 
-    // Handle toggle publish if payload is just { postId, published }
     if (
       typeof body.published !== "undefined" &&
       Object.keys(body).length === 2

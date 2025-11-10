@@ -1,4 +1,3 @@
-// backend/config/db.ts
 import mongoose from "mongoose";
 import { appConfig } from "./index";
 

@@ -1,5 +1,3 @@
-// Custom domain-based preview (rahul.com)
-
 import React from 'react'
 
 const CustomDomain = () => {

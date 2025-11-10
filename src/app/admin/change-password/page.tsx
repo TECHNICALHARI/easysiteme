@@ -23,7 +23,7 @@ export default function ChangePasswordPage() {
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const { name, value } = e.target;
         setForm((prev) => ({ ...prev, [name]: value }));
-        setErrors((prev) => ({ ...prev, [name]: '' })); // clear error on typing
+        setErrors((prev) => ({ ...prev, [name]: '' })); 
     };
 
     const toggle = (key: 'showCurrent' | 'showNew' | 'showConfirm') => {

@@ -17,7 +17,6 @@ export function usePublicPage(username: string, initialEtag?: string | null) {
         const r = await fetchPublicPageClient(username, etag ?? null);
         if (cancelled) return;
         if (r.status === 304) {
-          // nothing changed
         } else {
           setData(r.data);
           setEtag(r.etag ?? null);
@@ -42,7 +41,6 @@ export function usePublicPage(username: string, initialEtag?: string | null) {
         if (cancelled) return;
         setPosts(r.data?.posts ?? null);
       } catch {
-        // ignore
       }
     }
     loadPosts();

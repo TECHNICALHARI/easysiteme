@@ -163,7 +163,6 @@ export default function ReportsPage() {
           columns={columns}
           data={filtered}
           enablePagination
-        //   enableSorting
           defaultPageSize={10}
         />
       </div>

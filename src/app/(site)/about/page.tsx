@@ -1,4 +1,3 @@
-// app/about/page.tsx
 
 import SeoSchemas from "@/lib/frontend/common/SeoSchemas";
 import styles from "@/styles/main.module.css";

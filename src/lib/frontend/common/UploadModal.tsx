@@ -130,7 +130,6 @@ export default function UploadModal({
       showToast(`${typeLabel} selected.`, 'success');
       onClose();
     }
-    // reset input so selecting the same file again triggers onChange
     if (fileInputRef.current) fileInputRef.current.value = '';
   };
 

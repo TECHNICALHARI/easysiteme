@@ -36,7 +36,6 @@ export default function DomainSetupModal({
     setStatus('idle');
 
     try {
-      // Send domain to backend for DNS verification or saving
       const res = await fetch('/api/setup-domain', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },

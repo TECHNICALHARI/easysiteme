@@ -26,9 +26,7 @@ function syncPreviewPayload(form: FormData) {
 }
 
 export function openPreviewInNewTab(form: FormData) {
-  // important: no 'noreferrer' so window ref available रहे
   const w = window.open('/admin/preview', '_blank', 'noopener');
-  // immediately broadcast + cache
   syncPreviewPayload(form);
   try { w?.postMessage({ type: 'myeasypage:preview:update', payload: form }, '*'); } catch {}
 }
@@ -40,8 +38,6 @@ export function pingPreview() {
 }
 
 export function usePreviewHotkey(form: FormData) {
-  // Meta+Shift+P / Ctrl+Shift+P -> open preview (Ctrl+P से print खुलता है, इसलिए shift जोड़ा है)
-  // eslint-disable-next-line react-hooks/rules-of-hooks
   const { useEffect } = require('react') as typeof import('react');
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {

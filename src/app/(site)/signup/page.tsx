@@ -72,9 +72,6 @@ export default function SignupPage() {
       if (res?.success) {
         showToast('Signup successful! Redirecting...', 'success');
         setTimeout(() => {
-          const params = new URLSearchParams(window.location.search);
-          const next = params.get('next') || '/admin/plan';
-          // router.push(next);
           router.push('/admin/plan');
         }, 500);
       } else {

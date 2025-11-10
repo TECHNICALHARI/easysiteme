@@ -462,7 +462,6 @@ export default function ProfileTab() {
     setProfileDesign((prev: any) => ({ ...prev, profile: { ...prev.profile, website: normalized } }));
   };
 
-  // resume download preview handling
 
   useEffect(() => {
     let toRevoke: string | null = null;

@@ -45,7 +45,6 @@ export function useLocalDraft(form: FormData, enabled: boolean, serverData?: Par
         localStorage.setItem(KEY, JSON.stringify(editableDraft));
       }
     } catch {
-      // ignore
     }
   }, [enabled, form, serverData]);
 }
