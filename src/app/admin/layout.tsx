@@ -4,6 +4,10 @@ import "@/styles/globals.css";
 import AdminLayout from "@/lib/frontend/admin/layout/AdminLayout";
 import { ToastProvider } from "@/lib/frontend/common/ToastProvider";
 import { UserProvider } from "@/lib/frontend/context/UserContext";
+import { Suspense } from "react";
+import Loader from "@/lib/frontend/common/Loader";
+export const dynamic = "force-dynamic";
+export const fetchCache = "force-no-store";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -42,7 +46,9 @@ export default function RootLayout({
         <ToastProvider>
           <UserProvider>
             <AdminLayout>
-              {children}
+              <Suspense fallback={<Loader />}>
+                {children}
+              </Suspense>
             </AdminLayout>
           </UserProvider>
         </ToastProvider>

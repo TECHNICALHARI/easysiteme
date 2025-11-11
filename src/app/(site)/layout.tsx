@@ -4,6 +4,8 @@ import "@/styles/globals.css";
 import Header from "@/lib/frontend/main/layout/Header";
 import Footer from "@/lib/frontend/main/layout/Footer";
 import { ToastProvider } from "@/lib/frontend/common/ToastProvider";
+import { Suspense } from "react";
+import Loader from "@/lib/frontend/common/Loader";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -111,11 +113,13 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <a href="#main" className="sr-only focus:not-sr-only focus:absolute focus:top-2 focus:left-2">
           Skip to content
         </a>
-        <ToastProvider>
-          <Header />
-          {children}
-          <Footer />
-        </ToastProvider>
+        <Suspense fallback={<Loader />}>
+          <ToastProvider>
+            <Header />
+            {children}
+            <Footer />
+          </ToastProvider>
+        </Suspense>
       </body>
     </html>
   );
